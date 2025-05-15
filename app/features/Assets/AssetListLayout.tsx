@@ -59,7 +59,7 @@ const AssetListLayout = () => {
   
 
   return (
-    <div className="flex flex-col fixed max-h-screen right-0 bg-gray-950/50 text-gray-100">
+    <div className="flex flex-col fixed max-h-screen right-0 border-l border-gray-800 bg-gray-900 text-gray-100">
       {/* Header */}
       <div className="p-4 border-b border-gray-800 flex justify-between items-center">
         <h1 className="text-xl font-bold">Asset Manager</h1>
