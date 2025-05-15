@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ImagePlus, X } from "lucide-react";
 import Image from "next/image";
-import { useRef, useState, DragEvent } from "react";
+import { useRef, useState, DragEvent, useEffect } from "react";
 import { Asset } from "./AssetAnalysisResult";
 
 const dropzoneVariants = {
@@ -21,12 +21,30 @@ type Props = {
 const AssetAnalysisUploadImage = ({selectedFile, setSelectedFile, setOpenaiAssets, setGroqAssets, setGeminiAssets}: Props) => {
     const [isDragActive, setIsDragActive] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    
+    // Generate image URL when selectedFile changes
+    useEffect(() => {
+        if (selectedFile) {
+            const url = URL.createObjectURL(selectedFile);
+            setImageUrl(url);
+            
+            // Clean up the URL when component unmounts or selectedFile changes
+            return () => {
+                URL.revokeObjectURL(url);
+            };
+        } else {
+            setImageUrl(null);
+        }
+    }, [selectedFile]);
+    
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             setSelectedFile(file);
             setOpenaiAssets([]);
             setGeminiAssets([]);
+            setGroqAssets([]);
         }
     };
 
@@ -38,6 +56,7 @@ const AssetAnalysisUploadImage = ({selectedFile, setSelectedFile, setOpenaiAsset
             setSelectedFile(file);
             setOpenaiAssets([]);
             setGeminiAssets([]);
+            setGroqAssets([]);
         }
     };
 
@@ -54,6 +73,7 @@ const AssetAnalysisUploadImage = ({selectedFile, setSelectedFile, setOpenaiAsset
     // Remove selected file
     const handleRemoveFile = () => {
         setSelectedFile(null);
+        setImageUrl(null);
 
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
@@ -62,72 +82,80 @@ const AssetAnalysisUploadImage = ({selectedFile, setSelectedFile, setOpenaiAsset
         setOpenaiAssets([]);
         setGeminiAssets([]);
     };
-    return <div className="min-w-[400px] rounded-lg flex flex-col justify-between">
-        <h2 className="text-lg font-semibold mb-4 text-sky-100">Upload Image</h2>
-        <div className="flex-grow relative">
-            <AnimatePresence mode="wait">
-                {!selectedFile ? (
-                    <motion.div
-                        key="dropzone"
-                        variants={dropzoneVariants}
-                        initial="initial"
-                        animate="animate"
-                        exit="exit"
-                        className={`absolute min-h-[200px] inset-0 border-2 border-dashed rounded-lg p-8 cursor-pointer flex flex-col items-center justify-center transition-colors
-                ${isDragActive ? 'border-sky-800 bg-gray-700/50' : 'border-gray-600'}
-              `}
-                        onClick={() => fileInputRef.current?.click()}
-                        onDrop={handleDrop}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                    >
-                        <ImagePlus className="h-12 w-12 text-sky-200 mb-2" />
-                        <p className="text-gray-300 text-center">
-                            Drag & drop or click to select an image file
-                        </p>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            accept="image/*"
-                            className="hidden"
-                        />
-                    </motion.div>
-                ) : (
-                    <motion.div
-                        key="preview"
-                        variants={dropzoneVariants}
-                        initial="initial"
-                        animate="animate"
-                        exit="exit"
-                        className="absolute inset-0 flex items-center justify-center"
-                    >
-                        <button
-                            onClick={handleRemoveFile}
-                            className="absolute top-2 right-2 bg-gray-900/50 hover:bg-gray-900/80 
-                text-red-400 hover:text-red-300 rounded-full p-1.5 text-xs z-10 transition-all"
-                        >
-                            <X size={16} />
-                        </button>
-                        <div
-                            className="relative w-full h-full overflow-hidden rounded-lg cursor-pointer"
+    
+    return (
+        <div className="min-w-[400px] rounded-lg flex flex-col justify-between">
+            <h2 className="text-lg font-semibold mb-4 text-sky-100">Upload Image</h2>
+            <div className="flex-grow relative min-h-[200px]">
+                <AnimatePresence mode="wait">
+                    {!selectedFile ? (
+                        <motion.div
+                            key="dropzone"
+                            variants={dropzoneVariants}
+                            initial="initial"
+                            animate="animate"
+                            exit="exit"
+                            className={`absolute min-h-[200px] inset-0 border-2 border-dashed rounded-lg p-8 cursor-pointer flex flex-col items-center justify-center transition-colors
+                                ${isDragActive ? 'border-sky-800 bg-gray-700/50' : 'border-gray-600'}
+                            `}
                             onClick={() => fileInputRef.current?.click()}
-                            title="Change image"
+                            onDrop={handleDrop}
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
                         >
-                            <Image
-                                src={URL.createObjectURL(selectedFile)}
-                                alt="Selected image preview"
-                                className="object-contain"
-                                fill
-                                sizes="(max-width: 400px) 100vw"
-                                style={{ transition: 'opacity 0.3s linear' }}
+                            <ImagePlus className="h-12 w-12 text-sky-200 mb-2" />
+                            <p className="text-gray-300 text-center">
+                                Drag & drop or click to select an image file
+                            </p>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                accept="image/*"
+                                className="hidden"
                             />
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="preview"
+                            variants={dropzoneVariants}
+                            initial="initial"
+                            animate="animate"
+                            exit="exit"
+                            className="absolute inset-0 flex items-center justify-center"
+                        >
+                            <button
+                                onClick={handleRemoveFile}
+                                className="absolute top-2 right-2 bg-gray-900/50 hover:bg-gray-900/80 
+                                    text-red-400 hover:text-red-300 rounded-full p-1.5 text-xs z-10 transition-all"
+                            >
+                                <X size={16} />
+                            </button>
+                            <div
+                                className="relative w-full h-full min-h-[200px] overflow-hidden rounded-lg cursor-pointer"
+                                onClick={() => fileInputRef.current?.click()}
+                                title="Change image"
+                            >
+                                {imageUrl && (
+                                    <div className="w-full h-full min-h-[200px] relative">
+                                        <Image
+                                            src={imageUrl}
+                                            alt="Selected image preview"
+                                            className="object-contain"
+                                            fill
+                                            sizes="(max-width: 400px) 100vw"
+                                            style={{ transition: 'opacity 0.3s linear' }}
+                                            unoptimized 
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
         </div>
-    </div>
-}
+    );
+};
 
 export default AssetAnalysisUploadImage;

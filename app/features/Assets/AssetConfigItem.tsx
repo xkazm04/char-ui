@@ -37,9 +37,10 @@ type ConfigItemProps = {
     model: keyof AssetTabConfig;
     config: AssetTabConfig;
     onUpdateConfig: (model: keyof AssetTabConfig, enabled: boolean, apiKey: string) => void;
+    tooltip: string;
 }
 
-const AssetConfigItem = ({ model, config, onUpdateConfig }: ConfigItemProps) => {
+const AssetConfigItem = ({ model, config, onUpdateConfig, tooltip }: ConfigItemProps) => {
     const isEnabled = config[model].enabled;
     const savedApiKey = config[model].apiKey;
 
@@ -74,7 +75,10 @@ const AssetConfigItem = ({ model, config, onUpdateConfig }: ConfigItemProps) => 
 
     return (
         <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
+            <div 
+                className="flex items-center justify-between"
+                title={tooltip}
+                >
                 <ModelSwitch
                     model={model}
                     isEnabled={isEnabled}
@@ -82,7 +86,7 @@ const AssetConfigItem = ({ model, config, onUpdateConfig }: ConfigItemProps) => 
                 />
             </div>
 
-            <AnimatePresence mode="wait">
+           {model !== 'groq' &&  <AnimatePresence mode="wait">
                 {isEnabled && (
                     <motion.div
                         key={`${model}-input`}
@@ -146,7 +150,7 @@ const AssetConfigItem = ({ model, config, onUpdateConfig }: ConfigItemProps) => 
                         </div>
                     </motion.div>
                 )}
-            </AnimatePresence>
+            </AnimatePresence>}
         </div>
     );
 };

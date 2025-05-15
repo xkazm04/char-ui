@@ -2,29 +2,22 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, Loader2 } from 'lucide-react';
+import { Upload, Loader2, AlertCircle } from 'lucide-react';
 import AssetAnalysisUploadImage from './AssetAnalysisUploadImage';
 import AssetAnalysisUploadConfig from './AssetAnalysisUploadConfig';
 import { AssetTabConfig } from './AssetAnalysisLayout';
-
-type Asset = {
-  name: string;
-  description: string;
-  gen?: string;
-  category?: string;
-  [key: string]: any;
-};
+import { serverUrl } from '@/app/constants/urls';
+import { AssetType } from '@/app/types/asset';
 
 type Props = {
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-  setOpenaiAssets: (assets: Asset[]) => void;
-  setGeminiAssets: (assets: Asset[]) => void;
-  setGroqAssets: (assets: Asset[]) => void; 
+  setOpenaiAssets: (assets: AssetType[]) => void;
+  setGeminiAssets: (assets: AssetType[]) => void;
+  setGroqAssets: (assets: AssetType[]) => void; 
   config: AssetTabConfig;
   setConfig: (config: AssetTabConfig) => void;
 };
-
 
 const AssetAnalysisUpload = ({
   isLoading,
@@ -36,30 +29,56 @@ const AssetAnalysisUpload = ({
   setConfig,
 }: Props) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const containerHeight = "400px"; 
 
   const processImage = async () => {
     if (!selectedFile) return;
     setIsLoading(true);
+    setError(null);
 
     try {
+      const anyModelEnabled = config.openai.enabled || config.gemini.enabled || config.groq.enabled;
+      
+      if (!anyModelEnabled) {
+        throw new Error("Please enable at least one model in the configuration");
+      }
+
       const formData = new FormData();
       formData.append('file', selectedFile);
+      
+      // Add configuration to the request
+      formData.append('config', JSON.stringify({
+        openai: { 
+          enabled: config.openai.enabled,
+          apiKey: config.openai.apiKey
+        },
+        gemini: { 
+          enabled: config.gemini.enabled,
+          apiKey: config.gemini.apiKey 
+        },
+        groq: { 
+          enabled: config.groq.enabled,
+          apiKey: config.groq.apiKey 
+        }
+      }));
 
-      const res = await fetch('http://localhost:8000/assets/analyze', {
+      const res = await fetch(`${serverUrl}/assets/analyze`, {
         method: 'POST',
         body: formData,
       });
 
       if (!res.ok) {
-        throw new Error(`Server responded with ${res.status}`);
+        const errorData = await res.json();
+        throw new Error(errorData.detail || `Server responded with ${res.status}`);
       }
 
       const data = await res.json();
-      const openaiArr = Array.isArray(data.openai) ? data.openai : [];
-      const geminiArr = Array.isArray(data.gemini) ? data.gemini : [];
-      const groqArr = Array.isArray(data.groq) ? data.groq : [];
+      
+      const openaiArr = config.openai.enabled && Array.isArray(data.openai) ? data.openai : [];
+      const geminiArr = config.gemini.enabled && Array.isArray(data.gemini) ? data.gemini : [];
+      const groqArr = config.groq.enabled && Array.isArray(data.groq) ? data.groq : [];
 
       setOpenaiAssets(openaiArr);
       setGeminiAssets(geminiArr);
@@ -68,6 +87,9 @@ const AssetAnalysisUpload = ({
       setOpenaiAssets([]);
       setGeminiAssets([]);
       setGroqAssets([]);
+      
+      const message = error instanceof Error ? error.message : "Unknown error occurred";
+      setError(message);
       console.error("Image analysis failed:", error);
     } finally {
       setIsLoading(false);
@@ -89,7 +111,19 @@ const AssetAnalysisUpload = ({
           setOpenaiAssets={setOpenaiAssets}
           setGeminiAssets={setGeminiAssets}
           setGroqAssets={setGroqAssets}
-          />
+        />
+        
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-2 p-2 bg-red-900/30 border border-red-800 rounded-md flex items-center gap-2 text-sm text-red-300"
+          >
+            <AlertCircle className="h-4 w-4" />
+            <span>{error}</span>
+          </motion.div>
+        )}
+        
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
