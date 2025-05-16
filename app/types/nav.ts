@@ -1,0 +1,1 @@
+export type NavTabTypes = 'builder' | 'assets' | 'styles';

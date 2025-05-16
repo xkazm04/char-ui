@@ -40,7 +40,7 @@ const AssetAnalysisLayout = () => {
   });
 
   return (
-    <div className="flex flex-row w-full h-full p-4 gap-4 justify-center">
+    <div className="flex flex-row w-full h-full p-4 gap-10 justify-start flex-wrap lg:flex-nowrap">
       <AssetAnalysisUpload
         isLoading={isLoading}
         setIsLoading={setIsLoading}

@@ -47,8 +47,6 @@ const AssetAnalysisUpload = ({
 
       const formData = new FormData();
       formData.append('file', selectedFile);
-      
-      // Add configuration to the request
       formData.append('config', JSON.stringify({
         openai: { 
           enabled: config.openai.enabled,

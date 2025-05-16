@@ -3,11 +3,10 @@ import { motion } from "framer-motion";
 import { fadeEffect } from "@/app/components/anim/variants";
 import { useState } from "react";
 import Image from "next/image";
-
 import AssetsSimilarModal from "./AssetsSimilarModal";
 import { AssetType, SimilarAsset } from "@/app/types/asset";
 import AssetAnalysisSave from "./AssetAnalysisSave";
-import { serverUrl } from "@/app/constants/urls";
+import { handleAssetGeneration } from "@/app/functions/leoFns";
 
 type Props = {
     asset: AssetType
@@ -18,22 +17,7 @@ type Props = {
     tab: string;
 }
 
-// Types for Leonardo API responses
-interface LeonardoImage {
-    url: string;
-    id: string;
-    nsfw: boolean;
-    motionMP4URL?: string;
-}
-
-interface LeonardoResponse {
-    status: string;
-    data: LeonardoImage[];
-    gen: string; // generation_id
-}
-
 const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, setGroqList, tab }: Props) => {
-    // Existing states
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [saveError, setSaveError] = useState(false);
@@ -55,54 +39,19 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
         }
     };
 
-    const handleAssetGeneration = async () => {
-        setGenError(false);
-        setIsGenerating(true);
-        
-        try {            
-            const requestBody = {
-                gen: asset.gen || "wooden sword",
-                generation_id: generationId 
-            };
-            
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000); 
-            
-            const response = await fetch(`${serverUrl}/leo/asset`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestBody),
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            if (!response.ok) {
-                throw new Error(`Failed to generate image: ${response.status}`);
-            }
-            
-            const data: LeonardoResponse = await response.json();
-            
-            if (data.status === "success" && data.data && data.data.length > 0) {
-                setGenerationId(data.gen);
-                setGeneratedImage(data.data[0].url);
-            } else {
-                throw new Error("No images returned from generation API");
-            }
-        } catch (error) {
-            console.error(`Error generating asset for ${asset.name}:`, error);
-            setGenError(true);
-        } finally {
-            setIsGenerating(false);
-        }
-    };
-
     const handleRetryGeneration = async () => {
-        // Reset image but keep generation ID
         setGeneratedImage(null);
-        await handleAssetGeneration();
+        await handleAssetGeneration(
+            {
+                prompt: asset.gen,
+                type: 'asset',
+                generationId,
+                setGenerationId,
+                setGenError,
+                setIsGenerating,
+                setGeneratedImage
+            }
+        );
     };
 
     return (
@@ -133,7 +82,7 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                         <AlertCircle className="h-10 w-10 text-red-500 mb-2" />
                         <p className="text-red-300 mb-4 text-center">Failed to generate image</p>
                         <button
-                            onClick={handleAssetGeneration}
+                            onClick={()=> handleRetryGeneration()}
                             className="px-3 py-2 bg-red-900/40 hover:bg-red-900/60 rounded text-white flex items-center"
                         >
                             <RefreshCw className="h-4 w-4 mr-2" />
@@ -198,7 +147,7 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                         setIsSaving={setIsSaving}
                         setSaveError={setSaveError}
                         setShowSuccess={setShowSuccess}
-                        handleAssetGeneration={handleAssetGeneration}
+                        handleAssetGeneration={handleRetryGeneration}
                         setDescriptionVector={setDescriptionVector}
                         setSimilarAssets={setSimilarAssets}
                         showSuccess={showSuccess}
@@ -227,7 +176,7 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                 setIsSaving={setIsSaving}
                 setSaveError={setSaveError}
                 setShowSuccess={setShowSuccess}
-                handleAssetGeneration={handleAssetGeneration}
+                handleAssetGeneration={handleRetryGeneration}
                 asset={asset}
                 descriptionVector={descriptionVector}
             />

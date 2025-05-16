@@ -1,97 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Hammer, Search, X, Loader } from 'lucide-react';
 import AssetGroupList from './AssetGroupList';
 import { useNavStore } from '@/app/store/navStore';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useAssetGroups } from '@/app/functions/assetFns';
 
-// Define TypeScript interfaces
-interface Asset {
-  _id: string;
-  name: string;
-  type: string; // Add type field to match backend model
-  description?: string;
-  image_url?: string;
-  thumbnail?: string;
-  tags: string[];
-  favorite: boolean;
-  metadata?: {
-    tags?: string[];
-    compatible_with?: string[];
-  };
-}
-
-export interface AssetGroup {
-  id: string;
-  name: string;
-  assets: Asset[];
-  expanded: boolean;
-}
 
 const AssetListLayout = () => {
-  const [assetGroups, setAssetGroups] = useState<AssetGroup[]>([]);
   const [mainSearchQuery, setMainSearchQuery] = useState("");
   const [selectedAsset, setSelectedAsset] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { assetNavExpanded, setAssetNavExpanded } = useNavStore();
-
-  // Fetch assets from backend and organize them by type
-  useEffect(() => {
-    const fetchAssets = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        const response = await fetch('http://localhost:8000/assets/');
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        const assets: Asset[] = await response.json();
-        
-        // Group assets by their type
-        const assetsByType = assets.reduce<Record<string, Asset[]>>((acc, asset) => {
-          if (!asset.type) return acc;
-          
-          if (!acc[asset.type]) {
-            acc[asset.type] = [];
-          }
-          
-          // Ensure tags array exists
-          const tags = asset.metadata?.tags || [];
-          
-          // Add processed asset to its type group
-          acc[asset.type].push({
-            ...asset,
-            tags: tags,
-            favorite: tags.includes('favorite') || false
-          });
-          
-          return acc;
-        }, {});
-        
-        // Convert grouped assets into AssetGroup array
-        const groups: AssetGroup[] = Object.entries(assetsByType).map(([type, typeAssets], index) => ({
-          id: `group-${type}`,
-          name: type.charAt(0).toUpperCase() + type.slice(1), // Capitalize first letter
-          assets: typeAssets,
-          expanded: index === 0 // First group expanded by default
-        }));
-        
-        setAssetGroups(groups);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error fetching assets:', error);
-        setError('Failed to load assets. Please try again later.');
-        setIsLoading(false);
-      }
-    };
-
-    if (assetNavExpanded) {
-      fetchAssets();
-    }
-  }, [assetNavExpanded]);
+  
+  const { 
+    data: assetGroups = [], 
+    isLoading, 
+    error, 
+    refetch 
+  } = useAssetGroups(assetNavExpanded);
 
   return (<>
     <button
@@ -110,7 +35,7 @@ const AssetListLayout = () => {
           exit={{ x: '100%', opacity: 0 }}
           key="asset-nav"
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="flex flex-col z-10 xl:min-w-[500px] fixed max-h-screen right-0 border-l border-gray-800 bg-gray-900 text-gray-100">
+          className="flex flex-col z-10  md:min-w-[500px] fixed max-h-screen right-0 border-l border-gray-800 bg-gray-900 text-gray-100">
           {/* Header */}
           <div className="p-4 border-b border-gray-800 flex justify-between items-center">
             <h1 className="text-xl font-bold">Asset Manager</h1>
@@ -151,10 +76,10 @@ const AssetListLayout = () => {
               {/* Show error message if there was an error */}
               {error && (
                 <div className="flex flex-col items-center justify-center h-40 text-red-400 p-4 text-center">
-                  <p>{error}</p>
+                  <p>{error instanceof Error ? error.message : 'Failed to load assets. Please try again later.'}</p>
                   <button 
                     className="mt-4 px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-md text-sm"
-                    onClick={() => setAssetNavExpanded(true)} // Trigger a re-fetch by toggling
+                    onClick={() => refetch()} // Use refetch from React Query
                   >
                     Retry
                   </button>
@@ -165,7 +90,6 @@ const AssetListLayout = () => {
               {!isLoading && !error && assetGroups.length > 0 && (
                 <AssetGroupList
                   assetGroups={assetGroups}
-                  setAssetGroups={setAssetGroups}
                   mainSearchQuery={mainSearchQuery}
                   setSelectedAsset={setSelectedAsset}
                   selectedAsset={selectedAsset}
