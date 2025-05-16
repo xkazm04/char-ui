@@ -1,8 +1,8 @@
+import { AssetType } from "@/app/types/asset";
 import { motion, AnimatePresence } from "framer-motion";
 import { ImagePlus, X } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState, DragEvent, useEffect } from "react";
-import { Asset } from "./AssetAnalysisResult";
 
 const dropzoneVariants = {
   initial: { opacity: 0 },
@@ -13,9 +13,9 @@ const dropzoneVariants = {
 type Props = {
     selectedFile: File | null;
     setSelectedFile: (file: File | null) => void;
-    setOpenaiAssets: (assets: Asset[]) => void;
-    setGeminiAssets: (assets: Asset[]) => void;
-    setGroqAssets: (assets: Asset[]) => void; 
+    setOpenaiAssets: (assets: AssetType[]) => void;
+    setGeminiAssets: (assets: AssetType[]) => void;
+    setGroqAssets: (assets: AssetType[]) => void; 
 }
 
 const AssetAnalysisUploadImage = ({selectedFile, setSelectedFile, setOpenaiAssets, setGroqAssets, setGeminiAssets}: Props) => {

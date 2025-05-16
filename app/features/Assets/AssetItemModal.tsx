@@ -13,7 +13,7 @@ const AssetItemModal = ({asset, modalRef, setShowModal }: Props) => {
     const handleDelete = async () => {
         if (confirm(`Are you sure you want to delete "${asset.name}"?`)) {
             try {
-                const response = await fetch(`http://localhost:8000/assets/${assetId}`, {
+                const response = await fetch(`http://localhost:8000/assets/${asset._id}`, {
                     method: 'DELETE',
                 });
 

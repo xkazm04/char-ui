@@ -39,6 +39,7 @@ const AssetsSimilarModal = ({showSimilarModal, similarAssets, setShowSimilarModa
             body: JSON.stringify({
                 type: asset.type,
                 name: asset.name,
+                gen: asset.gen,
                 description: asset.description,
                 description_vector: descriptionVector,
             }),

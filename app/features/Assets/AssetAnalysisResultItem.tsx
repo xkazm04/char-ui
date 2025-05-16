@@ -1,4 +1,4 @@
-import { X, Loader2, CheckCheck } from "lucide-react";
+import { X, Loader2, CheckCheck, RefreshCw, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { fadeEffect } from "@/app/components/anim/variants";
 import { useState } from "react";
@@ -7,6 +7,7 @@ import Image from "next/image";
 import AssetsSimilarModal from "./AssetsSimilarModal";
 import { AssetType, SimilarAsset } from "@/app/types/asset";
 import AssetAnalysisSave from "./AssetAnalysisSave";
+import { serverUrl } from "@/app/constants/urls";
 
 type Props = {
     asset: AssetType
@@ -16,7 +17,23 @@ type Props = {
     setGroqList: (list: AssetType[] | ((prev: AssetType[]) => AssetType[])) => void;
     tab: string;
 }
+
+// Types for Leonardo API responses
+interface LeonardoImage {
+    url: string;
+    id: string;
+    nsfw: boolean;
+    motionMP4URL?: string;
+}
+
+interface LeonardoResponse {
+    status: string;
+    data: LeonardoImage[];
+    gen: string; // generation_id
+}
+
 const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, setGroqList, tab }: Props) => {
+    // Existing states
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [saveError, setSaveError] = useState(false);
@@ -25,6 +42,8 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
     const [showSimilarModal, setShowSimilarModal] = useState(false);
     const [similarAssets, setSimilarAssets] = useState<SimilarAsset[]>([]);
     const [descriptionVector, setDescriptionVector] = useState<number[] | null>(null);
+    const [genError, setGenError] = useState<boolean>(false);
+    const [generationId, setGenerationId] = useState<string | null>(null);
     
     const handleRemove = (idx: number) => {
         if (tab === "openai") {
@@ -36,17 +55,54 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
         }
     };
 
-    const handleAssetGeneration = () => {
+    const handleAssetGeneration = async () => {
+        setGenError(false);
         setIsGenerating(true);
-        setTimeout(() => {
-            try {
-                setGeneratedImage('https://cdn.leonardo.ai/users/65d71243-f7c2-4204-a1b3-433aaf62da5b/generations/36ed4b36-e156-430a-95e4-a2001d818609/variations/Default_a_masterpiece_rough_color_pencil_sketch_of_A_mesmerizi_0_36ed4b36-e156-430a-95e4-a2001d818609_0.png');
-            } catch (error) {
-                console.error(`Error generating asset for ${asset.name}:`, error);
-            } finally {
-                setIsGenerating(false);
+        
+        try {            
+            const requestBody = {
+                gen: asset.gen || "wooden sword",
+                generation_id: generationId 
+            };
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); 
+            
+            const response = await fetch(`${serverUrl}/leo/asset`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                throw new Error(`Failed to generate image: ${response.status}`);
             }
-        }, 10000);
+            
+            const data: LeonardoResponse = await response.json();
+            
+            if (data.status === "success" && data.data && data.data.length > 0) {
+                setGenerationId(data.gen);
+                setGeneratedImage(data.data[0].url);
+            } else {
+                throw new Error("No images returned from generation API");
+            }
+        } catch (error) {
+            console.error(`Error generating asset for ${asset.name}:`, error);
+            setGenError(true);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const handleRetryGeneration = async () => {
+        // Reset image but keep generation ID
+        setGeneratedImage(null);
+        await handleAssetGeneration();
     };
 
     return (
@@ -61,27 +117,60 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                 className="bg-gray-700 rounded-lg p-4 border border-gray-600 relative flex flex-col justify-between
                 overflow-visible hover:shadow-md hover:shadow-sky-900/20 transition-shadow duration-300 z-10"
             >
+                {/* Loading state */}
                 {isGenerating && (
                     <div className="absolute inset-0 bg-black/70 z-20 rounded-lg flex items-center justify-center">
-                        <div className="animate-pulse absolute left-2 top-2 text-green-600 text-sm z-30 italic">Image saved, generating asset preview...</div>
+                        <div className="animate-pulse absolute left-2 top-2 text-green-600 text-sm z-30 italic">
+                            {generationId ? 'Regenerating asset preview...' : 'Image saved, generating asset preview...'}
+                        </div>
                         <Loader2 className="h-10 w-10 text-sky-400 animate-spin" />
                     </div>
                 )}
                 
+                {/* Error state */}
+                {genError && !isGenerating && (
+                    <div className="absolute inset-0 bg-black/80 z-30 rounded-lg flex flex-col items-center justify-center p-4">
+                        <AlertCircle className="h-10 w-10 text-red-500 mb-2" />
+                        <p className="text-red-300 mb-4 text-center">Failed to generate image</p>
+                        <button
+                            onClick={handleAssetGeneration}
+                            className="px-3 py-2 bg-red-900/40 hover:bg-red-900/60 rounded text-white flex items-center"
+                        >
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Try Again
+                        </button>
+                    </div>
+                )}
+                
                 {/* Display generated image if available */}
-                {!isGenerating && generatedImage && (
+                {!isGenerating && generatedImage && !genError && (
                     <motion.div 
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.5 }}
-                        className="absolute inset-0 bg-black/80 z-30 rounded-lg flex items-center justify-center p-4">
-                        <div className="absolute top-2 left-2 text-green-600 text-sm z-30"><CheckCheck/></div>
+                        className="absolute inset-0 bg-black/80 z-30 rounded-lg flex items-center justify-center p-4"
+                    >
+                        <div className="absolute top-2 left-2 text-green-600 text-sm z-30">
+                            <CheckCheck />
+                        </div>
+                        
+                        {/* Retry button */}
+                        <button
+                            onClick={handleRetryGeneration}
+                            className="absolute top-2 right-2 p-1 bg-sky-900/80 cursor-pointer hover:bg-sky-800/80 rounded z-40 transition-colors"
+                            title="Generate new variation"
+                        >
+                            <RefreshCw className="h-4 w-4 text-sky-300" />
+                        </button>
+                        
+                        {/* Image display */}
                         <div className="relative w-full h-full">
                             <Image 
                                 src={generatedImage}
                                 alt={`Generated ${asset.name}`}
                                 fill
-                                className="object-contain rounded"
+                                className="object-cover"
+                                priority={true}
                             />
                         </div>
                     </motion.div>
@@ -117,7 +206,7 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                         isGenerating={isGenerating}
                         isSaving={isSaving}
                         asset={asset}
-                        />
+                    />
                     <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
@@ -141,7 +230,7 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                 handleAssetGeneration={handleAssetGeneration}
                 asset={asset}
                 descriptionVector={descriptionVector}
-                />
+            />
         </>
     );
 }
