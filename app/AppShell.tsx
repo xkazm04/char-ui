@@ -7,6 +7,7 @@ import { NavTabTypes } from "./types/nav";
 import CharBuilderLayout from "./features/Builder/CharBuilderLayout";
 // import LandingLayout from "./features/Landing/LandingLayout";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import ModelLayout from "./features/Model/ModelLayout";
 const queryClient = new QueryClient();
 
 
@@ -18,6 +19,7 @@ const AppShell = () => {
             {tab === 'assets' && <AssetAnalysisLayout />}
             <AssetListLayout />
             {tab === 'builder' && <CharBuilderLayout />}
+            {tab === 'mesh' && <ModelLayout />}
         </QueryClientProvider>
     </div>
 }

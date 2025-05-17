@@ -52,7 +52,7 @@ const Navbar = ({ tab, setTab }: Props) => {
           <nav className="flex flex-row gap-3">
             <NavButton value='assets'>Assets</NavButton>
             <NavButton value='builder'>Builder</NavButton>
-            <NavButton value='styles'>Spy</NavButton>
+            <NavButton value='mesh'>Model</NavButton>
           </nav>
         </div>
       </div>

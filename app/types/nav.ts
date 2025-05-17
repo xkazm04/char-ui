@@ -1,1 +1,1 @@
-export type NavTabTypes = 'builder' | 'assets' | 'styles';
+export type NavTabTypes = 'builder' | 'assets' | 'mesh';
