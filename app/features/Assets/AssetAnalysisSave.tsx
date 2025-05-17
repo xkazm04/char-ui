@@ -1,16 +1,8 @@
-import { useNavStore } from "@/app/store/navStore";
-import { Check, Loader2, Save } from "lucide-react";
-import { serverUrl } from "@/app/constants/urls";
+import { Save, Loader2, CheckCheck } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
 import { AssetType, SimilarAsset } from "@/app/types/asset";
-
-interface ValidationResponse {
-    similar_assets: SimilarAsset[];
-    description_vector: number[];
-    message: string;
-    status: 'ok' | 'similar_found';
-}
+import { serverUrl } from "@/app/constants/urls";
+import { handleAssetGenerationAndSave } from "@/app/functions/leoFns";
 
 type Props = {
     setShowSimilarModal: (show: boolean) => void;
@@ -20,7 +12,6 @@ type Props = {
     asset: AssetType;
     descriptionVector?: number[];
     handleAssetGeneration: () => void;
-
     setDescriptionVector: (vector: number[]) => void;
     setSimilarAssets: (assets: SimilarAsset[]) => void;
     showSuccess?: boolean;
@@ -31,106 +22,87 @@ type Props = {
 
 
 
-const AssetAnalysisSave = ({ setShowSimilarModal, setIsSaving, setSaveError, setShowSuccess, asset, descriptionVector, handleAssetGeneration
-, setDescriptionVector, setSimilarAssets, showSuccess = false, saveError = false, isGenerating = false, isSaving = false
+const AssetAnalysisSave = ({ 
+    asset,
+    setShowSimilarModal,
+    setIsSaving,
+    setSaveError,
+    setShowSuccess,
+    setDescriptionVector,
+    setSimilarAssets,
+    showSuccess = false,
+    saveError = false,
+    isGenerating = false,
+    isSaving = false
 }: Props) => {
-    const {setAssetNavExpanded} = useNavStore();
-    const [isValidating, setIsValidating] = useState(false);
-    const validateVector = async () => {
-        setIsValidating(true);
-
-        try {
-            const response = await fetch(`${serverUrl}/assets/validate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    type: asset.type,
-                    name: asset.name,
-                    description: asset.description,
-                    descriptionVector: descriptionVector,
-                    gen: asset.gen,
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-
-            const validationData: ValidationResponse = await response.json();
-
-            setDescriptionVector(validationData.description_vector);
-
-            if (validationData.status === 'similar_found' && validationData.similar_assets.length > 0) {
-                setSimilarAssets(validationData.similar_assets);
-                setShowSimilarModal(true);
-                return false;
-            }
-
-            return true;
-
-        } catch (error) {
-            console.error('Error validating asset:', error);
-            setSaveError(true);
-            return false;
-        } finally {
-            setIsValidating(false);
-        }
-    };
-
 
     const handleSave = async () => {
         setIsSaving(true);
+        setShowSuccess(false);
         setSaveError(false);
-        const shouldContinue = await validateVector();
-
-        if (!shouldContinue) {
-            setIsSaving(false);
-            return;
-        }
 
         try {
-            const response = await fetch(`${serverUrl}/assets/`, {
-                method: 'POST',
+            // First validate the asset to check for similar items
+            const validateResponse = await fetch(`${serverUrl}/assets/validate`, {
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
+                    "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                    type: asset.type,
-                    name: asset.name,
-                    description: asset.description,
-                    description_vector: descriptionVector,
-                    gen: asset.gen,
-                }),
+                body: JSON.stringify(asset),
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+            if (!validateResponse.ok) {
+                throw new Error(`Validation failed: ${validateResponse.status}`);
             }
 
-            setIsSaving(false);
+            const validationData = await validateResponse.json();
+            
+            if (validationData.description_vector) {
+                setDescriptionVector(validationData.description_vector);
+            }
+
+            if (validationData.similar_assets && validationData.similar_assets.length > 0) {
+                setSimilarAssets(validationData.similar_assets);
+                setShowSimilarModal(true);
+                setIsSaving(false);
+                return;
+            }
+            const assetToSave = {
+                ...asset,
+                description_vector: validationData.description_vector
+            };
+            
+            console.log("Attempting to save asset:", assetToSave);
+            
+            await handleAssetGenerationAndSave({
+                prompt: asset.gen,
+                type: "asset",
+                generationId: null,
+                setGenerationId: () => {}, 
+                setGenError: (error) => setSaveError(error),
+                setIsGenerating: setIsSaving,
+                setGeneratedImage: () => {},
+                asset: assetToSave, 
+                setSavedAssetId: () => {} 
+            });
+
             setShowSuccess(true);
-            setAssetNavExpanded(true);
-
-            setTimeout(() => {
-                setShowSuccess(false);
-                handleAssetGeneration();
-            }, 2000);
-
+            
         } catch (error) {
-            console.error('Error saving asset:', error);
-            setIsSaving(false);
+            console.error("Error saving asset:", error);
             setSaveError(true);
+        } finally {
+            setIsSaving(false);
         }
     };
+
     return <button
         className="p-1 rounded-lg hover:bg-sky-700/40 transition-colors duration-200 cursor-pointer"
-        title={isValidating ? "Validating..." : isSaving ? "Saving..." : showSuccess ? "Saved!" : saveError ? "Save failed!" : "Save"}
+        title={isSaving ? "Saving..." : showSuccess ? "Saved!" : saveError ? "Save failed!" : "Save"}
         onClick={handleSave}
-        disabled={isValidating || isSaving || showSuccess || isGenerating}
+        disabled={isSaving || showSuccess || isGenerating}
     >
-        {isValidating || isSaving ? (
+        {isSaving ? (
             <Loader2 className="h-4 w-4 text-sky-400 animate-spin" />
         ) : showSuccess ? (
             <motion.div
@@ -139,7 +111,7 @@ const AssetAnalysisSave = ({ setShowSimilarModal, setIsSaving, setSaveError, set
                 transition={{ duration: 0.4 }}
                 exit={{ opacity: 0 }}
             >
-                <Check className="h-4 w-4 text-green-400" />
+                <CheckCheck className="h-4 w-4 text-green-400" />
             </motion.div>
         ) : (
             <Save className={`h-4 w-4 ${saveError ? 'text-red-400' : 'text-sky-400 hover:text-sky-300'}`} />

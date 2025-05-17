@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LucideCheck, LucideX } from "lucide-react";
+import GlowingText from "../landing/GlowingText";
 
 interface EditableLabelProps {
   label: string;
@@ -92,7 +93,7 @@ const EditableLabel = ({ label, value, onChange, placeholder }: EditableLabelPro
             onClick={() => setIsEditing(true)}
             className="cursor-pointer"
           >
-            <div className="text-sm font-medium text-sky-300 mb-1">{label}</div>
+            <div className="text-sm font-medium text-sky-300 mb-1"><GlowingText>{label}</GlowingText></div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -37,7 +37,7 @@ export default function CharacterSketchGrid() {
 
       return {
         id: `sketch-${i}`,
-        imageUrl: JinxImgUrl, // Placeholder image
+        imageUrl: JinxImgUrl, 
         timestamp: new Date(Date.now() - i * 3600000).toLocaleString(),
         usedAssets
       };

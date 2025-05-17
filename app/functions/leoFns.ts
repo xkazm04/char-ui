@@ -13,6 +13,18 @@ interface LeonardoResponse {
     gen: string;
 }
 
+interface AssetSaveResponse {
+    status: string;
+    asset: {
+        id: string;
+        _id: string;
+        name: string;
+        type: string;
+        // other asset fields
+    };
+    generation_id: string;
+}
+
 type Props = {
     prompt: string;
     type: string;
@@ -24,6 +36,12 @@ type Props = {
     setGeneratedImage: (imageUrl: string | null) => void;
 }
 
+type AssetSaveProps = Props & {
+    asset: any; // The asset data to save
+    setSavedAssetId?: (id: string) => void; // Optional callback to store the saved asset ID
+}
+
+// Original function for just generating images
 export const handleAssetGeneration = async ({ prompt, type, element, generationId, setGenerationId, setGenError, setIsGenerating, setGeneratedImage }: Props) => {
     setGenError(false);
     setIsGenerating(true);
@@ -67,6 +85,88 @@ export const handleAssetGeneration = async ({ prompt, type, element, generationI
         }
     } catch (error) {
         console.error(`Error generating asset`, error);
+        setGenError(true);
+    } finally {
+        setIsGenerating(false);
+    }
+};
+
+// New function for generating and saving asset images
+export const handleAssetGenerationAndSave = async ({ 
+    prompt, 
+    type, 
+    element, 
+    generationId, 
+    setGenerationId, 
+    setGenError, 
+    setIsGenerating, 
+    setGeneratedImage,
+    asset,
+    setSavedAssetId
+}: AssetSaveProps) => {
+    setGenError(false);
+    setIsGenerating(true);
+
+    try {
+        // Validation check - make sure asset object exists
+        if (!asset || typeof asset !== 'object') {
+            throw new Error("Missing or invalid asset object");
+        }
+        
+        // Make sure asset has required fields
+        if (!asset.type || !asset.name || !asset.gen) {
+            throw new Error("Asset is missing required fields (type, name, or gen)");
+        }
+        
+        // Make sure asset is included in the request body
+        const requestBody = {
+            gen: prompt || "wooden sword",
+            generation_id: generationId,
+            asset: asset  // This must be present
+        };
+
+        console.log("Sending request to save asset:", JSON.stringify(requestBody));
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); 
+        
+        // Use the correct endpoint URL - notice "asset-save" instead of "asset"
+        const response = await fetch(`${serverUrl}/leo/asset-save`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("API Error:", errorText);
+            throw new Error(`Failed to generate and save image: ${response.status} - ${errorText}`);
+        }
+
+        const data: AssetSaveResponse = await response.json();
+        console.log("Asset save response:", data);
+
+        if (data.status === "success" && data.asset && data.asset.id) {
+            setGenerationId(data.generation_id);
+            
+            // Use the correct endpoint for image URL
+            const imageUrl = `${serverUrl}/asset/image/${data.asset.id}`;
+            console.log("Setting generated image URL:", imageUrl);
+            setGeneratedImage(imageUrl);
+
+            if (setSavedAssetId) {
+                setSavedAssetId(data.asset.id);
+            }
+        } else {
+            throw new Error("Failed to save asset or get image URL");
+        }
+    } catch (error) {
+        console.error(`Error generating and saving asset`, error);
         setGenError(true);
     } finally {
         setIsGenerating(false);

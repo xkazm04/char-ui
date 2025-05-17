@@ -1,65 +1,45 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { characters } from '../data/characters';
 
 export interface Character {
   id: string;
   name: string;
-  description?: string;
-  imagePrompt?: string;
-  imageUrl?: string;
+  description: string;
+  image_url: string;
   // Add additional fields as needed
 }
 
 interface CharacterStore {
-  characters: Character[];
   currentCharacter: Character | null;
-  addCharacter: (character: Character) => void;
-  updateCharacter: (character: Character) => void;
-  removeCharacter: (id: string) => void;
   setCurrentCharacter: (id: string | null) => void;
+  resetToDefaultCharacters: () => void; // New function for resetting
 }
 
 export const useCharacterStore = create<CharacterStore>()(
   persist(
     (set) => ({
-      characters: [],
       currentCharacter: null,
-
-      addCharacter: (character) => 
-        set((state) => ({
-          characters: [...state.characters, character],
-          currentCharacter: character
-        })),
-
-      updateCharacter: (character) => 
-        set((state) => ({
-          characters: state.characters.map(c => 
-            c.id === character.id ? character : c
-          ),
-          currentCharacter: character.id === state.currentCharacter?.id 
-            ? character 
-            : state.currentCharacter
-        })),
-
-      removeCharacter: (id) => 
-        set((state) => ({
-          characters: state.characters.filter(c => c.id !== id),
-          currentCharacter: state.currentCharacter?.id === id 
-            ? null 
-            : state.currentCharacter
-        })),
-
-      setCurrentCharacter: (id) => 
-        set((state) => ({
-          currentCharacter: id 
-            ? state.characters.find(c => c.id === id) || null 
-            : null
-        }))
+      setCurrentCharacter: (id: string | null) => {
+        if (id === null) {
+          set({ currentCharacter: null });
+        } else {
+          const character: Character | undefined = characters.find(c => c.id === id);
+          set({ currentCharacter: character || null });
+        }
+      },
+      resetToDefaultCharacters: () => {
+        set({ currentCharacter: null });
+      }
     }),
     {
-      name: 'character-storage'
+      name: 'character-store',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        currentCharacter: state.currentCharacter
+      }),
     }
   )
 );

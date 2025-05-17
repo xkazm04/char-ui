@@ -1,20 +1,14 @@
-import { serverUrl } from "@/app/constants/urls";
+import { useAssets } from "@/app/functions/assetFns";
+import { handleAssetGenerationAndSave } from "@/app/functions/leoFns";
 import { useNavStore } from "@/app/store/navStore";
-import { AssetType } from "@/app/types/asset";
+import { AssetType, SimilarAsset } from "@/app/types/asset";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle } from "lucide-react";
-import Image from "next/image";
+import AssetSimilarItemCard from "./AssetsSimilarItemCard";
 
 type Props = {
     showSimilarModal: boolean;
-    similarAssets: {
-        id: string;
-        name: string;
-        type: string;
-        description?: string;
-        image_url?: string;
-        similarity: number;
-    }[];
+    similarAssets: SimilarAsset[];
     setShowSimilarModal: (show: boolean) => void;
     setIsSaving: (saving: boolean) => void;
     setSaveError: (error: boolean) => void;
@@ -25,46 +19,50 @@ type Props = {
 }
 
 const AssetsSimilarModal = ({showSimilarModal, similarAssets, setShowSimilarModal, setIsSaving, setSaveError, setShowSuccess, asset, descriptionVector, handleAssetGeneration}: Props) => {
-    const {setAssetNavExpanded} = useNavStore();
-    const handleConfirmSave = () => {
+    const {setAssetNavHighlighted} = useNavStore();
+    const { refetch } = useAssets();
+    const handleConfirmSave = async () => {
         setShowSimilarModal(false);
         setIsSaving(true);
         setSaveError(false);
 
-        fetch(`${serverUrl}/assets/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
+        try {
+            const assetToSave = {
                 type: asset.type,
                 name: asset.name,
                 gen: asset.gen,
                 description: asset.description,
-                description_vector: descriptionVector,
-            }),
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(() => {
-                setIsSaving(false);
-                setShowSuccess(true);
-                setAssetNavExpanded(true);
-
-                setTimeout(() => {
-                    setShowSuccess(false);
-                    handleAssetGeneration();
-                }, 2000);
-            })
-            .catch(error => {
-                console.error('Error saving asset:', error);
-                setIsSaving(false);
-                setSaveError(true);
+                description_vector: descriptionVector || [],
+            };
+            
+            console.log("Confirming save with asset:", assetToSave);
+            
+            await handleAssetGenerationAndSave({
+                prompt: asset.gen,
+                type: 'asset',
+                generationId: null,
+                setGenerationId: () => {},
+                setGenError: (error) => setSaveError(error),
+                setIsGenerating: setIsSaving,
+                setGeneratedImage: () => {}, 
+                asset: assetToSave,
+                setSavedAssetId: () => {}
             });
+            
+            setIsSaving(false);
+            setShowSuccess(true);
+            setAssetNavHighlighted(true);
+            refetch(); 
+
+            setTimeout(() => {
+                setShowSuccess(false);
+                handleAssetGeneration();
+            }, 2000);
+        } catch (error) {
+            console.error('Error saving asset:', error);
+            setIsSaving(false);
+            setSaveError(true);
+        }
     };
 
     return <>
@@ -87,50 +85,27 @@ const AssetsSimilarModal = ({showSimilarModal, similarAssets, setShowSimilarModa
                             <h2 className="text-lg font-bold">Similar Assets Found</h2>
                         </div>
 
-                        <p className="text-gray-300 mb-4">
-                            We found {similarAssets.length} existing {similarAssets.length === 1 ? 'asset' : 'assets'} that {similarAssets.length === 1 ? 'is' : 'are'} similar to what you are trying to save.
+                        <p className="text-gray-300 mb-4 text-sm">
+                            Found <b>{similarAssets.length} existing {similarAssets.length === 1 ? 'asset' : 'assets'}</b> that {similarAssets.length === 1 ? 'is' : 'are'} similar to what you are trying to save.
                             Do you still want to continue?
                         </p>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                             {similarAssets.map(similar => (
-                                <div key={similar.id} className="bg-gray-700 p-3 rounded-md border border-gray-600">
-                                    <div className="flex items-start gap-3">
-                                        {similar.image_url && (
-                                            <div className="w-16 h-16 relative flex-shrink-0">
-                                                <Image
-                                                    src={similar.image_url}
-                                                    alt={similar.name}
-                                                    fill
-                                                    className="object-cover rounded"
-                                                />
-                                            </div>
-                                        )}
-                                        <div>
-                                            <h3 className="font-medium text-white">{similar.name}</h3>
-                                            <p className="text-sm text-gray-400 mb-1">{similar.type}</p>
-                                            {similar.description && (
-                                                <p className="text-xs text-gray-300 line-clamp-2">{similar.description}</p>
-                                            )}
-                                            <div className="mt-1 text-xs">
-                                                <span className="text-yellow-400">{(similar.similarity * 100).toFixed(1)}% similar</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <AssetSimilarItemCard similar={similar} key={similar.id} />
                             ))}
                         </div>
 
                         <div className="flex justify-end gap-3 mt-4 pt-3 border-t border-gray-700">
                             <button
                                 onClick={() => setShowSimilarModal(false)}
-                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors"
+                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleConfirmSave}
-                                className="px-4 py-2 bg-sky-700 hover:bg-sky-600 text-white rounded-md transition-colors"
+                                className="px-4 py-2 text-sm bg-sky-800 hover:bg-sky-600 text-white rounded-md transition-colors cursor-pointer"
                             >
                                 Save Anyway
                             </button>

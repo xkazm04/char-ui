@@ -28,8 +28,6 @@ const AssetAnalysisUploadImage = ({selectedFile, setSelectedFile, setOpenaiAsset
         if (selectedFile) {
             const url = URL.createObjectURL(selectedFile);
             setImageUrl(url);
-            
-            // Clean up the URL when component unmounts or selectedFile changes
             return () => {
                 URL.revokeObjectURL(url);
             };

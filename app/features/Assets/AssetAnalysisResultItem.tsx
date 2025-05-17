@@ -6,7 +6,7 @@ import Image from "next/image";
 import AssetsSimilarModal from "./AssetsSimilarModal";
 import { AssetType, SimilarAsset } from "@/app/types/asset";
 import AssetAnalysisSave from "./AssetAnalysisSave";
-import { handleAssetGeneration } from "@/app/functions/leoFns";
+import { handleAssetGeneration, handleAssetGenerationAndSave } from "@/app/functions/leoFns";
 
 type Props = {
     asset: AssetType
@@ -28,7 +28,8 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
     const [descriptionVector, setDescriptionVector] = useState<number[] | null>(null);
     const [genError, setGenError] = useState<boolean>(false);
     const [generationId, setGenerationId] = useState<string | null>(null);
-    
+    const [savedAssetId, setSavedAssetId] = useState<string | null>(null);
+
     const handleRemove = (idx: number) => {
         if (tab === "openai") {
             setOpenaiList((prev) => prev.filter((_, i) => i !== idx));
@@ -41,17 +42,42 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
 
     const handleRetryGeneration = async () => {
         setGeneratedImage(null);
-        await handleAssetGeneration(
-            {
-                prompt: asset.gen,
-                type: 'asset',
-                generationId,
-                setGenerationId,
-                setGenError,
-                setIsGenerating,
-                setGeneratedImage
+
+        try {
+            if (savedAssetId) {
+                const assetToSave = {
+                    ...asset,
+                    description_vector: descriptionVector || []
+                };
+                
+                console.log("Regenerating with asset:", assetToSave);
+                
+                await handleAssetGenerationAndSave({
+                    prompt: asset.gen,
+                    type: 'asset',
+                    generationId,
+                    setGenerationId,
+                    setGenError,
+                    setIsGenerating,
+                    setGeneratedImage,
+                    asset: assetToSave,  
+                    setSavedAssetId
+                });
+            } else {
+                await handleAssetGeneration({
+                    prompt: asset.gen,
+                    type: 'asset',
+                    generationId,
+                    setGenerationId,
+                    setGenError,
+                    setIsGenerating,
+                    setGeneratedImage
+                });
             }
-        );
+        } catch (error) {
+            console.error("Error in retry generation:", error);
+            setGenError(true);
+        }
     };
 
     return (
@@ -75,14 +101,14 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                         <Loader2 className="h-10 w-10 text-sky-400 animate-spin" />
                     </div>
                 )}
-                
+
                 {/* Error state */}
                 {genError && !isGenerating && (
                     <div className="absolute inset-0 bg-black/80 z-30 rounded-lg flex flex-col items-center justify-center p-4">
                         <AlertCircle className="h-10 w-10 text-red-500 mb-2" />
                         <p className="text-red-300 mb-4 text-center">Failed to generate image</p>
                         <button
-                            onClick={()=> handleRetryGeneration()}
+                            onClick={() => handleRetryGeneration()}
                             className="px-3 py-2 bg-red-900/40 hover:bg-red-900/60 rounded text-white flex items-center"
                         >
                             <RefreshCw className="h-4 w-4 mr-2" />
@@ -90,10 +116,10 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                         </button>
                     </div>
                 )}
-                
+
                 {/* Display generated image if available */}
                 {!isGenerating && generatedImage && !genError && (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.5 }}
@@ -102,7 +128,7 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                         <div className="absolute top-2 left-2 text-green-600 text-sm z-30">
                             <CheckCheck />
                         </div>
-                        
+
                         {/* Retry button */}
                         <button
                             onClick={handleRetryGeneration}
@@ -111,20 +137,20 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                         >
                             <RefreshCw className="h-4 w-4 text-sky-300" />
                         </button>
-                        
-                        {/* Image display */}
+
+                        {/* Image display - Now supporting both URLs and our MongoDB image endpoint */}
                         <div className="relative w-full h-full">
-                            <Image 
+                            <Image
                                 src={generatedImage}
-                                alt={`Generated ${asset.name}`}
+                                alt={asset.name}
                                 fill
-                                className="object-cover"
-                                priority={true}
+                                className="object-cover rounded"
+                                key={generatedImage} // Add key to force refresh when URL changes
                             />
                         </div>
                     </motion.div>
                 )}
-                
+
                 <div>
                     <span className="absolute top-2 right-2 bg-sky-900/20 border border-gray-400/20 text-white text-xs px-3 py-1 rounded-full font-semibold z-10">
                         {asset.type}

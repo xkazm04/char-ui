@@ -1,34 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
-import { useAssetStore } from '../store/assetStore';
-
-// Define TypeScript interfaces
-export interface Asset {
-  id?: string;
-  _id?: string;
-  name: string;
-  type: string;
-  description?: string;
-  image_url?: string;
-  thumbnail?: string;
-  tags: string[];
-  favorite: boolean;
-  metadata?: {
-    tags?: string[];
-    compatible_with?: string[];
-  };
-}
+import { AssetType } from '../types/asset';
 
 export interface AssetGroup {
   id: string;
   name: string;
-  assets: Asset[];
+  assets: AssetType[];
 }
 
 // Base URL for API endpoints
 const API_BASE_URL = 'http://localhost:8000';
 
 // Function to fetch all assets
-const fetchAssets = async (): Promise<Asset[]> => {
+const fetchAssets = async (): Promise<AssetType[]> => {
   const response = await fetch(`${API_BASE_URL}/assets/`);
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);
@@ -37,21 +20,17 @@ const fetchAssets = async (): Promise<Asset[]> => {
 };
 
 // Process raw assets into grouped assets
-export const processAssetsIntoGroups = (assets: Asset[]): AssetGroup[] => {
-  const assetsByType = assets.reduce<Record<string, Asset[]>>((acc, asset) => {
+export const processAssetsIntoGroups = (assets: AssetType[]): AssetGroup[] => {
+  const assetsByType = assets.reduce<Record<string, AssetType[]>>((acc, asset) => {
     if (!asset.type) return acc;
     
     if (!acc[asset.type]) {
       acc[asset.type] = [];
     }
-    
-    const tags = asset.metadata?.tags || [];
 
     acc[asset.type].push({
       ...asset,
-      id: asset.id || asset._id, // Ensure id is available
-      tags: tags,
-      favorite: tags.includes('favorite') || false
+      id: asset.id || asset._id,
     });
     
     return acc;
@@ -99,7 +78,7 @@ export const useFetchAssetById = (assetId: string, enabled = true) => {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      return response.json() as Promise<Asset>;
+      return response.json() as Promise<AssetType>;
     },
     enabled: !!assetId && enabled,
   });
