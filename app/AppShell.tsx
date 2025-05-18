@@ -1,7 +1,7 @@
 'use client';
 import { useState } from "react";
 import AssetAnalysisLayout from "./features/Assets/AssetAnalysisLayout";
-import AssetListLayout from "./features/Assets/AssetListLayout";
+import AssetListLayout from "./features/Assets/AssetManagement/AssetListLayout";
 import Navbar from "./components/Navbar";
 import { NavTabTypes } from "./types/nav";
 import CharBuilderLayout from "./features/Builder/CharBuilderLayout";

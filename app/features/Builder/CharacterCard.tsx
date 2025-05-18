@@ -2,19 +2,21 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useCharacterStore } from '@/app/store/charStore';
-import { LucideUsers, ChevronUp, ChevronDown, Play } from 'lucide-react';
-import EditableLabel from '@/app/components/ui/EditableLabel';
+import { LucideUsers, ChevronUp, ChevronDown } from 'lucide-react';
 import CharacterSelector from './CharacterSelector';
 import { useNavStore } from '@/app/store/navStore';
 import { useGenStore } from '@/app/store/genStore';
+import GlowingText from '@/app/components/landing/GlowingText';
+import { useAssetStore } from '@/app/store/assetStore';
 export const JinxImgUrl = 'https://cdn.leonardo.ai/users/65d71243-f7c2-4204-a1b3-433aaf62da5b/generations/8e6f6b74-4e98-4162-8b6a-6a0eaea1e0ee/variations/Default_Silhouette_of_a_young_lightskinned_woman_with_blue_hai_0_8e6f6b74-4e98-4162-8b6a-6a0eaea1e0ee_0.png';
 
 
 export default function CharacterCard() {
-  const { currentCharacter, updateCharacter } = useCharacterStore();
+  const { currentCharacter } = useCharacterStore();
   const [name, setName] = useState('');
   const { charNavExpanded, setCharNavExpanded } = useNavStore()
   const { genIsStarted } = useGenStore()
+  const { isGenerating } = useAssetStore()
 
   useEffect(() => {
     if (currentCharacter) {
@@ -22,12 +24,6 @@ export default function CharacterCard() {
     }
   }, [currentCharacter]);
 
-  const handleNameChange = (newValue: string) => {
-    setName(newValue);
-    if (currentCharacter) {
-      updateCharacter({ ...currentCharacter, name: newValue });
-    }
-  };
 
   return (
     <div className="relative w-full max-w-[300px] h-full overflow-hidden">
@@ -41,7 +37,7 @@ export default function CharacterCard() {
         transition={{ duration: 0.4, ease: "easeInOut" }}
       >
         {/* Background image with overlay */}
-        <div className="absolute inset-0 z-0 ">
+        <div className="absolute inset-0">
           <Image
             src={ genIsStarted ? currentCharacter.gif_url : currentCharacter.image_url }
             alt={'Character Background'}
@@ -54,15 +50,13 @@ export default function CharacterCard() {
         </div>
 
         {/* Content overlay */}
-        <div className="relative z-10 flex-1 flex flex-col">
-          <div className="flex-1 p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-sky-900/50 scrollbar-track-transparent">
-            <EditableLabel
-              label={name || 'Unnamed Character'}
-              value={name}
-              onChange={handleNameChange}
-              placeholder="Enter the new name..."
-            />
-          </div>
+        <div className="relative flex-1 flex flex-col h-full justify-end ">
+          {isGenerating && 
+          <div className={`absolute left-10 z-0  text-2xl font-medium
+            ${charNavExpanded ? 'top-[5%]' : 'top-[40%]'}
+          `}>
+            <GlowingText>{name}</GlowingText>
+          </div>}
 
           {/* Character selector toggle button */}
           <motion.button

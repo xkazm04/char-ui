@@ -8,7 +8,6 @@ import { useNavStore } from '@/app/store/navStore';
 import { JinxImgUrl } from './CharacterCard';
 import { AssetType } from '@/app/types/asset';
 
-// Example sketch for development
 interface CharacterSketch {
   id: string;
   imageUrl: string;
@@ -19,7 +18,6 @@ interface CharacterSketch {
 export default function CharacterSketchGrid() {
   const { currentCharacter } = useCharacterStore();
   const { clothing, equipment, accessories } = useAssetStore();
-  const [selectedSketch, setSelectedSketch] = useState<string | null>(null);
   const [sketches, setSketches] = useState<CharacterSketch[]>([]);
   const { assetNavExpanded, setAssetNavExpanded } = useNavStore()
 
@@ -46,14 +44,6 @@ export default function CharacterSketchGrid() {
     setSketches(mockSketches);
   }, [currentCharacter, clothing, equipment, accessories]);
 
-  const handleSketchSelect = (sketchId: string) => {
-    if (selectedSketch === sketchId) {
-      setSelectedSketch(null);
-    } else {
-      setSelectedSketch(sketchId);
-    }
-  };
-  
 
   if (sketches.length === 0) {
     return (
@@ -132,15 +122,13 @@ export default function CharacterSketchGrid() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="grid grid-cols-1 xl:grid-cols-3 2xl:grid-cols-4 gap-4"
+              className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4"
             >
               {sketches.map((sketch) => (
                 <CharacterSketchCard
                   key={sketch.id}
                   imageUrl={sketch.imageUrl}
                   usedAssets={sketch.usedAssets}
-                  selected={selectedSketch === sketch.id}
-                  onSelect={() => handleSketchSelect(sketch.id)}
                 />
               ))}
             </motion.div>

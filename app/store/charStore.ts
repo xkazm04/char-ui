@@ -9,6 +9,7 @@ export interface Character {
   name: string;
   description: string;
   image_url: string;
+  gif_url?: string;
   // Add additional fields as needed
 }
 

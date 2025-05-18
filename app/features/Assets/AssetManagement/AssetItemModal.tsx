@@ -72,22 +72,6 @@ const AssetItemModal = ({asset, modalRef, setShowModal }: Props) => {
                         </div>
                     )}
 
-                    {asset.tags && asset.tags.length > 0 && (
-                        <div>
-                            <span className="text-gray-400 text-sm">Tags:</span>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                                {asset.tags.map(tag => (
-                                    <span
-                                        key={tag}
-                                        className="bg-gray-700 text-xs text-white px-2 py-1 rounded"
-                                    >
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
                 </div>
 
                 {/* Action Buttons */}

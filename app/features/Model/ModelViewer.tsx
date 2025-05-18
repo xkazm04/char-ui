@@ -1,9 +1,7 @@
-import { useState, useRef, Suspense, useEffect } from 'react';
+import { useState, useRef, Suspense, useEffect, memo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, useProgress, Html } from '@react-three/drei';
 import { ErrorBoundary } from 'react-error-boundary';
-import ModelGallery from './ModelGallery';
-import ModelVariantsBar from './ModelVariantsBar';
 import ModelView from './ModelView';
 
 export type ModelFormat = 'obj' | 'fbx' | 'glb' | 'usdz' | 'stl' | 'blend';
@@ -21,6 +19,7 @@ interface ModelViewerProps {
   variants?: string[];
   defaultModel?: string;
   defaultVariant?: string;
+  showFloor?: boolean;
 }
 
 const Loader = () => {
@@ -65,10 +64,11 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
   models, 
   variants = ['Default', 'Wireframe', 'Textured', 'Animated'], 
   defaultModel, 
-  defaultVariant 
+  defaultVariant,
+  showFloor = false
 }) => {
   const [selectedModelId, setSelectedModelId] = useState<string>(defaultModel || (models.length > 0 ? models[0].id : ''));
-  const [selectedVariant, setSelectedVariant] = useState<string>(defaultVariant || (variants.length > 0 ? variants[0] : 'Default'));
+  const [selectedVariant] = useState<string>(defaultVariant || (variants.length > 0 ? variants[0] : 'Default'));
   const controlsRef = useRef<any>(null);
 
   const selectedModel = models.find(model => model.id === selectedModelId) || models[0];
@@ -81,34 +81,31 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
   }, [selectedModelId]);
 
   return (
-    <div className="flex flex-col w-full h-full bg-gray-950">
-      {/* Top bar for variants */}
-      <ModelVariantsBar 
-        variants={variants}
-        selectedVariant={selectedVariant}
-        onSelectVariant={setSelectedVariant}
-      />
-      
-      {/* Main 3D viewer */}
+    <div className="flex flex-col w-full h-full">
       <div className="flex-1 relative">
         <ErrorBoundary
           FallbackComponent={ErrorFallback}
           onReset={() => {
-            // Reset state when error boundary is reset
             setSelectedModelId(defaultModel || (models.length > 0 ? models[0].id : ''));
           }}
         >
           <Canvas
-            shadows
+            shadows={showFloor}
             dpr={[1, 2]}
             camera={{ position: [0, 0, 4], fov: 50 }}
-            gl={{ preserveDrawingBuffer: true }}
+            gl={{ 
+              preserveDrawingBuffer: true,
+              alpha: true // Make the canvas transparent
+            }}
           >
-            <color attach="background" args={['#050505']} />
-            <fog attach="fog" args={['#050505', 10, 20]} />
+            {/* No background color attachment for transparency */}
             
             <Suspense fallback={<Loader />}>
-              <ModelView modelInfo={selectedModel} variant={selectedVariant} />
+              <ModelView 
+                modelInfo={selectedModel} 
+                variant={selectedVariant} 
+                showFloor={showFloor}
+              />
             </Suspense>
             
             <OrbitControls 
@@ -123,14 +120,8 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
           </Canvas>
         </ErrorBoundary>
       </div>
-      
-      {/* Bottom gallery */}
-      <ModelGallery 
-        models={models}
-        selectedModelId={selectedModelId}
-        onSelectModel={setSelectedModelId}
-      />
     </div>
   );
 }
-export default ModelViewer;
+
+export default memo(ModelViewer);

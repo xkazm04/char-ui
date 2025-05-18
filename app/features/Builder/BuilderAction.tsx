@@ -1,35 +1,42 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAssetStore } from '@/app/store/assetStore';
-import { LucideTrash2, RefreshCcw } from 'lucide-react';
+import { RefreshCcw } from 'lucide-react';
 import BuilderAssetGroup from './BuilderAssetGroup';
 import BuilderGenSketch from './BuilderGenSketch';
 
 const BuilderAction = () => {
   const { 
-    clothing, 
-    equipment, 
-    accessories, 
+    Body, 
+    Equipment, 
+    Clothing, 
+    Background,
     removeAsset, 
-    clearAssets, 
-    clearAllAssets 
+    clearAssets,
+    clearAllAssets,
+    isGenerating, 
+    setIsGenerating
   } = useAssetStore();
   
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  // Dynamically create categories configuration
+  // Use the categories from our store
   const categories = useMemo(() => [
-    { type: 'clothing' as string, title: 'Clothing', assets: clothing, defaultOpen: true },
-    { type: 'equipment' as string, title: 'Equipment', assets: equipment, defaultOpen: clothing.length === 0 },
-    { type: 'accessories' as string, title: 'Accessories', assets: accessories, defaultOpen: clothing.length === 0 && equipment.length === 0 }
-  ], [clothing, equipment, accessories]);
+    { type: 'Body', title: 'Body', assets: Body, defaultOpen: true },
+    { type: 'Equipment', title: 'Equipment', assets: Equipment, defaultOpen: Body.length === 0 },
+    { type: 'Clothing', title: 'Clothing', assets: Clothing, defaultOpen: Body.length === 0 && Equipment.length === 0 },
+    { type: 'Background', title: 'Background', assets: Background, defaultOpen: false }
+  ], [Body, Equipment, Clothing, Background]);
 
-  // Create any additional categories or custom groupings if needed
   const hasAnyAssets = categories.some(category => category.assets.length > 0);
   const totalAssetCount = categories.reduce((sum, category) => sum + category.assets.length, 0);
 
+  // Handle clear all assets
   const handleClearAll = () => {
     clearAllAssets();
+  };
+
+  // Simplified function to clear assets by category
+  const clearAssetsByCategory = (type: string) => {
+    clearAssets(type as any);
   };
 
   return (
@@ -81,7 +88,7 @@ const BuilderAction = () => {
             assets={category.assets}
             type={category.type}
             onRemove={removeAsset}
-            onClearCategory={clearAssets}
+            onClearCategory={clearAssetsByCategory}
             defaultOpen={category.defaultOpen}
           />
         ))}

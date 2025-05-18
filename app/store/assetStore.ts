@@ -27,6 +27,9 @@ interface AssetState {
   setGroupExpanded: (groupId: string, expanded: boolean) => void;
   toggleGroupExpanded: (groupId: string) => void;
   getGroupExpanded: (groupId: string) => boolean;
+
+  isGenerating: boolean;
+  setIsGenerating: (isGenerating: boolean) => void;
 }
 
 export const useAssetStore = create<AssetState>()(
@@ -41,41 +44,32 @@ export const useAssetStore = create<AssetState>()(
 
       addAsset: (asset) =>
         set((state) => {
-          // Ensure asset has proper type property (one of the main categories)
-          if (!asset.type || !['Body', 'Equipment', 'Clothing', 'Background'].includes(asset.type)) {
-            console.warn(`Asset has invalid type: ${asset.type}`);
-            return state;
-          }
+          // Ensure the asset has a valid type, defaulting to Equipment if not
+          const validType = asset.type && ['Body', 'Equipment', 'Clothing', 'Background'].includes(asset.type)
+            ? asset.type
+            : 'Equipment';
           
-          const type = asset.type as MainCategoryType;
-          
-          // Check if asset already exists in any category
-          const existsInAnyCategory = [
-            ...state.Body, 
-            ...state.Equipment, 
-            ...state.Clothing, 
-            ...state.Background
-          ].some(a => a.id === asset.id);
-          
-          if (existsInAnyCategory) {
-            return state;
-          }
-          
-          // Update assetPrompt by adding asset.gen if it exists
-          let updatedAssetPrompt = state.assetPrompt || '';
-          if (asset.gen) {
-            if (updatedAssetPrompt) {
-              updatedAssetPrompt = `${updatedAssetPrompt}, ${asset.gen}`;
-            } else {
-              updatedAssetPrompt = asset.gen;
-            }
-          }
-          
-          return {
-            ...state,
-            [type]: [...state[type], asset],
-            assetPrompt: updatedAssetPrompt
+          // Create an asset with the valid type
+          const assetWithValidType = {
+            ...asset,
+            type: validType
           };
+          
+          // Add to the appropriate category
+          switch (validType) {
+            case 'Body':
+              return { Body: [...state.Body, assetWithValidType] };
+            case 'Equipment':
+              return { Equipment: [...state.Equipment, assetWithValidType] };
+            case 'Clothing':
+              return { Clothing: [...state.Clothing, assetWithValidType] };
+            case 'Background':
+              return { Background: [...state.Background, assetWithValidType] };
+            default:
+              // This shouldn't happen due to the validType check above
+              console.warn(`Unknown asset type: ${validType}`);
+              return state;
+          }
         }),
 
       removeAsset: (assetId, type) =>
@@ -176,10 +170,11 @@ export const useAssetStore = create<AssetState>()(
         })),
         
       getGroupExpanded: (groupId) => {
-        // Default to true for the first group, false for others
         const state = get();
         return state.expandedGroups[groupId] ?? false;
-      }
+      },
+      isGenerating: false,
+      setIsGenerating: (isGenerating) => set({ isGenerating })
     }),
     {
       name: 'character-assets-storage'

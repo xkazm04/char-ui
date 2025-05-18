@@ -8,21 +8,22 @@ interface AssetTagProps {
   onRemove: () => void;
 }
 
-  export const assetColor = (type: string) => {
-    switch (type) {
-      case 'clothing':
-        return 'bg-blue-400/20';
-      case 'equipment':
-        return 'bg-green-500/20';
-      case 'accessories':
-        return 'bg-purple-500/10';
-      default:
-        return 'bg-gray-900/20';
-    }
+export const assetColor = (type: string) => {
+  switch (type?.toLowerCase()) {
+    case 'body':
+      return 'bg-blue-400/20';
+    case 'equipment':
+      return 'bg-red-500/20';
+    case 'clothing':
+      return 'bg-green-500/20';
+    case 'background':
+      return 'bg-purple-500/20';
+    default:
+      return 'bg-gray-900/20';
   }
+}
 
 const AssetTag = ({ asset, onRemove }: AssetTagProps) => {
-
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
@@ -50,8 +51,8 @@ interface CollapsibleAssetSectionProps {
   title: string;
   assets: AssetType[];
   type: string;
-  onRemove: (id: string, type: AssetType) => void;
-  onClearCategory: (type: AssetType) => void;
+  onRemove: (id: string, type: string) => void;
+  onClearCategory: (type: string) => void;
   defaultOpen?: boolean;
 }
 
@@ -112,9 +113,18 @@ const BuilderAssetGroup = ({
                   <div className="flex flex-wrap">
                     {assets.map((asset) => (
                       <AssetTag 
-                        key={asset.id} 
+                        key={asset.id || asset._id} 
                         asset={asset} 
-                        onRemove={() => onRemove(asset._id, type)} 
+                        onRemove={() => {
+                          // Get the correct ID to use
+                          const assetId = asset.id || asset._id;
+                          
+                          // Use the asset's type if available, or fall back to the section type
+                          const assetType = asset.type || type;
+                          
+                          // Call the onRemove function to remove from store
+                          onRemove(assetId, assetType);
+                        }} 
                       />
                     ))}
                   </div>

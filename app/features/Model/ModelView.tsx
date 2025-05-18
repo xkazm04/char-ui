@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { 
@@ -18,9 +18,14 @@ import { ModelInfo } from './ModelViewer';
 interface ModelViewProps {
   modelInfo: ModelInfo;
   variant: string;
+  showFloor?: boolean; // Add option to hide floor
 }
 
-const ModelView: React.FC<ModelViewProps> = ({ modelInfo, variant }) => {
+const ModelView: React.FC<ModelViewProps> = ({ 
+  modelInfo, 
+  variant,
+  showFloor = false // Default to false to hide floor
+}) => {
   const { model, error, isLoading } = useModelLoader({
     path: modelInfo.path,
     format: modelInfo.format
@@ -103,30 +108,35 @@ const ModelView: React.FC<ModelViewProps> = ({ modelInfo, variant }) => {
           <primitive object={model} scale={1} />
         </Center>
         
-        <AccumulativeShadows 
-          temporal 
-          frames={60} 
-          alphaTest={0.85} 
-          scale={10} 
-          position={[0, -0.5, 0]}
-        >
-          <RandomizedLight 
-            amount={4} 
-            radius={9} 
-            intensity={1} 
-            ambient={0.25} 
-            position={[5, 5, -10]} 
-          />
-        </AccumulativeShadows>
-        
-        <ContactShadows 
-          opacity={0.6} 
-          scale={10} 
-          blur={1} 
-          far={10} 
-          resolution={256} 
-          color="#000000" 
-        />
+        {/* Only render shadows if showFloor is true */}
+        {showFloor && (
+          <>
+            <AccumulativeShadows 
+              temporal 
+              frames={60} 
+              alphaTest={0.85} 
+              scale={10} 
+              position={[0, -0.5, 0]}
+            >
+              <RandomizedLight 
+                amount={4} 
+                radius={9} 
+                intensity={1} 
+                ambient={0.25} 
+                position={[5, 5, -10]} 
+              />
+            </AccumulativeShadows>
+            
+            <ContactShadows 
+              opacity={0.6} 
+              scale={10} 
+              blur={1} 
+              far={10} 
+              resolution={256} 
+              color="#000000" 
+            />
+          </>
+        )}
       </group>
       
       <spotLight
@@ -135,16 +145,18 @@ const ModelView: React.FC<ModelViewProps> = ({ modelInfo, variant }) => {
         angle={0.3}
         penumbra={0.8}
         intensity={1}
-        castShadow
+        castShadow={showFloor} // Only cast shadow if we're showing the floor
         shadow-mapSize={[2048, 2048]}
       />
       
       <hemisphereLight intensity={0.5} color="#eaeaea" groundColor="#353535" />
       
+      {/* Environment lighting still needed for model to look good */}
       <Environment preset="city" />
-      <BakeShadows />
+      
+      {showFloor && <BakeShadows />}
 
-      <Background variant={variant} />
+      {variant === 'Studio' && showFloor && <Background variant={variant} />}
 
       <OrbitControls 
         enableDamping={true}

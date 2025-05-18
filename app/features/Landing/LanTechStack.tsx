@@ -19,9 +19,9 @@ const techStacks = [
     description: "Cloud infrastructure & ML services"
   },
   {
-    name: "Nvidia",
-    logo: "/logos/nvidia.svg",
-    description: "LLM inference on GPUs"
+    name: "Meshy",
+    logo: "/logos/meshy.svg",
+    description: "Text/Image to 3D model generation"
   }
 ];
 

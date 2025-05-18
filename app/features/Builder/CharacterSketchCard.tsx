@@ -1,26 +1,26 @@
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LucideDownload, Info, LucideX } from 'lucide-react'
 import { AssetType } from '@/app/types/asset';
-
+import ModelViewer from '../Model/ModelViewer';
+import CharacterCardToolbar from './CharacterCardToolbar';
+import CharacterCardOverlay from './CharacterCardOverlay';
 interface CharacterSketchCardProps {
   imageUrl: string;
   usedAssets: AssetType[];
-  selected?: boolean;
-  onSelect?: () => void;
 }
 
-export default function CharacterSketchCard({
+function CharacterSketchCard({
   imageUrl,
   usedAssets,
-  selected = false,
-  onSelect
 }: CharacterSketchCardProps) {
-  const [isHovering, setIsHovering] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [modelGenerated, setModelGenerated] = useState(false);
+  const [is3DMode, setIs3DMode] = useState(false);
+  const [modelUrl, setModelUrl] = useState<string | null>(null);
+  
 
-  const handleDownload = async (e: React.MouseEvent) => {
+  const handleDownload = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       const response = await fetch(imageUrl);
@@ -36,119 +36,104 @@ export default function CharacterSketchCard({
     } catch (error) {
       console.error('Failed to download image:', error);
     }
-  };
+  }, [imageUrl]);
 
-  const handleShowDetails = (e: React.MouseEvent) => {
+  const handleShowDetails = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowDetails(true);
+    setShowDetails(prev => !prev);
+  }, []);
+
+  const handleToggle3D = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (modelGenerated) {
+      setIs3DMode(prev => !prev);
+    }
+  }, [modelGenerated]);
+
+  const getModelData = () => {
+    if (!modelUrl) return null;
+    
+    return {
+      id: "character-model",
+      name: "Character Model",
+      path: modelUrl, 
+      format: "glb" as const,
+    };
+  };
+  
+  const modelData = getModelData() || {
+    id: "character-model",
+    name: "Character Model",
+    path: "/models/jinx.glb", // Test
+    format: "glb" as const,
   };
 
   return (
-    <motion.div
-      className={`relative rounded-lg overflow-hidden cursor-pointer transition-all
-                 ${selected ? 'ring-2 ring-sky-500 ring-offset-1 ring-offset-[#0a0a18]' : 'hover:ring-1 hover:ring-sky-500/50'}`}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      onHoverStart={() => setIsHovering(true)}
-      onHoverEnd={() => setIsHovering(false)}
-      onClick={onSelect}
-      layout
-    >
-      <div className="aspect-square overflow-hidden relative border border-gray-800/50 rounded-lg bg-gray-900/30">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Image
-            src={imageUrl}
-            alt="Character sketch"
-            fill
-            sizes="(max-width: 768px) 100vw, 33vw"
-            className="object-contain" // This ensures the full image is visible
-          />
+    <div className="flex flex-col">
+      <div
+        className={`relative rounded-lg overflow-hidden border border-gray-800/50 bg-gray-900/30`}
+      >
+        <div className="aspect-square overflow-hidden relative rounded-lg">
+          <AnimatePresence mode="wait">
+            {is3DMode && modelGenerated ? (
+              <motion.div
+                key="3d-view"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0"
+              >
+                <ModelViewer 
+                  models={[modelData]} 
+                  variants={['Default', 'Wireframe']}
+                  defaultModel={modelData.id}
+                  defaultVariant="Default"
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="2d-view"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <Image
+                  src={imageUrl}
+                  alt="Character sketch"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="object-contain"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          {/* Used assets detail overlay */}
+          <AnimatePresence>
+            {showDetails && (
+              <CharacterCardOverlay 
+                usedAssets={usedAssets}
+                handleShowDetails={handleShowDetails}
+              />
+            )}
+          </AnimatePresence>
         </div>
-
-        {/* Hover overlay with action buttons */}
-        <AnimatePresence>
-          {isHovering && !showDetails && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-gradient-to-t from-[#0a0a18]/80 to-[#0a0a18]/40 flex flex-col items-center justify-end p-4"
-            >
-              <div className="flex space-x-2 mb-4">
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-2 text-sky-200 rounded-full cursor-pointer hover:text-sky-500"
-                  onClick={handleDownload}
-                  aria-label="Download image"
-                >
-                  <LucideDownload/>
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-2 text-sky-200 rounded-full cursor-pointer hover:text-sky-500"
-                  onClick={handleShowDetails}
-                  aria-label="Show used assets"
-                >
-                  <Info  />
-                </motion.button>
-              </div>
-              <p className="text-xs italic font-mono text-gray-400">Click to select</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Used assets detail overlay */}
-        <AnimatePresence>
-          {showDetails && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-[#0a0a18]/90 p-4 overflow-y-auto"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-bold text-sky-400">Used Assets</h3>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowDetails(false);
-                  }}
-                  className="text-gray-400 hover:text-white"
-                  aria-label="Close asset details"
-                >
-                  <LucideX className="h-5 w-5" />
-                </motion.button>
-              </div>
-
-              <div className="space-y-3">
-                {usedAssets.length > 0 ? (
-                  ['clothing', 'equipment', 'accessories'].map((type) => {
-                    const filteredAssets = usedAssets.filter(asset => asset.type === type);
-                    return filteredAssets.length > 0 ? (
-                      <div key={type} className="mb-2">
-                        <h4 className="text-xs text-gray-400 uppercase mb-1">{type}</h4>
-                        <div className="space-y-1">
-                          {filteredAssets.map((asset) => (
-                            <div key={asset.id} className={`rounded-md px-2 text-sm`}>
-                              <li className="text-sky-200 text-xs">{asset.name}</li>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null;
-                  })
-                ) : (
-                  <p className="text-gray-400 text-sm">No assets were used for this sketch.</p>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
-    </motion.div>
+
+      <CharacterCardToolbar 
+        modelGenerated={modelGenerated}
+        is3DMode={is3DMode}
+        handleToggle3D={handleToggle3D}
+        handleDownload={handleDownload}
+        handleShowDetails={handleShowDetails}
+        showDetails={showDetails}
+        imageUrl={imageUrl}
+        setModelGenerated={setModelGenerated}
+        setModelUrl={setModelUrl}
+        setIs3DMode={setIs3DMode}
+      />
+    </div>
   );
 }
+
+export default memo(CharacterSketchCard);
