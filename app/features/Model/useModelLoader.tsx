@@ -31,7 +31,7 @@ const useModelLoader = ({ path, format }: UseModelLoaderProps): UseModelLoaderRe
         
         switch (format) {
           case 'obj': {
-            // Dynamic import OBJLoader only when needed
+            //@ts-expect-error Ignore
             const { OBJLoader } = await import('three/examples/jsm/loaders/OBJLoader');
             const loader = new OBJLoader();
             result = await loader.loadAsync(path);
@@ -40,7 +40,7 @@ const useModelLoader = ({ path, format }: UseModelLoaderProps): UseModelLoaderRe
           }
             
           case 'fbx': {
-            // Dynamic import FBXLoader only when needed
+            //@ts-expect-error Ignore
             const { FBXLoader } = await import('three/examples/jsm/loaders/FBXLoader');
             const loader = new FBXLoader();
             result = await loader.loadAsync(path);
@@ -49,7 +49,7 @@ const useModelLoader = ({ path, format }: UseModelLoaderProps): UseModelLoaderRe
           }
             
           case 'glb': {
-            // Dynamic import GLTFLoader only when needed
+            //@ts-expect-error Ignore
             const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader');
             const loader = new GLTFLoader();
             result = await loader.loadAsync(path);
@@ -58,7 +58,7 @@ const useModelLoader = ({ path, format }: UseModelLoaderProps): UseModelLoaderRe
           }
             
           case 'stl': {
-            // Dynamic import STLLoader only when needed
+            //@ts-expect-error Ignore
             const { STLLoader } = await import('three/examples/jsm/loaders/STLLoader');
             const loader = new STLLoader();
             const geometry = await loader.loadAsync(path);

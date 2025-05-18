@@ -6,7 +6,7 @@ import AssetGroupItem from "./AssetGroupItem";
 
 type Props = {
   assetGroups: AssetGroup[];
-  setSelectedAssets: (assets: Set<string>) => void;
+  setSelectedAssets: React.Dispatch<React.SetStateAction<Set<string>>>;
 }
 
 const AssetGroupSidebar = ({
@@ -17,14 +17,14 @@ const AssetGroupSidebar = ({
 
   const toggleAssetSelection = (assetId: string) => {
     console.log("Toggling asset:", assetId);
-    setSelectedAssets(prev => {
-      const newSet = new Set(prev);
+    setSelectedAssets((prev: Set<string>): Set<string> => {
+      const newSet: Set<string> = new Set(prev);
       if (newSet.has(assetId)) {
-        console.log("Removing asset from selection:", assetId);
-        newSet.delete(assetId);
+      console.log("Removing asset from selection:", assetId);
+      newSet.delete(assetId);
       } else {
-        console.log("Adding asset to selection:", assetId);
-        newSet.add(assetId);
+      console.log("Adding asset to selection:", assetId);
+      newSet.add(assetId);
       }
       return newSet;
     });

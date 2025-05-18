@@ -1,6 +1,6 @@
 export interface AssetType {
   id?: string;
-  _id: string;
+  _id?: string;
   name: string;
   type: string;
   subcategory?: string;

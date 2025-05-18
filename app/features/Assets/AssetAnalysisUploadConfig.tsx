@@ -4,7 +4,7 @@ import AssetConfigItem from "./AssetConfigItem";
 
 type Props = {
     config: AssetTabConfig;
-    setConfig: (config: AssetTabConfig | ((prev: AssetTabConfig) => AssetTabConfig)) => void;
+    setConfig: React.Dispatch<React.SetStateAction<AssetTabConfig>>;
 }
 
 const AssetAnalysisUploadConfig = ({ config, setConfig }: Props) => {
@@ -13,12 +13,12 @@ const AssetAnalysisUploadConfig = ({ config, setConfig }: Props) => {
         enabled: boolean, 
         apiKey: string
     ) => {
-        setConfig((prev) => ({
+        setConfig((prev: AssetTabConfig) => ({
             ...prev,
             [model]: {
-                ...prev[model],
-                enabled,
-                apiKey
+            ...prev[model],
+            enabled,
+            apiKey
             }
         }));
     }, [setConfig]);

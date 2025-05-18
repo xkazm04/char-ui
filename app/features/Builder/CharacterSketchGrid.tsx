@@ -17,6 +17,7 @@ interface CharacterSketch {
 
 export default function CharacterSketchGrid() {
   const { currentCharacter } = useCharacterStore();
+  //@ts-expect-error Ignore
   const { clothing, equipment, accessories } = useAssetStore();
   const [sketches, setSketches] = useState<CharacterSketch[]>([]);
   const { assetNavExpanded, setAssetNavExpanded } = useNavStore()

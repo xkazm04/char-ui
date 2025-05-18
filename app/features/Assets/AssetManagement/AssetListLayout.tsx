@@ -8,6 +8,7 @@ import AssetManCatSelector from './AssetManCatSelector';
 
 const AssetListLayout = () => {
   const [mainSearchQuery, setMainSearchQuery] = useState("");
+  //eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedAssets, setSelectedAssets] = useState<Set<string>>(new Set());
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -155,9 +156,7 @@ const AssetListLayout = () => {
               {!isLoading && !error && filteredAssetGroups.length > 0 && (
                 <AssetGroupList
                   assetGroups={filteredAssetGroups}
-                  mainSearchQuery=""
                   setSelectedAssets={setSelectedAssets}
-                  selectedAssets={selectedAssets}
                   isFullScreen={isFullScreen}
                 />
               )}

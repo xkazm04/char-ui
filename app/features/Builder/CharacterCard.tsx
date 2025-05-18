@@ -38,13 +38,15 @@ export default function CharacterCard() {
       >
         {/* Background image with overlay */}
         <div className="absolute inset-0">
-          <Image
-            src={ genIsStarted ? currentCharacter.gif_url : currentCharacter.image_url }
-            alt={'Character Background'}
-            fill
-            className="object-cover opacity-50"
-            priority
-          />
+          {currentCharacter && (
+            <Image
+              src={ genIsStarted ? currentCharacter.gif_url || '' : currentCharacter.image_url || '' }
+              alt={'Character Background'}
+              fill
+              className="object-cover opacity-50"
+              priority
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a18]/90 to-[#0a0a18]/40"></div>
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.15),transparent_70%)]"></div>
         </div>

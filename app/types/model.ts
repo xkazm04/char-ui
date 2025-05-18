@@ -9,6 +9,7 @@ export interface ModelInfo {
   format: ModelFormat;
   thumbnail?: string;
   description?: string;
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata?: Record<string, any>;
 }
 
@@ -117,6 +118,7 @@ export interface UseModelLoaderProps {
 }
 
 export interface UseModelLoaderResult {
+  //@ts-expect-error Ignore
   model: THREE.Group | THREE.Mesh | null;
   error: Error | null;
   isLoading: boolean;

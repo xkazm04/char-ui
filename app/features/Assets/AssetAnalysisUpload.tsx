@@ -16,7 +16,7 @@ type Props = {
   setGeminiAssets: (assets: AssetType[]) => void;
   setGroqAssets: (assets: AssetType[]) => void; 
   config: AssetTabConfig;
-  setConfig: (config: AssetTabConfig) => void;
+  setConfig: React.Dispatch<React.SetStateAction<AssetTabConfig>>;
 };
 
 const AssetAnalysisUpload = ({

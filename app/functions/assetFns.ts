@@ -37,7 +37,7 @@ export const processAssetsIntoGroups = (assets: AssetType[]): AssetGroup[] => {
   }, {});
   
   // Convert grouped assets into AssetGroup array
-  return Object.entries(assetsByType).map(([type, typeAssets], index) => ({
+  return Object.entries(assetsByType).map(([type, typeAssets]) => ({
     id: `group-${type}`,
     name: type.charAt(0).toUpperCase() + type.slice(1), // Capitalize first letter
     assets: typeAssets

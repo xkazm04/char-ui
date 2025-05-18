@@ -14,9 +14,8 @@ type Props = {
 const AssetGroupItem = ({ asset, toggleAssetSelection, isFullScreen = false }: Props) => {
   const assetId = asset.id || asset._id;
   const [showModal, setShowModal] = useState(false);
-  const modalRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
   
-  // Use the asset store directly to check selection state and manage assets
   const { 
     Body, 
     Equipment, 
@@ -40,6 +39,7 @@ const AssetGroupItem = ({ asset, toggleAssetSelection, isFullScreen = false }: P
     // If the asset is already in the store, we need to remove it
     if (isInStore) {
       // Find which category contains the asset and remove it
+      if (!assetId) return
       if (Body.some(item => (item.id === assetId || item._id === assetId))) {
         removeAsset(assetId, 'Body');
       } else if (Equipment.some(item => (item.id === assetId || item._id === assetId))) {
@@ -73,6 +73,7 @@ const AssetGroupItem = ({ asset, toggleAssetSelection, isFullScreen = false }: P
     }
 
     // Update UI selection state via the parent component
+    if (!assetId) return;
     toggleAssetSelection(assetId);
   };
   

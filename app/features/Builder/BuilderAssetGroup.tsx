@@ -123,6 +123,10 @@ const BuilderAssetGroup = ({
                           const assetType = asset.type || type;
                           
                           // Call the onRemove function to remove from store
+                          if (!assetId) {
+                            console.warn('Asset ID is missing, cannot remove asset');
+                            return;
+                          }
                           onRemove(assetId, assetType);
                         }} 
                       />

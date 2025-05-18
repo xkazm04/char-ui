@@ -27,11 +27,6 @@ const CharacterCardToolbar = ({ modelGenerated, is3DMode, handleToggle3D, handle
   const [progress, setProgress] = useState<number>(0);
   const [generationError, setGenerationError] = useState<string | null>(null);
 
-  const mockHandleGenerate3D = () => {
-    // Test loading state only
-    setIsGenerating(true);
-  }
-
   const handleGenerate3D = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
 
@@ -168,7 +163,7 @@ const CharacterCardToolbar = ({ modelGenerated, is3DMode, handleToggle3D, handle
             whileTap={{ scale: 0.95 }}
             className={`px-2 py-1 text-sky-500/90 rounded cursor-pointer
                       shadow-lg hover:text-yellow-400 transition-colors flex items-center space-x-1`}
-            onClick={mockHandleGenerate3D}
+            onClick={handleGenerate3D}
             disabled={isGenerating}
             title="Generate 3D model"
             aria-label="Generate 3D model"

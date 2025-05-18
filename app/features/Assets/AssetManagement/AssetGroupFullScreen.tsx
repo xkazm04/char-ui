@@ -7,16 +7,12 @@ import AssetGroupItem from "./AssetGroupItem";
 
 type Props = {
   assetGroups: AssetGroup[];
-  mainSearchQuery: string;
-  setSelectedAssets: (assets: Set<string>) => void;
-  selectedAssets: Set<string>;
+  setSelectedAssets: React.Dispatch<React.SetStateAction<Set<string>>>;
 }
 
 const AssetGroupFullScreen = ({
   assetGroups,
   setSelectedAssets,
-  selectedAssets,
-  mainSearchQuery
 }: Props) => {
   const { toggleGroupExpanded, getGroupExpanded, setGroupExpanded } = useAssetStore();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -24,14 +20,14 @@ const AssetGroupFullScreen = ({
 
   const toggleAssetSelection = (assetId: string) => {
     console.log("Toggling asset:", assetId);
-    setSelectedAssets(prev => {
-      const newSet = new Set(prev);
+    setSelectedAssets((prev: Set<string>): Set<string> => {
+      const newSet: Set<string> = new Set(prev);
       if (newSet.has(assetId)) {
-        console.log("Removing asset from selection:", assetId);
-        newSet.delete(assetId);
+      console.log("Removing asset from selection:", assetId);
+      newSet.delete(assetId);
       } else {
-        console.log("Adding asset to selection:", assetId);
-        newSet.add(assetId);
+      console.log("Adding asset to selection:", assetId);
+      newSet.add(assetId);
       }
       return newSet;
     });
@@ -134,10 +130,8 @@ const AssetGroupFullScreen = ({
                             <AssetGroupItem
                               asset={asset}
                               key={asset.id || asset._id}
-                              isSelected={selectedAssets.has(asset.id || asset._id)}
                               toggleAssetSelection={toggleAssetSelection}
                               isFullScreen={true}
-                              searchQuery={mainSearchQuery}
                             />
                           ))
                         ) : (

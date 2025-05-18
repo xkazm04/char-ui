@@ -69,6 +69,7 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
 }) => {
   const [selectedModelId, setSelectedModelId] = useState<string>(defaultModel || (models.length > 0 ? models[0].id : ''));
   const [selectedVariant] = useState<string>(defaultVariant || (variants.length > 0 ? variants[0] : 'Default'));
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   const controlsRef = useRef<any>(null);
 
   const selectedModel = models.find(model => model.id === selectedModelId) || models[0];
@@ -76,7 +77,7 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
   // Reset camera when changing models
   useEffect(() => {
     if (controlsRef.current) {
-      controlsRef.current.reset();
+      controlsRef.current.reset() 
     }
   }, [selectedModelId]);
 

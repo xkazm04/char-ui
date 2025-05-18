@@ -1,4 +1,5 @@
 import { serverUrl } from "../constants/urls";
+import { AssetType } from "../types/asset";
 
 interface LeonardoImage {
     url: string;
@@ -20,7 +21,6 @@ interface AssetSaveResponse {
         _id: string;
         name: string;
         type: string;
-        // other asset fields
     };
     generation_id: string;
 }
@@ -37,7 +37,7 @@ type Props = {
 }
 
 type AssetSaveProps = Props & {
-    asset: any; // The asset data to save
+    asset: AssetType; 
     setSavedAssetId?: (id: string) => void; // Optional callback to store the saved asset ID
 }
 
@@ -94,8 +94,6 @@ export const handleAssetGeneration = async ({ prompt, type, element, generationI
 // New function for generating and saving asset images
 export const handleAssetGenerationAndSave = async ({ 
     prompt, 
-    type, 
-    element, 
     generationId, 
     setGenerationId, 
     setGenError, 

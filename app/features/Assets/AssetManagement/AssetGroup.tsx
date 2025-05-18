@@ -4,26 +4,20 @@ import AssetGroupSidebar from "./AssetGroupSidebar";
 
 type Props = {
   assetGroups: AssetGroup[];
-  mainSearchQuery: string;
-  setSelectedAssets: (assets: Set<string>) => void;
-  selectedAssets: Set<string>;
+  setSelectedAssets: React.Dispatch<React.SetStateAction<Set<string>>>;
   isFullScreen?: boolean;
 }
 
 const AssetGroupList = ({
   assetGroups,
   setSelectedAssets,
-  selectedAssets,
   isFullScreen = false,
-  mainSearchQuery
 }: Props) => {
   if (isFullScreen) {
     return (
       <AssetGroupFullScreen
         assetGroups={assetGroups}
-        mainSearchQuery={mainSearchQuery}
         setSelectedAssets={setSelectedAssets}
-        selectedAssets={selectedAssets}
       />
     );
   }

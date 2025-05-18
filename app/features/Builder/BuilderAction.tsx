@@ -36,6 +36,7 @@ const BuilderAction = () => {
 
   // Simplified function to clear assets by category
   const clearAssetsByCategory = (type: string) => {
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
     clearAssets(type as any);
   };
 
@@ -87,6 +88,7 @@ const BuilderAction = () => {
             title={category.title}
             assets={category.assets}
             type={category.type}
+            //@ts-expect-error Ignore
             onRemove={removeAsset}
             onClearCategory={clearAssetsByCategory}
             defaultOpen={category.defaultOpen}

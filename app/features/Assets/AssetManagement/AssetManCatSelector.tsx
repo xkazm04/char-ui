@@ -16,7 +16,7 @@ type Props = {
 
 const AssetManCatSelector = ({setIsFullScreen, isFullScreen, setActiveCategory, activeCategory}: Props) => {
     const toggleFullScreen = () => {
-        setIsFullScreen(prev => !prev);
+        setIsFullScreen(!isFullScreen);
     };
     return <>
         <div className="flex justify-center py-2 px-3 border-b border-gray-800 relative">
