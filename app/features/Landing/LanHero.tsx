@@ -1,6 +1,12 @@
 import GlowingText from "@/app/components/landing/GlowingText";
+import { NavTabTypes } from "@/app/types/nav";
 import { m, useReducedMotion } from "framer-motion";
-const LanHero = () => {
+
+type Props = {
+    setTab: (tab: NavTabTypes) => void;
+}
+
+const LanHero = ({setTab}: Props) => {
     const shouldReduceMotion = useReducedMotion();
     return <>
         <div className="max-w-7xl mx-auto">
@@ -58,6 +64,10 @@ const LanHero = () => {
                             whileHover={{ scale: shouldReduceMotion ? 1 : 1.03 }}
                             whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
                             aria-label="Try interactive demo"
+                            onClick={() => {
+                                setTab('assets');
+                                document.getElementById('main-content')?.scrollIntoView({ behavior: 'smooth' });
+                            }}
                         >
                             <span className="text-xl" aria-hidden="true">🎮</span>
                             Try Demo

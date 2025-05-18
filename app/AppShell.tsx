@@ -5,21 +5,25 @@ import AssetListLayout from "./features/Assets/AssetManagement/AssetListLayout";
 import Navbar from "./components/Navbar";
 import { NavTabTypes } from "./types/nav";
 import CharBuilderLayout from "./features/Builder/CharBuilderLayout";
-// import LandingLayout from "./features/Landing/LandingLayout";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import ModelLayout from "./features/Model/ModelLayout";
+import LandingLayout from "./features/Landing/LandingLayout";
+import GlowingText from "./components/landing/GlowingText";
 const queryClient = new QueryClient();
-
 
 const AppShell = () => {
     const [tab, setTab] = useState<NavTabTypes>('assets');
     return <div className="flex min-h-full w-full flex-wrap">
         <QueryClientProvider client={queryClient}>
-            <Navbar tab={tab} setTab={setTab} />
+            <div
+                onClick={() => setTab('landing')}
+                className="absolute top-2 left-4 cursor-pointer hidden md:block">
+                <h1 className="text-lg font-bold text-white">Pixel <GlowingText>Play</GlowingText></h1>
+            </div>
+            {tab !== 'landing' && <Navbar tab={tab} setTab={setTab} />}
             {tab === 'assets' && <AssetAnalysisLayout />}
-            <AssetListLayout />
+            {tab !== 'landing' && <AssetListLayout />}
             {tab === 'builder' && <CharBuilderLayout />}
-            {tab === 'mesh' && <ModelLayout />}
+            {tab === 'landing' && <LandingLayout setTab={setTab} />}
         </QueryClientProvider>
     </div>
 }

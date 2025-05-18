@@ -7,6 +7,7 @@ import LanFooter from "./LanFooter";
 import LanCallTo from "./LanCallTo";
 import LanHowWorks from "./LanHowWorks";
 import LanUseCases from "./LanUseCases";
+import { NavTabTypes } from "@/app/types/nav";
 
 
 const LanTechStack = dynamic(() => import('./LanTechStack'), {
@@ -24,8 +25,12 @@ const TechStackSkeleton = () => (
     </div>
 );
 
+type Props = {
+    setTab: (tab: NavTabTypes) => void;
+}
 
-const LandingLayout = () => {
+
+const LandingLayout = ({setTab}: Props) => {
     /* TBD next week
     *  Images for use cses
     *  Background animation
@@ -52,7 +57,7 @@ const LandingLayout = () => {
                     </a>
 
                     <ParticleGrid />
-                    <LanHero />
+                    <LanHero setTab={setTab} />
                 </section>
 
                 {/* Core Sections */}

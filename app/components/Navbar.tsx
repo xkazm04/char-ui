@@ -1,8 +1,8 @@
-import GlowingText from '@/app/components/landing/GlowingText';
 import { useNavStore } from '@/app/store/navStore';
 import { NavTabTypes } from '@/app/types/nav';
 import { motion } from 'framer-motion';
 import { HelpCircle } from 'lucide-react';
+import { useEffect } from 'react';
 
 type Props = {
   tab: NavTabTypes;
@@ -15,7 +15,20 @@ interface NavButtonProps {
 }
 
 const Navbar = ({ tab, setTab }: Props) => {
-  const { assetNavExpanded, setAssetNavExpanded} = useNavStore()
+  const { assetNavExpanded, setAssetNavExpanded} = useNavStore();
+
+  useEffect(() => {
+    const savedTab = localStorage.getItem('pixelSelectedTab') as NavTabTypes | null;
+    if (savedTab && savedTab !== tab) {
+      setTab(savedTab);
+    }
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('pixelSelectedTab', tab);
+  }, [tab]);
+
   const NavButton = ({ children, value }: NavButtonProps) => {
     const active = value === tab;
     return (
@@ -45,14 +58,9 @@ const Navbar = ({ tab, setTab }: Props) => {
     <header className="bg-gray-900 border-b border-gray-800 px-4 py-3 w-[80%]">
       <div className="flex items-center justify-center">
         <div className="flex items-center space-x-6">
-          {/* Logo - TBD route to landing */}
-          <div className="absolute top-2 left-4 cursor-pointer hidden md:block">
-            <h1 className="text-lg font-bold text-white">Pixel <GlowingText>Play</GlowingText></h1>
-          </div>
           <nav className="flex flex-row gap-3">
-            <NavButton value='assets'>Assets</NavButton>
-            <NavButton value='builder'>Builder</NavButton>
-            <NavButton value='mesh'>Model</NavButton>
+            <NavButton value='assets'>Asset Extractor</NavButton>
+            <NavButton value='builder'>Character Builder</NavButton>
           </nav>
         </div>
       </div>

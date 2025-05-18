@@ -6,7 +6,7 @@ import { LucideChevronUp } from "lucide-react";
 import Image from "next/image";
 
 const CharacterSelector = () => {
-    const { setCurrentCharacter } = useCharacterStore()
+    const { currentCharacter, setCurrentCharacter } = useCharacterStore()
     const { charNavExpanded, setCharNavExpanded } = useNavStore()
 
     return <motion.div
@@ -18,7 +18,7 @@ const CharacterSelector = () => {
     >
         <div className="p-4 h-full overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-sky-300">Characters {characters.length}</h3>
+                <h3 className="text-lg font-semibold text-sky-300">Characters ({characters.length})</h3>
                 <button
                     onClick={() => {
                         setCharNavExpanded(!charNavExpanded)
@@ -33,7 +33,9 @@ const CharacterSelector = () => {
                 {characters.map((char) => (
                     <div
                         key={char.id}
-                        className="w-[120px] p-2 cursor-pointer hover:bg-gray-800/50 rounded-lg transition-colors"
+                        className={`w-[150px] p-2 cursor-pointer hover:bg-gray-800/50 rounded-lg transition-colors
+                            ${currentCharacter && currentCharacter.id === char.id && 'border border-sky-500'}
+                            `}
                         onClick={() => {
                             setCurrentCharacter(char.id);
                             setCharNavExpanded(!charNavExpanded)
@@ -42,8 +44,8 @@ const CharacterSelector = () => {
                         <Image
                             src={char.image_url}
                             alt={char.name}
-                            width={200}
-                            height={200}
+                            width={100}
+                            height={100}
                             className="w-full h-auto rounded-lg mb-2"
                         />
                         <h4 className="text-sm font-medium text-sky-300">{char.name}</h4>
