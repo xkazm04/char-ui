@@ -8,6 +8,7 @@ import AssetAnalysisUploadConfig from './AssetAnalysisUploadConfig';
 import { AssetTabConfig } from './AssetAnalysisLayout';
 import { serverUrl } from '@/app/constants/urls';
 import { AssetType } from '@/app/types/asset';
+import AssetAnalysisExamples from './AssetAnalysisExamples';
 
 type Props = {
   isLoading: boolean;
@@ -143,11 +144,12 @@ const AssetAnalysisUpload = ({
           ) : (
             <>
               <Upload className="h-5 w-5" />
-              <span>Process Asset</span>
+              <span>Analyze Image</span>
             </>
           )}
         </motion.button>
       </motion.div>
+      {/* <AssetAnalysisExamples setSelectedFile={setSelectedFile} /> */}
       <AssetAnalysisUploadConfig config={config} setConfig={setConfig} />
     </div>
   );

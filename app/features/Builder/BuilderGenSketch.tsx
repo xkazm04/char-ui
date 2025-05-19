@@ -1,6 +1,6 @@
 import { LucideSparkles } from "lucide-react";
 import { m } from "framer-motion";
-import { handleAssetGeneration } from "@/app/functions/leoFns";
+import { handleCharacterSketch } from "@/app/functions/leoFns";
 import { useAssetStore } from "@/app/store/assetStore";
 import { useState } from "react";
 
@@ -15,11 +15,9 @@ const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) 
     const [ genError, setGenError ] = useState<boolean>(false)
 
     const handleGenerate = async () => {
-        handleAssetGeneration({
+        handleCharacterSketch({
             prompt: assetPrompt || "wooden sword",
-            element: 67297, // hardcoded for now
-            type: 'character',
-            generationId: null,
+            element: 67297, // hardcoded for now,
             setGenerationId: () => {console.log("Generation ID set, but not used in this component")},
             setGenError,
             setIsGenerating,

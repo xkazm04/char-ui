@@ -2,8 +2,9 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import AssetItemModal from "./AssetItemModal";
 import { AssetType as AssetTypeObj } from "@/app/types/asset";
 import { useAssetStore } from "@/app/store/assetStore";
-import Image from "next/image";
 import { motion } from "framer-motion";
+import AssetGroupItemImage from "./AssetGroupItemImage";
+import { getBorderColor, getTypeIndicatorClass } from "@/app/helpers/assetHelpers";
 
 type Props = {
   asset: AssetTypeObj; 
@@ -25,7 +26,6 @@ const AssetGroupItem = ({ asset, toggleAssetSelection, isFullScreen = false }: P
     removeAsset 
   } = useAssetStore();
   
-  // Check if this asset is already in any category
   const isInStore = useMemo(() => {
     return [
       ...Body, 
@@ -36,9 +36,7 @@ const AssetGroupItem = ({ asset, toggleAssetSelection, isFullScreen = false }: P
   }, [Body, Equipment, Clothing, Background, assetId]);
   
   const handleAssetSelection = () => {
-    // If the asset is already in the store, we need to remove it
     if (isInStore) {
-      // Find which category contains the asset and remove it
       if (!assetId) return
       if (Body.some(item => (item.id === assetId || item._id === assetId))) {
         removeAsset(assetId, 'Body');
@@ -50,16 +48,13 @@ const AssetGroupItem = ({ asset, toggleAssetSelection, isFullScreen = false }: P
         removeAsset(assetId, 'Background');
       }
     } else {
-      // Ensure the asset has a type property that's one of our main categories
       let assetType = asset.type;
-      
-      // If the type isn't one of our main categories, default to Equipment
+   
       if (!assetType || !['Body', 'Equipment', 'Clothing', 'Background'].includes(assetType)) {
         assetType = 'Equipment'; // Default category
         console.warn(`Asset type "${asset.type}" not recognized, defaulting to Equipment`);
       }
-      
-      // Create a cleaned asset object with correct id format and valid type
+
       addAsset({
         id: assetId,
         _id: assetId,
@@ -72,7 +67,6 @@ const AssetGroupItem = ({ asset, toggleAssetSelection, isFullScreen = false }: P
       });
     }
 
-    // Update UI selection state via the parent component
     if (!assetId) return;
     toggleAssetSelection(assetId);
   };
@@ -97,27 +91,6 @@ const AssetGroupItem = ({ asset, toggleAssetSelection, isFullScreen = false }: P
     setShowModal(true);
   };
 
-  const getBorderColor = () => {
-    switch (asset.type) {
-      case 'Body': return 'border-blue-500/10';
-      case 'Equipment': return 'border-red-500/10'; 
-      case 'Clothing': return 'border-green-500/10';
-      case 'Background': return 'border-purple-500/10';
-      default: return 'border-gray-500/10';
-    }
-  };
-
-  // Add this helper function for type indicators
-  const getTypeIndicatorClass = (type: string | undefined) => {
-    switch (type?.toLowerCase()) {
-      case 'body': return 'bg-blue-500';
-      case 'equipment': return 'bg-red-500';
-      case 'clothing': return 'bg-green-500';
-      case 'background': return 'bg-purple-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
   return (
     <>
       {isFullScreen ? (
@@ -126,14 +99,15 @@ const AssetGroupItem = ({ asset, toggleAssetSelection, isFullScreen = false }: P
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
+          title={asset.name + ' - right click for the details'}
           className={`
             relative overflow-hidden group border hover:brightness-110
-            ${getBorderColor()}
+            ${getBorderColor(asset)}
             ${isInStore ? 'bg-gray-800/70' : 'bg-gray-900/70'} 
-            rounded-md cursor-pointer transition-all duration-300 ease-linear
+            rounded-md cursor-help transition-all duration-300 ease-linear
             ${isInStore ? 'ring-1 ring-sky-500/50 shadow-sm shadow-sky-500/20' : ''}
             h-32 w-full transform hover:scale-[1.02] hover:shadow-lg hover:shadow-black/30
-            transition-all duration-300
+            transition-all duration-300 
           `}
           onClick={handleAssetSelection}
           onContextMenu={handleContextMenu}
@@ -141,18 +115,10 @@ const AssetGroupItem = ({ asset, toggleAssetSelection, isFullScreen = false }: P
           whileTap={{ scale: 0.98 }}
         >
           {/* Background Image */}
-          <div className="absolute inset-0 w-full h-full">
-            <Image 
-              src={'https://cdn.leonardo.ai/users/65d71243-f7c2-4204-a1b3-433aaf62da5b/generations/4d9fb0a2-0c26-4d39-be35-1265a3d3a2bb/segments/1:1:1/Flux_Dev_________A_stylized_handdrawn_illustration_of_silver_r_0.jpg'} 
-              alt={asset.name}
-              className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-            
-            {/* Gradient overlay for better text readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-          </div>
+          <AssetGroupItemImage
+            assetId={assetId || ''}
+            asset={asset}
+          />
         
           {/* Text content at bottom */}
           <div className="absolute bottom-0 left-0 right-0 p-2 text-white">
@@ -171,16 +137,15 @@ const AssetGroupItem = ({ asset, toggleAssetSelection, isFullScreen = false }: P
           key={assetId}
           className={`
             flex flex-col items-center border hover:brightness-110
-            ${getBorderColor()}
+            ${getBorderColor(asset)}
             ${isInStore ? 'bg-gray-800/70' : 'bg-gray-900/70'} 
-            rounded-md cursor-pointer transition-all duration-300 ease-linear p-1
+            rounded-md cursor-help transition-all duration-300 ease-linear p-1
             ${isInStore ? 'ring-1 ring-sky-500/30 border-sky-500/20' : ''}
           `}
           onClick={handleAssetSelection}
           onContextMenu={handleContextMenu}
         >
           <div className="w-full text-left relative">
-            {/* Asset type indicator dot */}
             <div className={`absolute right-1 top-1/2 -translate-y-1/2 ${getTypeIndicatorClass(asset.type)} rounded-full w-1.5 h-1.5`} />
             
             <span className="text-xs pl-1 pr-3 truncate block font-medium">

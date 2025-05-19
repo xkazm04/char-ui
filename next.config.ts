@@ -5,7 +5,8 @@ const nextConfig: NextConfig = {
     domains: [
       "cdn.leonardo.ai",
       "images.unsplash.com",
-      "utfs.io"
+      "utfs.io",
+      "localhost"
     ],
   },
 };

@@ -16,8 +16,8 @@ const AppShell = () => {
         <QueryClientProvider client={queryClient}>
             <div
                 onClick={() => setTab('landing')}
-                className="absolute top-2 left-4 cursor-pointer hidden md:block">
-                <h1 className="text-lg font-bold text-white">Pixel <GlowingText>Play</GlowingText></h1>
+                className="absolute items-center text-lg font-bold text-white top-2 left-4 cursor-pointer hidden md:flex">
+                Pixel <GlowingText>Play</GlowingText>
             </div>
             {tab !== 'landing' && <Navbar tab={tab} setTab={setTab} />}
             {tab === 'assets' && <AssetAnalysisLayout />}

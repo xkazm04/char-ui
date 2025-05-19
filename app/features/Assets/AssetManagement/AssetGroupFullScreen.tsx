@@ -23,11 +23,11 @@ const AssetGroupFullScreen = ({
     setSelectedAssets((prev: Set<string>): Set<string> => {
       const newSet: Set<string> = new Set(prev);
       if (newSet.has(assetId)) {
-      console.log("Removing asset from selection:", assetId);
-      newSet.delete(assetId);
+        console.log("Removing asset from selection:", assetId);
+        newSet.delete(assetId);
       } else {
-      console.log("Adding asset to selection:", assetId);
-      newSet.add(assetId);
+        console.log("Adding asset to selection:", assetId);
+        newSet.add(assetId);
       }
       return newSet;
     });
@@ -123,35 +123,63 @@ const AssetGroupFullScreen = ({
                     className="overflow-hidden"
                   >
                     <div className="p-3">
-                      {/* Assets in the group - improved grid with better gap management */}
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {group.assets.length > 0 ? (
-                          group.assets.map(asset => (
-                            <AssetGroupItem
-                              asset={asset}
-                              key={asset.id || asset._id}
-                              toggleAssetSelection={toggleAssetSelection}
-                              isFullScreen={true}
-                            />
-                          ))
+                      {group.assets.length > 0 ? (
+                        group.subcategories && Object.keys(group.subcategories).length > 0 ? (
+                          <div className="space-y-4">
+                            {Object.entries(group.subcategories).map(([subcategory, assets]) => (
+                              assets.length > 0 && (
+                                <div key={`${group.id}-${subcategory}`} className="space-y-2">
+                                  {/* Subcategory heading */}
+                                  <div className="flex items-center">
+                                    <h4 className="text-xs cursor-default font-medium text-gray-400 uppercase tracking-wider">{subcategory}</h4>
+                                    <div className="ml-3 flex-grow h-px bg-gray-800/50"></div>
+                                  </div>
+                                  
+                                  {/* Assets in subcategory */}
+                                  <div className="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
+                                    {assets.map(asset => (
+                                      <AssetGroupItem
+                                        asset={asset}
+                                        key={asset.id || asset._id}
+                                        toggleAssetSelection={toggleAssetSelection}
+                                        isFullScreen={true}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              )
+                            ))}
+                          </div>
                         ) : (
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="col-span-full flex flex-col items-center justify-center p-8 text-gray-400 text-sm bg-gray-800/20 rounded-md border border-gray-700/30"
-                          >
-                            <div className="w-16 h-16 mb-3 text-gray-600 flex items-center justify-center">
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                              </svg>
-                            </div>
-                            <div className="font-medium text-gray-400">No assets found</div>
-                            <p className="text-xs text-gray-500 mt-1 text-center max-w-xs">
-                              Try adjusting your search criteria or browse different categories
-                            </p>
-                          </motion.div>
-                        )}
-                      </div>
+                          // Fallback to original view when no subcategories
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {group.assets.map(asset => (
+                              <AssetGroupItem
+                                asset={asset}
+                                key={asset.id || asset._id}
+                                toggleAssetSelection={toggleAssetSelection}
+                                isFullScreen={true}
+                              />
+                            ))}
+                          </div>
+                        )
+                      ) : (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="col-span-full flex flex-col items-center justify-center p-8 text-gray-400 text-sm bg-gray-800/20 rounded-md border border-gray-700/30"
+                        >
+                          <div className="w-16 h-16 mb-3 text-gray-600 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                            </svg>
+                          </div>
+                          <div className="font-medium text-gray-400">No assets found</div>
+                          <p className="text-xs text-gray-500 mt-1 text-center max-w-xs">
+                            Try adjusting your search criteria or browse different categories
+                          </p>
+                        </motion.div>
+                      )}
                     </div>
                   </motion.div>
                 )}

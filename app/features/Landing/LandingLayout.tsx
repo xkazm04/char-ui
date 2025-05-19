@@ -62,7 +62,6 @@ const LandingLayout = ({setTab}: Props) => {
 
                 {/* Core Sections */}
                 <LanHowWorks />
-                <LanCallTo />
                 <LanTechStack />
                 <LanUseCases />
                 <LanFooter />

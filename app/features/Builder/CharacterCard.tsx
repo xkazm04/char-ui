@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useCharacterStore } from '@/app/store/charStore';
@@ -17,13 +17,91 @@ export default function CharacterCard() {
   const { charNavExpanded, setCharNavExpanded } = useNavStore()
   const { genIsStarted } = useGenStore()
   const { isGenerating } = useAssetStore()
+  const [currentGifIndex, setCurrentGifIndex] = useState(1);
+  const gifIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [displayedGifUrl, setDisplayedGifUrl] = useState('');
 
   useEffect(() => {
     if (currentCharacter) {
       setName(currentCharacter.name || '');
+      
+      // Reset gif index when character changes
+      setCurrentGifIndex(1);
+      
+      // Initialize with the first gif
+      if (genIsStarted) {
+        setDisplayedGifUrl(currentCharacter.gif_url || '');
+      } else {
+        setDisplayedGifUrl(currentCharacter.image_url || '');
+      }
     }
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentCharacter]);
 
+  useEffect(() => {
+    if (gifIntervalRef.current) {
+      clearInterval(gifIntervalRef.current);
+      gifIntervalRef.current = null;
+    }
+
+    if (!genIsStarted) {
+      if (currentCharacter) {
+        setDisplayedGifUrl(currentCharacter.image_url || '');
+      }
+      return;
+    }
+
+    const hasMultipleGifs = currentCharacter && 
+      (currentCharacter.gif_url_2 || currentCharacter.gif_url_3 || currentCharacter.gif_url_4);
+
+    if (!hasMultipleGifs) {
+      if (currentCharacter) {
+        setDisplayedGifUrl(currentCharacter.gif_url || '');
+      }
+      return;
+    }
+
+    // If generating and character has multiple gifs, start cycling
+    if (currentCharacter) {
+      setDisplayedGifUrl(currentCharacter.gif_url || '');
+      
+      gifIntervalRef.current = setInterval(() => {
+        setCurrentGifIndex(prevIndex => {
+          const nextIndex = prevIndex >= 4 ? 1 : prevIndex + 1;
+          
+          // Check if the next gif exists
+          const nextGifKey = nextIndex === 1 ? 'gif_url' : `gif_url_${nextIndex}`;
+          const nextGifExists = currentCharacter[nextGifKey as keyof typeof currentCharacter];
+          
+          // If next gif exists, use it, otherwise keep looking for the next valid one
+          if (nextGifExists) {
+            setDisplayedGifUrl(nextGifExists as string);
+            return nextIndex;
+          } else if (nextIndex >= 4) {
+            setDisplayedGifUrl(currentCharacter.gif_url || '');
+            return 1;
+          }
+          
+          return nextIndex;
+        });
+      }, 10000);
+    }
+
+    return () => {
+      if (gifIntervalRef.current) {
+        clearInterval(gifIntervalRef.current);
+      }
+    };
+  }, [genIsStarted, currentCharacter]);
+
+  // Clean up interval on component unmount
+  useEffect(() => {
+    return () => {
+      if (gifIntervalRef.current) {
+        clearInterval(gifIntervalRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="relative w-full max-w-[300px] h-full overflow-hidden">
@@ -38,9 +116,9 @@ export default function CharacterCard() {
       >
         {/* Background image with overlay */}
         <div className="absolute inset-0">
-          {currentCharacter && (
+          {currentCharacter && displayedGifUrl && (
             <Image
-              src={ genIsStarted ? currentCharacter.gif_url || '' : currentCharacter.image_url || '' }
+              src={displayedGifUrl}
               alt={'Character Background'}
               fill
               className="object-cover opacity-50"

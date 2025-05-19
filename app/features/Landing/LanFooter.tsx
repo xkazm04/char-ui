@@ -1,4 +1,36 @@
-import { LucideSparkles } from "lucide-react"
+import GlowingText from "@/app/components/landing/GlowingText";
+import { motion } from "framer-motion";
+
+const FooterOptions = [{
+    label: 'Devpost',
+    href: 'https://devpost.com/'
+}, {
+    label: 'Repo - UI',
+    href: 'https://gitlab.com/xkazm04/char-ui',
+    logo: '/logos/gitlab.svg'
+}, {
+    label: 'Repo - Service',
+    href: 'https://gitlab.com/xkazm04/char-service',
+    logo: '/logos/gitlab.svg'
+}, {
+    label: 'Contact',
+    href: 'http://twitter.com/xkazm04'
+}
+]
+
+const FooterLink = ({ href, label }: { href: string; label: string }) => {
+    return (
+        <a
+            href={href}
+            className="text-gray-400 hover:text-sky-400 transition-colors focus:outline-none rounded-md px-2 py-1"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            {label}
+        </a>
+    );
+};
+
 
 const LanFooter = () => {
     return <>
@@ -6,24 +38,29 @@ const LanFooter = () => {
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-center">
                     <div className="mb-6 md:mb-0">
-                        <div className="flex items-center">
-                            <div className="w-10 h-10 bg-sky-900/30 rounded-lg flex items-center justify-center mr-3">
-                                <LucideSparkles className="h-6 w-6 text-sky-400" />
-                            </div>
-                            <span className="text-xl font-bold text-white">PixelPlay</span>
+                        <div className="flex items-center text-lg font-bold text-white">
+                            Pixel <GlowingText>Play</GlowingText>
                         </div>
                     </div>
 
                     <nav aria-label="Footer navigation">
                         <ul className="flex flex-wrap gap-6 justify-center">
-                            {['Demo', 'Hackathon event', 'Devpost'].map(item => (
-                                <li key={item}>
-                                    <a
-                                        href={`#${item.toLowerCase()}`}
-                                        className="text-gray-400 hover:text-sky-400 transition-colors focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-[#080814] rounded-md px-2 py-1"
-                                    >
-                                        {item}
-                                    </a>
+                            {FooterOptions.map((option, index) => (
+                                <li key={index}>
+                                    <div className="relative">
+                                        {option.logo &&
+                                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
+                                                <motion.img
+                                                    src={option.logo}
+                                                    alt={option.label}
+                                                    className="h-10 object-contain"
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                                                />
+                                            </div>}
+                                        <FooterLink href={option.href} label={option.label} />
+                                    </div>
                                 </li>
                             ))}
                         </ul>

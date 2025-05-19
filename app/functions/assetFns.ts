@@ -5,6 +5,8 @@ export interface AssetGroup {
   id: string;
   name: string;
   assets: AssetType[];
+  // Add subcategories grouping
+  subcategories?: Record<string, AssetType[]>;
 }
 
 // Base URL for API endpoints
@@ -36,12 +38,27 @@ export const processAssetsIntoGroups = (assets: AssetType[]): AssetGroup[] => {
     return acc;
   }, {});
   
-  // Convert grouped assets into AssetGroup array
-  return Object.entries(assetsByType).map(([type, typeAssets]) => ({
-    id: `group-${type}`,
-    name: type.charAt(0).toUpperCase() + type.slice(1), // Capitalize first letter
-    assets: typeAssets
-  }));
+  // Convert grouped assets into AssetGroup array with subcategories
+  return Object.entries(assetsByType).map(([type, typeAssets]) => {
+    // Group assets by subcategory
+    const subcategories = typeAssets.reduce<Record<string, AssetType[]>>((acc, asset) => {
+      const subcategory = asset.subcategory || 'Other';
+      
+      if (!acc[subcategory]) {
+        acc[subcategory] = [];
+      }
+      
+      acc[subcategory].push(asset);
+      return acc;
+    }, {});
+    
+    return {
+      id: `group-${type}`,
+      name: type.charAt(0).toUpperCase() + type.slice(1), // Capitalize first letter
+      assets: typeAssets,
+      subcategories
+    };
+  });
 };
 
 // React Query hook for getting all assets

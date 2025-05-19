@@ -10,7 +10,10 @@ export interface Character {
   description: string;
   image_url: string;
   gif_url?: string;
-  // Add additional fields as needed
+  gif_url_2?: string;
+  gif_url_3?: string;
+  gif_url_4?: string;
+  element?: number; 
 }
 
 interface CharacterStore {

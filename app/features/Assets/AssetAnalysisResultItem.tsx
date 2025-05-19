@@ -1,4 +1,4 @@
-import { X, Loader2, CheckCheck, RefreshCw, AlertCircle } from "lucide-react";
+import { X, Loader2, CheckCheck, RefreshCw, AlertCircle, Edit } from "lucide-react";
 import { motion } from "framer-motion";
 import { fadeEffect } from "@/app/components/anim/variants";
 import { useState } from "react";
@@ -7,6 +7,7 @@ import AssetsSimilarModal from "./AssetsSimilarModal";
 import { AssetType, SimilarAsset } from "@/app/types/asset";
 import AssetAnalysisSave from "./AssetAnalysisSave";
 import { handleAssetGeneration, handleAssetGenerationAndSave } from "@/app/functions/leoFns";
+import { useAssets } from "@/app/functions/assetFns";
 
 type Props = {
     asset: AssetType
@@ -29,6 +30,9 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
     const [genError, setGenError] = useState<boolean>(false);
     const [generationId, setGenerationId] = useState<string | null>(null);
     const [savedAssetId, setSavedAssetId] = useState<string | null>(null);
+    const [editGen, setEditGen] = useState<boolean>(false);
+    const { refetch } = useAssets();
+    const [prompt, setPrompt] = useState<string>(asset.gen || "");
 
     const handleRemove = (idx: number) => {
         if (tab === "openai") {
@@ -42,41 +46,46 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
 
     const handleRetryGeneration = async () => {
         setGeneratedImage(null);
+        setGenError(false);
 
         try {
+            setIsGenerating(true);
+
             if (savedAssetId) {
                 const assetToSave = {
                     ...asset,
                     description_vector: descriptionVector || []
                 };
-                
+
                 console.log("Regenerating with asset:", assetToSave);
-                
+
                 await handleAssetGenerationAndSave({
-                    prompt: asset.gen,
-                    type: 'asset',
+                    prompt: prompt,
                     generationId,
                     setGenerationId,
                     setGenError,
                     setIsGenerating,
                     setGeneratedImage,
-                    asset: assetToSave,  
+                    asset: assetToSave,
                     setSavedAssetId
                 });
+                refetch()
             } else {
                 await handleAssetGeneration({
-                    prompt: asset.gen,
-                    type: 'asset',
+                    asset,
+                    prompt: prompt,
                     generationId,
                     setGenerationId,
                     setGenError,
                     setIsGenerating,
                     setGeneratedImage
                 });
+                refetch()
             }
         } catch (error) {
             console.error("Error in retry generation:", error);
             setGenError(true);
+            setIsGenerating(false);
         }
     };
 
@@ -95,8 +104,8 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                 {/* Loading state */}
                 {isGenerating && (
                     <div className="absolute inset-0 bg-black/70 z-20 rounded-lg flex items-center justify-center">
-                        <div className="animate-pulse absolute left-2 top-2 text-green-600 text-sm z-30 italic">
-                            {generationId ? 'Regenerating asset preview...' : 'Image saved, generating asset preview...'}
+                        <div className="animate-pulse absolut right-2 top-2 text-green-500 text-sm z-30 italic">
+                            {generationId ? 'Regenerating asset preview...' : 'Saved, generating preview..'}
                         </div>
                         <Loader2 className="h-10 w-10 text-sky-400 animate-spin" />
                     </div>
@@ -158,12 +167,30 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                     <div className="font-bold text-white mb-1">{asset.name}</div>
                     <div className="text-gray-300 text-sm mb-2">{asset.description}</div>
                     <div className="text-xs text-gray-400 mb-1">
-                        <span className="font-semibold">Gen:</span> {asset.gen}
+                        {!editGen ? 
+                        <div className="">
+                            <div>
+                                <span>Image preview prompt:</span>
+                                <button
+                                    title="Edit generation prompt"
+                                    onClick={() => setEditGen(true)}
+                                    className="text-sky-500 hover:underline ml-1"
+                                ><Edit size={14}/></button>
+                            </div>
+                            <span className="text-sky-200">{asset.gen}</span>
+                        </div>
+                            :
+                            <textarea
+                                className="w-full px-2 py-1 bg-gray-800 border border-gray-600 rounded text-xs text-gray-200 font-mono mt-1 outline-none focus:ring focus:ring-sky-500"
+                                value={prompt}
+                                onChange={(e) => setPrompt(e.target.value)}
+                            />
+                        }
                     </div>
                     <textarea
                         value={JSON.stringify(asset, null, 2)}
                         readOnly
-                        rows={4}
+                        rows={6}
                         className="w-full px-2 py-1 bg-gray-800 border border-gray-600 rounded text-xs text-gray-200 font-mono mt-2 outline-none focus:ring focus:ring-sky-500"
                     />
                 </div>
@@ -175,12 +202,14 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                         setShowSuccess={setShowSuccess}
                         handleAssetGeneration={handleRetryGeneration}
                         setDescriptionVector={setDescriptionVector}
+                        setGeneratedImage={setGeneratedImage}
                         setSimilarAssets={setSimilarAssets}
                         showSuccess={showSuccess}
                         saveError={saveError}
                         isGenerating={isGenerating}
                         isSaving={isSaving}
                         asset={asset}
+                        prompt={prompt}
                     />
                     <motion.button
                         whileHover={{ scale: 1.1 }}

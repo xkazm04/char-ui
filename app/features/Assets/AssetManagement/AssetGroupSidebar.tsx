@@ -20,11 +20,11 @@ const AssetGroupSidebar = ({
     setSelectedAssets((prev: Set<string>): Set<string> => {
       const newSet: Set<string> = new Set(prev);
       if (newSet.has(assetId)) {
-      console.log("Removing asset from selection:", assetId);
-      newSet.delete(assetId);
+        console.log("Removing asset from selection:", assetId);
+        newSet.delete(assetId);
       } else {
-      console.log("Adding asset to selection:", assetId);
-      newSet.add(assetId);
+        console.log("Adding asset to selection:", assetId);
+        newSet.add(assetId);
       }
       return newSet;
     });
@@ -65,23 +65,54 @@ const AssetGroupSidebar = ({
                   className="overflow-hidden"
                 >
                   <div className="py-1 px-2">
-                    <div className="grid grid-cols-3 gap-1">
-                      {group.assets.length > 0 ? (
-                        group.assets.map(asset => (
-                          <AssetGroupItem
-                            asset={asset}
-                            key={asset.id || asset._id}
-                            toggleAssetSelection={toggleAssetSelection}
-                            isFullScreen={false}
-                          />
-                        ))
-                      ) : (
-                        <div className="flex items-center justify-center p-3 text-gray-500 text-xs italic bg-gray-800/20 rounded-md">
-                          <AlertCircle size={14} className="mr-1.5" />
-                          No assets found
+                    {group.assets.length > 0 ? (
+                      group.subcategories && Object.keys(group.subcategories).length > 0 ? (
+                        <div className="space-y-3">
+                          {Object.entries(group.subcategories).map(([subcategory, assets]) => (
+                            assets.length > 0 && (
+                              <div key={`${group.id}-${subcategory}`}>
+                                {/* Compact subcategory heading */}
+                                <div className="flex items-center mb-1">
+                                  <h4 className="text-xs font-medium text-gray-700 hover:text-gray-300 cursor-default
+                                  transition-colors duration-300  uppercase tracking-wider">
+                                    {subcategory}</h4>
+                                  <div className="ml-2 flex-grow h-px bg-gray-800/40"></div>
+                                </div>
+                                
+                                {/* Assets in subcategory - compact grid */}
+                                <div className="grid grid-cols-3 gap-1">
+                                  {assets.map(asset => (
+                                    <AssetGroupItem
+                                      asset={asset}
+                                      key={asset.id || asset._id}
+                                      toggleAssetSelection={toggleAssetSelection}
+                                      isFullScreen={false}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            )
+                          ))}
                         </div>
-                      )}
-                    </div>
+                      ) : (
+                        // Fallback to original grid when no subcategories
+                        <div className="grid grid-cols-3 gap-1">
+                          {group.assets.map(asset => (
+                            <AssetGroupItem
+                              asset={asset}
+                              key={asset.id || asset._id}
+                              toggleAssetSelection={toggleAssetSelection}
+                              isFullScreen={false}
+                            />
+                          ))}
+                        </div>
+                      )
+                    ) : (
+                      <div className="flex items-center justify-center p-3 text-gray-500 text-xs italic bg-gray-800/20 rounded-md">
+                        <AlertCircle size={14} className="mr-1.5" />
+                        No assets found
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}

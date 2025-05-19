@@ -24,7 +24,7 @@ const AssetManCatSelector = ({setIsFullScreen, isFullScreen, setActiveCategory, 
                 onClick={toggleFullScreen}
                 className="p-2 rounded-md text-xs flex flex-row absolute left-5 items-center gap-1
                 border-1 bg-gray-800 border-gray-700 hover:bg-gray-700
-                transition-all"
+                transition-all cursor-pointer"
                 title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
             >
                 {isFullScreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}

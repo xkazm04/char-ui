@@ -2,6 +2,7 @@ import { LucideCode, Gamepad2, LucideShoppingBasket } from "lucide-react";
 import UcCard from "./UcCard";
 import { m, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
+import GlowingText from "@/app/components/landing/GlowingText";
 
 const LanUseCases = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -35,11 +36,11 @@ const LanUseCases = () => {
                     viewport={{ once: true, margin: "-100px" }}
                     className="text-center mb-16"
                 >
-                    <h2 className="text-3xl md:text-4xl font-bold mb-4">Use Cases</h2>
+                     <h2 className="text-4xl font-bold text-center mb-10"><GlowingText>Use Cases</GlowingText></h2>
                     <p className="text-gray-400 max-w-2xl mx-auto">Possible ways to commercialize implemented concepts</p>
                 </m.div>
 
-                <div className="grid gap-6 sm:gap-8 md:grid-cols-1 xl:grid-cols-3">
+                <div className="grid gap-6 sm:gap-8 md:grid-cols-1 xl:grid-cols-3 text-sky-500">
                     {isLoading ? (
                         // Skeleton loaders for use cases
                         Array(4).fill(0).map((_, i) => (
@@ -53,21 +54,21 @@ const LanUseCases = () => {
                     ) : (
                         <>
                             <UcCard
-                                icon={<Gamepad2 className="h-8 w-8 text-sky-500" />}
+                                icon={<Gamepad2 size={25}/>}
                                 title="Game Asset Generation"
                                 desc="Auto-extract gear, weapons, armor from any image."
                                 index={0}
                             />
                             <UcCard
-                                icon={<LucideShoppingBasket className="h-8 w-8 text-sky-500" />}
+                                icon={<LucideShoppingBasket size={25} />}
                                 title="E-shop virtual stylist"
                                 desc="Apply stylization from one image to assets and characters."
                                 index={1}
                             />
                             <UcCard
-                                icon={<LucideCode className="h-8 w-8 text-sky-500" />}
+                                icon={<LucideCode size={25}  />}
                                 title="Security intelligence"
-                                desc="Identify and track people of interest based on distinct clothing."
+                                desc="Identify and track people of interest based on distinct clothing from security cameras."
                                 index={2}
                             />
                         </>

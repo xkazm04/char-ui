@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { AssetType, SimilarAsset } from "@/app/types/asset";
 import { serverUrl } from "@/app/constants/urls";
 import { handleAssetGenerationAndSave } from "@/app/functions/leoFns";
+import { useState } from "react";
+import { useAssets } from "@/app/functions/assetFns";
 
 type Props = {
     setShowSimilarModal: (show: boolean) => void;
@@ -18,9 +20,9 @@ type Props = {
     saveError?: boolean;
     isGenerating?: boolean;
     isSaving?: boolean;
+    setGeneratedImage?: (url: string | null) => void;
+    prompt?: string;
 }
-
-
 
 const AssetAnalysisSave = ({ 
     asset,
@@ -33,8 +35,12 @@ const AssetAnalysisSave = ({
     showSuccess = false,
     saveError = false,
     isGenerating = false,
-    isSaving = false
+    isSaving = false,
+    setGeneratedImage,
+    prompt = "",
 }: Props) => {
+    const { refetch } = useAssets();
+    const [generationId, setGenerationId] = useState<string | null>(null);
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -75,17 +81,16 @@ const AssetAnalysisSave = ({
             console.log("Attempting to save asset:", assetToSave);
             
             await handleAssetGenerationAndSave({
-                prompt: asset.gen,
-                type: "asset",
-                generationId: null,
-                setGenerationId: () => {}, 
+                prompt: prompt,
+                generationId: generationId,
+                setGenerationId: setGenerationId,
                 setGenError: (error) => setSaveError(error),
                 setIsGenerating: setIsSaving,
-                setGeneratedImage: () => {},
+                setGeneratedImage: setGeneratedImage || (() => {}), 
                 asset: assetToSave, 
                 setSavedAssetId: () => {} 
             });
-
+            refetch()
             setShowSuccess(true);
             
         } catch (error) {
@@ -96,27 +101,29 @@ const AssetAnalysisSave = ({
         }
     };
 
-    return <button
-        className="p-1 rounded-lg hover:bg-sky-700/40 transition-colors duration-200 cursor-pointer"
-        title={isSaving ? "Saving..." : showSuccess ? "Saved!" : saveError ? "Save failed!" : "Save"}
-        onClick={handleSave}
-        disabled={isSaving || showSuccess || isGenerating}
-    >
-        {isSaving ? (
-            <Loader2 className="h-4 w-4 text-sky-400 animate-spin" />
-        ) : showSuccess ? (
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4 }}
-                exit={{ opacity: 0 }}
-            >
-                <CheckCheck className="h-4 w-4 text-green-400" />
-            </motion.div>
-        ) : (
-            <Save className={`h-4 w-4 ${saveError ? 'text-red-400' : 'text-sky-400 hover:text-sky-300'}`} />
-        )}
-    </button>
+    return (
+        <button
+            className="p-1 rounded-lg hover:bg-sky-700/40 transition-colors duration-200 cursor-pointer"
+            title={isSaving ? "Saving..." : showSuccess ? "Saved!" : saveError ? "Save failed!" : "Save"}
+            onClick={handleSave}
+            disabled={isSaving || showSuccess || isGenerating}
+        >
+            {isSaving ? (
+                <Loader2 className="h-4 w-4 text-sky-400 animate-spin" />
+            ) : showSuccess ? (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.4 }}
+                    exit={{ opacity: 0 }}
+                >
+                    <CheckCheck className="h-4 w-4 text-green-400" />
+                </motion.div>
+            ) : (
+                <Save className={`h-4 w-4 ${saveError ? 'text-red-400' : 'text-sky-400 hover:text-sky-300'}`} />
+            )}
+        </button>
+    );
 }
 
 export default AssetAnalysisSave;

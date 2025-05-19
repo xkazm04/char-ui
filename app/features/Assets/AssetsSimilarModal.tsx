@@ -39,7 +39,6 @@ const AssetsSimilarModal = ({showSimilarModal, similarAssets, setShowSimilarModa
             
             await handleAssetGenerationAndSave({
                 prompt: asset.gen,
-                type: 'asset',
                 generationId: null,
                 setGenerationId: () => {},
                 setGenError: (error) => setSaveError(error),

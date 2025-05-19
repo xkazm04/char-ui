@@ -9,3 +9,4 @@ export const indicatorVariants = {
   groq: { x: 0, transition: { type: "spring", stiffness: 300, damping: 30 } },
   gemini: { x: "200%", transition: { type: "spring", stiffness: 300, damping: 30 } },
 };
+

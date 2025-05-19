@@ -54,7 +54,7 @@ const LanTechStack = () => {
         viewport={{ once: true, margin: "-100px" }}
         className="container mx-auto px-6 relative z-10"
       >
-        <h3 className="text-2xl font-bold text-center mb-10"><GlowingText>Tech Stack</GlowingText></h3>
+        <h2 className="text-4xl font-bold text-center mb-10"><GlowingText>Tech Stack</GlowingText></h2>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 max-w-5xl mx-auto">
           {techStacks.map((tech, index) => (

@@ -33,24 +33,7 @@ const UcCard = ({ icon, title, desc, index }: Props) => {
             <h3 className="text-xl font-bold mb-1 text-white">{title}</h3>
             <p className="text-gray-400 text-sm">{desc}</p>
           </div>
-        </div>
-        
-        <div className="mt-4 pt-4 border-t border-sky-900/30">
-          <button 
-            className="flex items-center text-sky-400 text-sm group-hover:text-sky-300 transition-colors
-                     focus:outline-none focus:ring-2 focus:ring-sky-400 rounded-md px-2 py-1"
-            aria-label={`Learn more about ${title}`}
-          >
-            <span>Learn more</span>
-            <m.span 
-              className="ml-2"
-              initial={{ x: 0 }}
-              whileHover={{ x: shouldReduceMotion ? 0 : 3 }}
-            >
-              →
-            </m.span>
-          </button>
-        </div>
+        </div>   
       </div>
       
       <div className="h-1 w-0 bg-gradient-to-r from-sky-500 to-sky-400 group-hover:w-full transition-all duration-300"></div>
