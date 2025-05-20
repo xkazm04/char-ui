@@ -47,10 +47,6 @@ type PropsAssetGen = BaseGenProps & {
     asset: AssetType;
 }
 
-type PropsCharGen = BaseGenProps & {
-    element?: number;
-}
-
 type AssetSaveProps = PropsAssetGen & {
     setSavedAssetId?: (id: string) => void;
 }
@@ -174,10 +170,16 @@ export const handleAssetGeneration = async ({
     });
 };
 
+type PropsCharGen = BaseGenProps & {
+    element?: number;
+    generationId?: string | null;
+}
+
 export const handleCharacterSketch = async ({ 
     prompt, 
     element, 
     setGeneratedImage, 
+    generationId,
     setGenerationId, 
     setIsGenerating, 
     setGenError 
@@ -187,10 +189,11 @@ export const handleCharacterSketch = async ({
             const requestBody = {
                 gen: prompt,
                 element: element || 67297,
+                generation_id: generationId,
             };
             
             return await makeApiRequest<LeonardoResponse>({
-                endpoint: "/leo/character",
+                endpoint: "/leo/generation",
                 requestBody,
                 errorMessage: "Failed to generate image"
             });

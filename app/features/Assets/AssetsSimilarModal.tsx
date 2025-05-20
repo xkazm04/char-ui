@@ -1,4 +1,4 @@
-import { useAssets } from "@/app/functions/assetFns";
+import { useAllAssets } from "@/app/functions/assetFns";
 import { handleAssetGenerationAndSave } from "@/app/functions/leoFns";
 import { useNavStore } from "@/app/store/navStore";
 import { AssetType, SimilarAsset } from "@/app/types/asset";
@@ -20,7 +20,7 @@ type Props = {
 
 const AssetsSimilarModal = ({showSimilarModal, similarAssets, setShowSimilarModal, setIsSaving, setSaveError, setShowSuccess, asset, descriptionVector, handleAssetGeneration}: Props) => {
     const {setAssetNavHighlighted} = useNavStore();
-    const { refetch } = useAssets();
+    const { refetch } = useAllAssets();
     const handleConfirmSave = async () => {
         setShowSimilarModal(false);
         setIsSaving(true);

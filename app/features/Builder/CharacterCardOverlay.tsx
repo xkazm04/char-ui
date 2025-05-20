@@ -37,7 +37,7 @@ const CharacterCardOverlay = ({ usedAssets, handleShowDetails }: Props) => {
                                 <h4 className="text-xs text-gray-400 uppercase mb-1">{type}</h4>
                                 <div className="space-y-1">
                                     {filteredAssets.map((asset) => (
-                                        <div key={asset.id} className={`rounded-md px-2 text-sm`}>
+                                        <div key={asset._id} className={`rounded-md px-2 text-sm`}>
                                             <li className="text-sky-200 text-xs">{asset.name}</li>
                                         </div>
                                     ))}

@@ -3,50 +3,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import CharacterSketchCard from './CharacterSketchCard';
 import { useCharacterStore } from '@/app/store/charStore';
 import { useAssetStore } from '@/app/store/assetStore';
-import {  LucideImages } from 'lucide-react';
+import { LucideImages } from 'lucide-react';
 import { useNavStore } from '@/app/store/navStore';
-import { JinxImgUrl } from './CharacterCard';
-import { AssetType } from '@/app/types/asset';
-
-interface CharacterSketch {
-  id: string;
-  imageUrl: string;
-  timestamp: string;
-  usedAssets: AssetType[];
-}
+import { useGenerations } from '@/app/functions/genFns';
 
 export default function CharacterSketchGrid() {
   const { currentCharacter } = useCharacterStore();
   //@ts-expect-error Ignore
-  const { clothing, equipment, accessories } = useAssetStore();
-  const [sketches, setSketches] = useState<CharacterSketch[]>([]);
+  const {  isGenerating, setIsGenerating } = useAssetStore();
   const { assetNavExpanded, setAssetNavExpanded } = useNavStore()
-
-  useEffect(() => {
-    if (!currentCharacter) return;
-
-    const mockSketches: CharacterSketch[] = Array(4).fill(null).map((_, i) => {
-      const randomClothing = clothing.length > 0 ? clothing[Math.floor(Math.random() * clothing.length)] : null;
-      const randomEquipment = equipment.length > 0 ? equipment[Math.floor(Math.random() * equipment.length)] : null;
-      const randomAccessory = accessories.length > 0 ? accessories[Math.floor(Math.random() * accessories.length)] : null;
-      
-      const usedAssets: AssetType[] = [
-        randomClothing, randomEquipment, randomAccessory
-      ].filter(Boolean) as AssetType[];
-
-      return {
-        id: `sketch-${i}`,
-        imageUrl: JinxImgUrl, 
-        timestamp: new Date(Date.now() - i * 3600000).toLocaleString(),
-        usedAssets
-      };
-    });
-
-    setSketches(mockSketches);
-  }, [currentCharacter, clothing, equipment, accessories]);
+  const { data: sketches, isLoading } = useGenerations({
+    limit: 20,
+    // characterId: currentCharacter?.id, - hardcoded for now
+  });
 
 
-  if (sketches.length === 0) {
+  if (sketches && sketches.length === 0 && !isGenerating) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -69,32 +41,6 @@ export default function CharacterSketchGrid() {
           >
             Select asset
           </button>
-          <button
-            className="px-4 py-2 ml-2 bg-sky-700/20 hover:bg-sky-600 rounded-md cursor-pointer
-            transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-[#0d1230]"
-            onClick={() => {
-              const mockSketches: CharacterSketch[] = Array(4).fill(null).map((_, i) => {
-                const randomClothing = clothing.length > 0 ? clothing[Math.floor(Math.random() * clothing.length)] : null;
-                const randomEquipment = equipment.length > 0 ? equipment[Math.floor(Math.random() * equipment.length)] : null;
-                const randomAccessory = accessories.length > 0 ? accessories[Math.floor(Math.random() * accessories.length)] : null;
-                
-                const usedAssets: AssetType[] = [
-                  randomClothing, randomEquipment, randomAccessory
-                ].filter(Boolean) as AssetType[];
-
-                return {
-                  id: `sketch-${i}`,
-                  imageUrl: JinxImgUrl, // Placeholder image
-                  timestamp: new Date(Date.now() - i * 3600000).toLocaleString(),
-                  usedAssets
-                };
-              });
-              
-              setSketches(mockSketches);
-            }}
-          >
-            Mock Data
-          </button>
         </div>
       </motion.div>
     );
@@ -107,32 +53,35 @@ export default function CharacterSketchGrid() {
       transition={{ duration: 0.5 }}
       className="w-full h-full bg-gray-950/20 rounded-lg border border-sky-900/30 overflow-hidden flex flex-col md:min-h-[450px] lg:min-h-[600px]"
     >
-      {/* Header with view mode toggle */}
       <div className="p-4 flex justify-between items-center border-b border-sky-900/30">
         <h3 className="text-lg font-medium text-sky-200">
-          Image Generations
+          Generations
         </h3>
+        <button onClick={() => setIsGenerating(false)} className="mt-4 px-4 py-2 bg-sky-700 hover:bg-sky-600 rounded-md cursor-pointer
+            transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-[#0d1230]">
+          Cancel
+        </button>
       </div>
 
       {/* Sketches container */}
       <div className="flex-1 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-sky-900/50 scrollbar-track-transparent">
         <AnimatePresence mode="wait">
-            <motion.div
-              key="grid"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4"
-            >
-              {sketches.map((sketch) => (
-                <CharacterSketchCard
-                  key={sketch.id}
-                  imageUrl={sketch.imageUrl}
-                  usedAssets={sketch.usedAssets}
-                />
-              ))}
-            </motion.div>
+          <motion.div
+            key="grid"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4"
+          >
+            {sketches && sketches.map((sketch) => (
+              <CharacterSketchCard
+                key={sketch._id}
+                gen={sketch}
+                usedAssets={sketch.used_assets}
+              />
+            ))}
+          </motion.div>
         </AnimatePresence>
       </div>
     </motion.div>

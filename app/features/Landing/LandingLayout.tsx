@@ -4,7 +4,6 @@ import { LazyMotion, domAnimation } from "framer-motion";
 import dynamic from "next/dynamic";
 import LanHero from "./LanHero";
 import LanFooter from "./LanFooter";
-import LanCallTo from "./LanCallTo";
 import LanHowWorks from "./LanHowWorks";
 import LanUseCases from "./LanUseCases";
 import { NavTabTypes } from "@/app/types/nav";
@@ -31,11 +30,6 @@ type Props = {
 
 
 const LandingLayout = ({setTab}: Props) => {
-    /* TBD next week
-    *  Images for use cses
-    *  Background animation
-    *  How it works rework
-    */
     return (
         <LazyMotion features={domAnimation}>
             <div className="bg-gradient-to-br from-[#0a0a18] to-[#15182d] text-white min-h-screen w-full font-sans overflow-hidden">

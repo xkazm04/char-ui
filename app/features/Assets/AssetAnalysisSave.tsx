@@ -4,7 +4,7 @@ import { AssetType, SimilarAsset } from "@/app/types/asset";
 import { serverUrl } from "@/app/constants/urls";
 import { handleAssetGenerationAndSave } from "@/app/functions/leoFns";
 import { useState } from "react";
-import { useAssets } from "@/app/functions/assetFns";
+import { useAllAssets } from "@/app/functions/assetFns";
 
 type Props = {
     setShowSimilarModal: (show: boolean) => void;
@@ -39,7 +39,7 @@ const AssetAnalysisSave = ({
     setGeneratedImage,
     prompt = "",
 }: Props) => {
-    const { refetch } = useAssets();
+    const { refetch } = useAllAssets();
     const [generationId, setGenerationId] = useState<string | null>(null);
 
     const handleSave = async () => {

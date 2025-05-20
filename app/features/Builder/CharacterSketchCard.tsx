@@ -1,17 +1,17 @@
 import { useState, memo, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AssetType } from '@/app/types/asset';
 import ModelViewer from '../Model/ModelViewer';
 import CharacterCardToolbar from './CharacterCardToolbar';
 import CharacterCardOverlay from './CharacterCardOverlay';
+import { GenType, UsedAssets } from '@/app/types/gen';
 interface CharacterSketchCardProps {
-  imageUrl: string;
-  usedAssets: AssetType[];
+  gen: GenType;
+  usedAssets?: UsedAssets[];
 }
 
 function CharacterSketchCard({
-  imageUrl,
+  gen,
   usedAssets,
 }: CharacterSketchCardProps) {
   const [showDetails, setShowDetails] = useState(false);
@@ -23,11 +23,11 @@ function CharacterSketchCard({
   const handleDownload = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      const response = await fetch(imageUrl);
+      const response = await fetch(gen.image_url);
       const blob = await response.blob();
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      const filename = imageUrl.split('/').pop() || 'character-sketch.png';
+      const filename = gen.image_url.split('/').pop() || 'character-sketch.png';
       link.download = filename;
       document.body.appendChild(link);
       link.click();
@@ -36,7 +36,7 @@ function CharacterSketchCard({
     } catch (error) {
       console.error('Failed to download image:', error);
     }
-  }, [imageUrl]);
+  }, [gen.image_url]);
 
   const handleShowDetails = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -99,7 +99,7 @@ function CharacterSketchCard({
                 className="absolute inset-0 flex items-center justify-center"
               >
                 <Image
-                  src={imageUrl}
+                  src={gen.image_url}
                   alt="Character sketch"
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
@@ -127,7 +127,7 @@ function CharacterSketchCard({
         handleDownload={handleDownload}
         handleShowDetails={handleShowDetails}
         showDetails={showDetails}
-        imageUrl={imageUrl}
+        imageUrl={gen.image_url}
         setModelGenerated={setModelGenerated}
         setModelUrl={setModelUrl}
         setIs3DMode={setIs3DMode}

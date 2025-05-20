@@ -7,7 +7,7 @@ import AssetsSimilarModal from "./AssetsSimilarModal";
 import { AssetType, SimilarAsset } from "@/app/types/asset";
 import AssetAnalysisSave from "./AssetAnalysisSave";
 import { handleAssetGeneration, handleAssetGenerationAndSave } from "@/app/functions/leoFns";
-import { useAssets } from "@/app/functions/assetFns";
+import { useAllAssets } from "@/app/functions/assetFns";
 
 type Props = {
     asset: AssetType
@@ -31,7 +31,7 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
     const [generationId, setGenerationId] = useState<string | null>(null);
     const [savedAssetId, setSavedAssetId] = useState<string | null>(null);
     const [editGen, setEditGen] = useState<boolean>(false);
-    const { refetch } = useAssets();
+    const { refetch } = useAllAssets();
     const [prompt, setPrompt] = useState<string>(asset.gen || "");
 
     const handleRemove = (idx: number) => {

@@ -1,31 +1,34 @@
 import { serverUrl } from "@/app/constants/urls";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react"; // Added useMemo
 import { motion, AnimatePresence } from "framer-motion";
+import { AssetType } from "@/app/types/asset"; // Import the main AssetType
 
 type Props = {
-    assetId: string;
-    asset: {
-        name: string;
-        type?: string;
-    };
-    priority?: boolean;
+    assetId: string; 
+    asset: AssetType; 
 }
 
 const AssetGroupItemImage = ({ assetId, asset }: Props) => {
-    const [imageUrl, setImageUrl] = useState<string>(`${serverUrl}/assets/image/${assetId}`);
-    const [imageError, setImageError] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [imageError, setImageError] = useState<boolean>(false);
 
-    useEffect(() => {
-        setImageUrl(`${serverUrl}/assets/image/${assetId}`);
+    const imageSource = useMemo(() => {
+        setIsLoading(true); 
         setImageError(false);
-        setIsLoading(true);
-    }, [assetId]);
+
+        if (asset.image_data_base64 && asset.image_content_type) {
+            return `data:${asset.image_content_type};base64,${asset.image_data_base64}`;
+        }
+        if (asset.image_url) { // Fallback to image_url if present
+            return asset.image_url.startsWith('http') ? asset.image_url : `${serverUrl}${asset.image_url}`;
+        }
+        return `${serverUrl}/assets/image/${assetId}`;
+    }, [asset.image_data_base64, asset.image_content_type, asset.image_url, assetId]);
+
 
     return (
-        <div className="absolute inset-0 w-full h-full">
-            {/* Loading indicator */}
+        <div className="inset-0 w-full h-full relative">
             <AnimatePresence>
                 {isLoading && !imageError && (
                     <motion.div 
@@ -39,26 +42,25 @@ const AssetGroupItemImage = ({ assetId, asset }: Props) => {
                 )}
             </AnimatePresence>
 
-            {/* Image with fade-in effect */}
             {!imageError ? (
                 <AnimatePresence mode="wait">
                     <motion.div
-                        key={imageUrl}
-                        className="w-full h-full"
+                        key={imageSource} // Key change will re-trigger animation
+                        className="w-full h-full relative"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: isLoading ? 0 : 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.3 }}
                     >
                         <Image
-                            src={imageUrl}
+                            src={imageSource}
                             alt={asset.name}
                             className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
                             fill
-                            loading="lazy"
+                            loading={"lazy"}
                             onLoad={() => setIsLoading(false)}
                             onError={() => {
-                                console.error(`Failed to load image for asset: ${assetId}`);
+                                console.error(`Failed to load image for asset: ${asset.name} (ID: ${assetId}) from src: ${imageSource}`);
                                 setImageError(true);
                                 setIsLoading(false);
                             }}
@@ -75,8 +77,6 @@ const AssetGroupItemImage = ({ assetId, asset }: Props) => {
                     <span className="text-xs text-gray-400">Image unavailable</span>
                 </motion.div>
             )}
-
-            {/* Gradient overlay for better text readability */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
         </div>
     );

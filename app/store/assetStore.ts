@@ -74,12 +74,12 @@ export const useAssetStore = create<AssetState>()(
 
       removeAsset: (assetId, type) =>
         set((state) => {
-          const assetToRemove = state[type].find(asset => asset.id === assetId);
+          const assetToRemove = state[type].find(asset => asset._id === assetId);
 
           if (!assetToRemove || !assetToRemove.gen) {
             return {
               ...state,
-              [type]: state[type].filter(asset => asset.id !== assetId)
+              [type]: state[type].filter(asset => asset._id !== assetId)
             };
           }
           
@@ -97,7 +97,7 @@ export const useAssetStore = create<AssetState>()(
           
           return {
             ...state,
-            [type]: state[type].filter(asset => asset.id !== assetId),
+            [type]: state[type].filter(asset => asset._id !== assetId),
             assetPrompt: updatedAssetPrompt
           };
         }),

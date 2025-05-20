@@ -1,1 +1,1 @@
-export type NavTabTypes = 'builder' | 'assets' | 'landing';
+export type NavTabTypes = 'builder' | 'assets' | 'landing' | 'cooks';

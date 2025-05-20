@@ -8,11 +8,12 @@ import CharBuilderLayout from "./features/Builder/CharBuilderLayout";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import LandingLayout from "./features/Landing/LandingLayout";
 import GlowingText from "./components/landing/GlowingText";
+import CooksLayout from "./features/Cooks/CooksLayout";
 const queryClient = new QueryClient();
 
 const AppShell = () => {
     const [tab, setTab] = useState<NavTabTypes>('assets');
-    return <div className="flex min-h-full w-full flex-wrap">
+    return <div className="flex flex-col min-h-full w-full flex-wrap">
         <QueryClientProvider client={queryClient}>
             <div
                 onClick={() => setTab('landing')}
@@ -24,6 +25,7 @@ const AppShell = () => {
             {tab !== 'landing' && <AssetListLayout />}
             {tab === 'builder' && <CharBuilderLayout />}
             {tab === 'landing' && <LandingLayout setTab={setTab} />}
+            {tab === 'cooks' && <CooksLayout />}
         </QueryClientProvider>
     </div>
 }

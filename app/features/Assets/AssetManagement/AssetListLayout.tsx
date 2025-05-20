@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Added useEffect
 import { Hammer, Search, X, Loader } from 'lucide-react';
 import AssetGroupList from './AssetGroup';
 import { useNavStore } from '@/app/store/navStore';
@@ -8,7 +8,6 @@ import AssetManCatSelector from './AssetManCatSelector';
 
 const AssetListLayout = () => {
   const [mainSearchQuery, setMainSearchQuery] = useState("");
-  //eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedAssets, setSelectedAssets] = useState<Set<string>>(new Set());
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -21,22 +20,33 @@ const AssetListLayout = () => {
   
   const { 
     data: assetGroups = [], 
+    allFetchedAssets = [],
     isLoading, 
     error, 
-    refetch 
-  } = useAssetGroups(assetNavExpanded);
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage 
+  } = useAssetGroups(activeCategory, assetNavExpanded);
+
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage && assetNavExpanded) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, assetNavExpanded]);
+
 
   const filteredAssetGroups = assetGroups.map(group => {
     const filteredAssets = group.assets.filter(asset => {
       const matchesSearch = !mainSearchQuery || 
         (asset.name && asset.name.toLowerCase().includes(mainSearchQuery.toLowerCase())) ||
         (asset.description && asset.description.toLowerCase().includes(mainSearchQuery.toLowerCase())) ||
-        (asset.subcategory && asset.subcategory.toLowerCase().includes(mainSearchQuery.toLowerCase())) 
+        (asset.subcategory && asset.subcategory.toLowerCase().includes(mainSearchQuery.toLowerCase()));
       
-      const matchesCategory = !activeCategory || 
-        (asset.type && asset.type === activeCategory);
+      // Category filtering is now primarily handled by the API via `activeCategory` passed to `useAssetGroups`
+      // const matchesCategory = !activeCategory || (asset.type && asset.type === activeCategory);
       
-      return matchesSearch && matchesCategory;
+      return matchesSearch; // && matchesCategory;
     });
 
     return {
@@ -46,10 +56,13 @@ const AssetListLayout = () => {
     };
   }).filter(group => group.hasMatchingAssets);
 
-  const totalFilteredAssets = filteredAssetGroups.reduce(
+  const totalDisplayedAssets = filteredAssetGroups.reduce(
     (sum, group) => sum + group.assets.length, 
     0
   );
+
+  const totalApiFetchedAssets = allFetchedAssets.length;
+
 
   return (<>
     <button
@@ -94,27 +107,29 @@ const AssetListLayout = () => {
             <h1 className="text-xl font-bold">Asset Manager</h1>
             {mainSearchQuery || activeCategory ? (
               <div className="text-sm text-gray-400">
-                {totalFilteredAssets} asset{totalFilteredAssets !== 1 ? 's' : ''} found
+                {totalDisplayedAssets} asset{totalDisplayedAssets !== 1 ? 's' : ''} found
               </div>
-            ) : null}
+            ) : (
+              <div className="text-sm text-gray-400">
+                {totalApiFetchedAssets} asset{totalApiFetchedAssets !== 1 ? 's' : ''} loaded
+              </div>
+            )}
           </div>
 
-          {/* Category Selector with Icon Buttons */}
           <AssetManCatSelector
             activeCategory={activeCategory}
-            setActiveCategory={setActiveCategory}
+            setActiveCategory={setActiveCategory} // This will trigger a refetch in useAssetGroups
             isFullScreen={isFullScreen}
             setIsFullScreen={setIsFullScreen}
           />
 
-          {/* Main content */}
           <div className="flex flex-1 overflow-hidden">
             <div className="w-full border-r border-gray-800 flex flex-col">
               <div className="p-3 border-b border-gray-800">
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search all assets..."
+                    placeholder="Search loaded assets..."
                     className="w-full bg-gray-800 rounded-md px-3 py-2 pl-9 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     value={mainSearchQuery}
                     onChange={(e) => setMainSearchQuery(e.target.value)}
@@ -131,18 +146,16 @@ const AssetListLayout = () => {
                 </div>
               </div>
               
-              {/* Show loading indicator while fetching */}
-              {isLoading && (
+              {(isLoading || (isFetchingNextPage && assetGroups.length === 0)) && ( // Show loader if initial or fetching first page
                 <div className="flex flex-col items-center justify-center h-40 text-gray-400">
                   <Loader className="h-8 w-8 animate-spin mb-2" />
                   <p>Loading assets...</p>
                 </div>
               )}
               
-              {/* Show error message if there was an error */}
-              {error && (
+              {error && !isLoading && (
                 <div className="flex flex-col items-center justify-center h-40 text-red-400 p-4 text-center">
-                  <p>{error instanceof Error ? error.message : 'Failed to load assets. Please try again later.'}</p>
+                  <p>{error instanceof Error ? error.message : 'Failed to load assets.'}</p>
                   <button 
                     className="mt-4 px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-md text-sm"
                     onClick={() => refetch()}
@@ -152,7 +165,6 @@ const AssetListLayout = () => {
                 </div>
               )}
               
-              {/* Show asset groups if data is loaded */}
               {!isLoading && !error && filteredAssetGroups.length > 0 && (
                 <AssetGroupList
                   assetGroups={filteredAssetGroups}
@@ -161,26 +173,33 @@ const AssetListLayout = () => {
                 />
               )}
               
-              {/* Show message if no assets were found */}
-              {!isLoading && !error && filteredAssetGroups.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-40 text-gray-400 p-4 text-center">
-                  {mainSearchQuery || activeCategory ? (
-                    <div className="text-center">
-                      <p>No matching assets found.</p>
-                      <button
-                        className="mt-3 px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-md text-sm"
-                        onClick={() => {
-                          setMainSearchQuery("");
-                          setActiveCategory(null);
-                        }}
-                      >
-                        Clear filters
-                      </button>
-                    </div>
-                  ) : (
-                    <p>No assets found. Try creating some first.</p>
+              {/* Message for "fetching more" or "no assets" */}
+              {!isLoading && !error && (
+                <>
+                  {isFetchingNextPage && assetGroups.length > 0 && (
+                     <div className="p-4 text-center text-sm text-gray-400">Fetching more assets...</div>
                   )}
-                </div>
+                  {filteredAssetGroups.length === 0 && !isFetchingNextPage && (
+                    <div className="flex flex-col items-center justify-center h-40 text-gray-400 p-4 text-center">
+                      {mainSearchQuery || activeCategory ? (
+                        <div className="text-center">
+                          <p>No matching assets found.</p>
+                          <button
+                            className="mt-3 px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-md text-sm"
+                            onClick={() => {
+                              setMainSearchQuery("");
+                              setActiveCategory(null); // This will refetch with no type filter
+                            }}
+                          >
+                            Clear filters
+                          </button>
+                        </div>
+                      ) : (
+                        <p>No assets found for the selected category, or none exist.</p>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

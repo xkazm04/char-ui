@@ -84,7 +84,7 @@ const AssetGroupSidebar = ({
                                   {assets.map(asset => (
                                     <AssetGroupItem
                                       asset={asset}
-                                      key={asset.id || asset._id}
+                                      key={asset._id || asset._id}
                                       toggleAssetSelection={toggleAssetSelection}
                                       isFullScreen={false}
                                     />
@@ -100,7 +100,7 @@ const AssetGroupSidebar = ({
                           {group.assets.map(asset => (
                             <AssetGroupItem
                               asset={asset}
-                              key={asset.id || asset._id}
+                              key={asset._id || asset._id}
                               toggleAssetSelection={toggleAssetSelection}
                               isFullScreen={false}
                             />

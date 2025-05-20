@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import AssetItemModal from "./AssetItemModal";
 import { AssetType as AssetTypeObj } from "@/app/types/asset";
 import { useAssetStore } from "@/app/store/assetStore";
@@ -12,8 +12,8 @@ type Props = {
   isFullScreen?: boolean;
 }
 
-const AssetGroupItem = ({ asset, toggleAssetSelection, isFullScreen = false }: Props) => {
-  const assetId = asset.id || asset._id;
+const AssetGroupItem = React.memo(({ asset, toggleAssetSelection, isFullScreen = false }: Props) => {
+  const assetId = asset._id
   const [showModal, setShowModal] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
   
@@ -32,19 +32,19 @@ const AssetGroupItem = ({ asset, toggleAssetSelection, isFullScreen = false }: P
       ...Equipment, 
       ...Clothing, 
       ...Background
-    ].some(item => item.id === assetId || item._id === assetId);
+    ].some(item => item.id === assetId);
   }, [Body, Equipment, Clothing, Background, assetId]);
   
   const handleAssetSelection = () => {
     if (isInStore) {
       if (!assetId) return
-      if (Body.some(item => (item.id === assetId || item._id === assetId))) {
+      if (Body.some(item => (item.id === assetId))) {
         removeAsset(assetId, 'Body');
-      } else if (Equipment.some(item => (item.id === assetId || item._id === assetId))) {
+      } else if (Equipment.some(item => (item.id === assetId))) {
         removeAsset(assetId, 'Equipment');
-      } else if (Clothing.some(item => (item.id === assetId || item._id === assetId))) {
+      } else if (Clothing.some(item => (item.id === assetId))) {
         removeAsset(assetId, 'Clothing');
-      } else if (Background.some(item => (item.id === assetId || item._id === assetId))) {
+      } else if (Background.some(item => (item.id === assetId))) {
         removeAsset(assetId, 'Background');
       }
     } else {
@@ -57,7 +57,6 @@ const AssetGroupItem = ({ asset, toggleAssetSelection, isFullScreen = false }: P
 
       addAsset({
         id: assetId,
-        _id: assetId,
         name: asset.name,
         description: asset.description || '',
         type: assetType,
@@ -170,6 +169,8 @@ const AssetGroupItem = ({ asset, toggleAssetSelection, isFullScreen = false }: P
       )}
     </>
   );
-}
+});
+
+AssetGroupItem.displayName = 'AssetGroupItem'; 
 
 export default AssetGroupItem;

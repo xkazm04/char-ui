@@ -1,9 +1,11 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback, Suspense } from "react"; 
 import { AssetGroup } from "@/app/functions/assetFns";
 import { useAssetStore } from "@/app/store/assetStore";
-import AssetGroupItem from "./AssetGroupItem";
+import LazyRenderWrapper from "@/app/helpers/LazyRenderWrapper";
+
+const AssetGroupItem = React.lazy(() => import("./AssetGroupItem"));
 
 type Props = {
   assetGroups: AssetGroup[];
@@ -18,20 +20,17 @@ const AssetGroupFullScreen = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [columns, setColumns] = useState(3);
 
-  const toggleAssetSelection = (assetId: string) => {
-    console.log("Toggling asset:", assetId);
+  const toggleAssetSelection = useCallback((assetId: string) => {
     setSelectedAssets((prev: Set<string>): Set<string> => {
       const newSet: Set<string> = new Set(prev);
       if (newSet.has(assetId)) {
-        console.log("Removing asset from selection:", assetId);
         newSet.delete(assetId);
       } else {
-        console.log("Adding asset to selection:", assetId);
         newSet.add(assetId);
       }
       return newSet;
     });
-  };
+  }, [setSelectedAssets]);
 
   useEffect(() => {
     assetGroups.forEach(group => {
@@ -60,6 +59,11 @@ const AssetGroupFullScreen = ({
       window.removeEventListener('resize', calculateColumns);
     };
   }, [assetGroups, setGroupExpanded]);
+
+  // Placeholder for Suspense
+  const AssetSuspenseFallback = () => (
+    <div style={{ height: "220px" }} className="bg-gray-800/10 rounded-md animate-pulse w-full"></div>
+  );
 
   return (
     <div
@@ -138,12 +142,18 @@ const AssetGroupFullScreen = ({
                                   {/* Assets in subcategory */}
                                   <div className="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
                                     {assets.map(asset => (
-                                      <AssetGroupItem
-                                        asset={asset}
-                                        key={asset.id || asset._id}
-                                        toggleAssetSelection={toggleAssetSelection}
-                                        isFullScreen={true}
-                                      />
+                                      <LazyRenderWrapper 
+                                        key={asset._id}
+                                        placeholderHeight="220px"
+                                      >
+                                        <Suspense fallback={<AssetSuspenseFallback />}>
+                                          <AssetGroupItem
+                                            asset={asset}
+                                            toggleAssetSelection={toggleAssetSelection}
+                                            isFullScreen={true}
+                                          />
+                                        </Suspense>
+                                      </LazyRenderWrapper>
                                     ))}
                                   </div>
                                 </div>
@@ -152,14 +162,20 @@ const AssetGroupFullScreen = ({
                           </div>
                         ) : (
                           // Fallback to original view when no subcategories
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3"> 
                             {group.assets.map(asset => (
-                              <AssetGroupItem
-                                asset={asset}
-                                key={asset.id || asset._id}
-                                toggleAssetSelection={toggleAssetSelection}
-                                isFullScreen={true}
-                              />
+                              <LazyRenderWrapper 
+                                key={asset._id} 
+                                placeholderHeight="120px" 
+                              >
+                                <Suspense fallback={<AssetSuspenseFallback />}>
+                                  <AssetGroupItem
+                                    asset={asset}
+                                    toggleAssetSelection={toggleAssetSelection}
+                                    isFullScreen={true}
+                                  />
+                                </Suspense>
+                              </LazyRenderWrapper>
                             ))}
                           </div>
                         )

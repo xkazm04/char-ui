@@ -2,7 +2,7 @@ import { Edit, Trash, X } from "lucide-react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { AssetType } from "@/app/types/asset";
-import { useAssets } from "@/app/functions/assetFns";
+import { useAllAssets } from "@/app/functions/assetFns";
 
 type Props = {
     asset: AssetType
@@ -11,7 +11,7 @@ type Props = {
 }
 
 const AssetItemModal = ({asset, modalRef, setShowModal }: Props) => {
-    const { refetch } = useAssets();
+    const { refetch } = useAllAssets();
     const handleDelete = async () => {
         if (confirm(`Are you sure you want to delete "${asset.name}"?`)) {
             try {

@@ -61,6 +61,7 @@ const Navbar = ({ tab, setTab }: Props) => {
           <nav className="flex flex-row gap-3">
             <NavButton value='assets'>Asset Extractor</NavButton>
             <NavButton value='builder'>Character Builder</NavButton>
+            <NavButton value='cooks'>Cooks</NavButton>
           </nav>
         </div>
       </div>

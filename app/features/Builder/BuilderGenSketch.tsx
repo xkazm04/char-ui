@@ -3,6 +3,8 @@ import { m } from "framer-motion";
 import { handleCharacterSketch } from "@/app/functions/leoFns";
 import { useAssetStore } from "@/app/store/assetStore";
 import { useState } from "react";
+import { useCharacterStore } from "@/app/store/charStore";
+import { useGenerations } from "@/app/functions/genFns";
 
 type Props = {
     isGenerating: boolean;
@@ -13,15 +15,19 @@ type Props = {
 const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) => {
     const { assetPrompt } = useAssetStore()
     const [ genError, setGenError ] = useState<boolean>(false)
+    const [generationId, setGenerationId] = useState<string | null>(null);
+    const { currentCharacter } = useCharacterStore()
+    const { refetch } = useGenerations()
 
     const handleGenerate = async () => {
         handleCharacterSketch({
             prompt: assetPrompt || "wooden sword",
-            element: 67297, // hardcoded for now,
-            setGenerationId: () => {console.log("Generation ID set, but not used in this component")},
+            element: currentCharacter?.element, 
+            generationId,
+            setGenerationId,
             setGenError,
             setIsGenerating,
-            setGeneratedImage: () => {console.log("Generated image set, but not used in this component")}
+            setGeneratedImage: () => {refetch()},
         });
     };
     return <>
