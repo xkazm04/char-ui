@@ -1,7 +1,7 @@
 import { useNavStore } from '@/app/store/navStore';
 import { NavTabTypes } from '@/app/types/nav';
 import { motion } from 'framer-motion';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, Palette } from 'lucide-react';
 import { useEffect } from 'react';
 
 type Props = {
@@ -62,6 +62,12 @@ const Navbar = ({ tab, setTab }: Props) => {
             <NavButton value='assets'>Asset Extractor</NavButton>
             <NavButton value='builder'>Character Builder</NavButton>
             <NavButton value='cooks'>Cooks</NavButton>
+            <NavButton value='ui-demo'>
+              <div className="flex items-center gap-1">
+                <Palette className="w-4 h-4" />
+                <span>UI Demo</span>
+              </div>
+            </NavButton>
           </nav>
         </div>
       </div>
