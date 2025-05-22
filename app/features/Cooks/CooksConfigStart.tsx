@@ -1,3 +1,4 @@
+import { cooksUrl } from "@/app/constants/urls";
 import { DataSourceConfig } from "@/app/types/config";
 
 type Props = {
@@ -12,22 +13,23 @@ const CooksConfigStart = ({dataConfigs, isRunning, setIsRunning, agentNames }: P
         setIsRunning(true);
 
         try {
-            // const response = await fetch(`${serverUrl}/api/agents/run`, {
-            //   method: 'POST',
-            //   headers: {
-            //     'Content-Type': 'application/json',
-            //   },
-            //   body: JSON.stringify({
-            //     user_id: "user123",  
-            //     message: "Generate character variations"
-            //   }),
-            // });
+            const response = await fetch(`${cooksUrl}/agents/run`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                user_id: "user123",  
+                message: "Generate character variations"
+              }),
+            });
 
-            // if (response.ok) {
-            //   const data = await response.json();
-            //   // Process the response data
-            //   // setLogs based on the events from the response
-            // }
+            if (response.ok) {
+              const data = await response.json();
+              console.log(data)
+              // Process the response data
+              // setLogs based on the events from the response
+            }
 
             // Placeholder for now
             const newLogs = [];

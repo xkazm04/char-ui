@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { useState } from "react";
 import { useCreateDataConfig } from "../../functions/configFns";
 import { DataSourceConfig, CreateDataSourceConfig } from "@/app/types/config";
@@ -99,17 +98,6 @@ const CooksConfig = ({ dataConfigs, agentNames }: CooksConfigProps) => {
                     isRunning={isRunning}
                     setIsRunning={setIsRunning}
                     agentNames={agentNames}
-                />
-            </div>
-
-            <div className={`w-[200px] h-[150px]
-                ${isRunning ? "opacity-90 animate-pulse" : "opacity-20"}
-                relative sm:hidden md:block`}>
-                <Image
-                    src={"/landing/vial.png"}
-                    alt="vial"
-                    fill
-                    className="object-contain"
                 />
             </div>
 
