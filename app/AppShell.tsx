@@ -9,7 +9,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import LandingLayout from "./features/Landing/LandingLayout";
 import GlowingText from "./components/landing/GlowingText";
 import CooksLayout from "./features/Cooks/CooksLayout";
-import UIDesignShowcase from "./features/UIDemo/UIDesignShowcase";
 
 const queryClient = new QueryClient();
 
@@ -29,7 +28,6 @@ const AppShell = () => {
             {tab === 'builder' && <CharBuilderLayout />}
             {tab === 'landing' && <LandingLayout setTab={setTab} />}
             {tab === 'cooks' && <CooksLayout />}
-            {tab === 'ui-demo' && <UIDesignShowcase />}
         </QueryClientProvider>
     </div>
 }

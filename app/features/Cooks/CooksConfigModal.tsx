@@ -1,7 +1,7 @@
 import { DataSourceConfig, CreateDataSourceConfig } from "@/app/types/config";
-import {  
-    useCreateDataConfig, 
-    useUpdateDataConfig, 
+import {
+    useCreateDataConfig,
+    useUpdateDataConfig,
 } from "../../functions/configFns";
 
 type Props = {
@@ -10,12 +10,13 @@ type Props = {
     resetForm: () => void;
     setSelectedConfig: (config: DataSourceConfig | null) => void;
     newConfig: CreateDataSourceConfig;
-    setNewConfig: ( config: CreateDataSourceConfig) => void;
+    setNewConfig: (config: CreateDataSourceConfig) => void;
 }
 
-const CooksConfigModal = ({selectedConfig, setShowConfigModal, resetForm, setSelectedConfig, newConfig, setNewConfig}: Props) => {
+const CooksConfigModal = ({ selectedConfig, setShowConfigModal, resetForm, setSelectedConfig, newConfig, setNewConfig }: Props) => {
     const createMutation = useCreateDataConfig();
     const updateMutation = useUpdateDataConfig(selectedConfig?._id || "");
+
     const handleCreateConfig = async () => {
         try {
             await createMutation.mutateAsync({

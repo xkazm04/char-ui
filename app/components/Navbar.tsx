@@ -1,7 +1,7 @@
 import { useNavStore } from '@/app/store/navStore';
 import { NavTabTypes } from '@/app/types/nav';
 import { motion } from 'framer-motion';
-import { HelpCircle, Palette } from 'lucide-react';
+import { HelpCircle, PackageIcon, PersonStandingIcon, TestTube } from 'lucide-react';
 import { useEffect } from 'react';
 
 type Props = {
@@ -10,8 +10,9 @@ type Props = {
 }
 
 interface NavButtonProps {
-  children: React.ReactNode;
+  label: string;
   value: NavTabTypes;
+  icon?: React.ReactNode;
 }
 
 const Navbar = ({ tab, setTab }: Props) => {
@@ -29,7 +30,13 @@ const Navbar = ({ tab, setTab }: Props) => {
     localStorage.setItem('pixelSelectedTab', tab);
   }, [tab]);
 
-  const NavButton = ({ children, value }: NavButtonProps) => {
+  const NavOptions = [
+    { value: 'assets', icon: <PackageIcon className="w-4 h-4" />, label: 'Asset Extractor' },
+    { value: 'builder', icon: <PersonStandingIcon className="w-4 h-4" />, label: 'Character Builder' },
+    { value: 'cooks', icon: <TestTube className="w-4 h-4" />, label: 'Cooks' },
+  ];
+
+  const NavButton = ({ label, value, icon }: NavButtonProps) => {
     const active = value === tab;
     return (
       <button
@@ -42,7 +49,10 @@ const Navbar = ({ tab, setTab }: Props) => {
             : 'text-gray-400 bg-sky-800/5 hover:text-white hover:bg-gray-800'}
       `}
       >
-        {children}
+        <div className="flex items-center gap-1">
+          {icon}
+          <span>{label}</span>
+        </div>
         {active && (
           <motion.div
             layoutId="activeNavIndicator"
@@ -59,15 +69,14 @@ const Navbar = ({ tab, setTab }: Props) => {
       <div className="flex items-center justify-center">
         <div className="flex items-center space-x-6">
           <nav className="flex flex-row gap-3">
-            <NavButton value='assets'>Asset Extractor</NavButton>
-            <NavButton value='builder'>Character Builder</NavButton>
-            <NavButton value='cooks'>Cooks</NavButton>
-            <NavButton value='ui-demo'>
-              <div className="flex items-center gap-1">
-                <Palette className="w-4 h-4" />
-                <span>UI Demo</span>
-              </div>
-            </NavButton>
+            {NavOptions.map((option) => (
+              <NavButton
+                key={option.value}
+                label={option.label}
+                value={option.value}
+                icon={option.icon}
+              />
+            ))}
           </nav>
         </div>
       </div>

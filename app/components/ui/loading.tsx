@@ -138,7 +138,7 @@ export function Loading({
         return (
           <div
             className={cn(
-              "w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700",
+              "w-full overflow-hidden rounded-full bg-gray-700",
               sizeMap[size].progress,
               className
             )}
@@ -156,7 +156,7 @@ export function Loading({
         return (
           <div
             className={cn(
-              "w-full rounded-md bg-gray-200 dark:bg-gray-700",
+              "w-full rounded-md bg-gray-700",
               className
             )}
           >
@@ -185,7 +185,7 @@ export function Loading({
       {text && (
         <p
           className={cn(
-            "mt-2 text-center text-gray-500 dark:text-gray-400",
+            "mt-2 text-center text-gray-400",
             sizeMap[size].text,
             textClassName
           )}
