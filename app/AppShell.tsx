@@ -1,7 +1,7 @@
 'use client';
 import { useState } from "react";
 import AssetAnalysisLayout from "./features/Assets/AssetAnalysisLayout";
-import AssetListLayout from "./features/Assets/AssetManagement/AssetListLayout";
+import OptimizedAssetListLayout from "./features/Assets/AssetManagement/OptimizedAssetListLayout";
 import Navbar from "./components/Navbar";
 import { NavTabTypes } from "./types/nav";
 import CharBuilderLayout from "./features/Builder/CharBuilderLayout";
@@ -11,7 +11,15 @@ import GlowingText from "./components/landing/GlowingText";
 import CooksLayout from "./features/Cooks/CooksLayout";
 import UIDesignShowcase from "./features/UIDemo/UIDesignShowcase";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const AppShell = () => {
     const [tab, setTab] = useState<NavTabTypes>('assets');
@@ -25,7 +33,7 @@ const AppShell = () => {
             </div>
             {tab !== 'landing' && <Navbar tab={tab} setTab={setTab} />}
             {tab === 'assets' && <AssetAnalysisLayout />}
-            {tab !== 'landing' && <AssetListLayout />}
+            {tab !== 'landing' && <OptimizedAssetListLayout />}
             {tab === 'builder' && <CharBuilderLayout />}
             {tab === 'landing' && <LandingLayout setTab={setTab} />}
             {tab === 'cooks' && <CooksLayout />}
