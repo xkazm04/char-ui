@@ -1,5 +1,5 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
-import { AssetType, PaginatedAssetType } from '../types/asset'; // Ensure PaginatedAssetType is imported
+import { AssetType, PaginatedAssetType } from '../types/asset'; 
 
 export interface AssetGroup {
   id: string;
@@ -37,7 +37,6 @@ const fetchAssetsPage = async ({
   return response.json();
 };
 
-// React Query hook for getting all assets using infinite scrolling to fetch all pages
 export const useAllAssets = (type: string | null = null, enabled = true) => {
   return useInfiniteQuery<PaginatedAssetType, Error>({
     queryKey: ['allAssets', type],
@@ -47,16 +46,14 @@ export const useAllAssets = (type: string | null = null, enabled = true) => {
       if (lastPage.current_page < lastPage.total_pages) {
         return lastPage.current_page + 1;
       }
-      return undefined; // No more pages
+      return undefined; 
     },
     enabled,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    // refetchOnWindowFocus: false, // Optional: disable refetch on window focus
+    staleTime: 30 * 60 * 1000, 
   });
 };
 
 
-// Process raw assets into grouped assets
 export const processAssetsIntoGroups = (assets: AssetType[]): AssetGroup[] => {
   const assetsByType = assets.reduce<Record<string, AssetType[]>>((acc, asset) => {
     if (!asset.type) return acc;
@@ -88,7 +85,6 @@ export const processAssetsIntoGroups = (assets: AssetType[]): AssetGroup[] => {
   });
 };
 
-// React Query hook for getting assets grouped by type, fetching all pages
 export const useAssetGroups = (assetTypeFilter: string | null = null, enabled = true) => {
   const {
     data,
@@ -97,23 +93,22 @@ export const useAssetGroups = (assetTypeFilter: string | null = null, enabled = 
     isFetchingNextPage,
     isLoading,
     error,
-    refetch, // Pass refetch through
+    refetch, 
   } = useAllAssets(assetTypeFilter, enabled);
 
-  // Combine all fetched assets from all pages
   const allAssets: AssetType[] = data?.pages.reduce((acc, page) => acc.concat(page.assets), []) || [];
   
   const assetGroups = processAssetsIntoGroups(allAssets);
 
   return {
-    data: assetGroups, // Processed groups
-    allFetchedAssets: allAssets, // Raw list of all fetched assets
-    isLoading, // True if initial load is happening
+    data: assetGroups, 
+    allFetchedAssets: allAssets, 
+    isLoading, 
     error,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage, // True if fetching subsequent pages
-    refetch, // Expose refetch
+    isFetchingNextPage, 
+    refetch, 
   };
 };
 

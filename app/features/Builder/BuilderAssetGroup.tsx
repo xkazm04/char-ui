@@ -113,11 +113,11 @@ const BuilderAssetGroup = ({
                   <div className="flex flex-wrap">
                     {assets.map((asset) => (
                       <AssetTag 
-                        key={asset._id || asset._id} 
+                        key={asset.id || asset._id} 
                         asset={asset} 
                         onRemove={() => {
                           // Get the correct ID to use
-                          const assetId = asset._id || asset._id;
+                          const assetId = asset.id || asset._id;
                           
                           // Use the asset's type if available, or fall back to the section type
                           const assetType = asset.type || type;

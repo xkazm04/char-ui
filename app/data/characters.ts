@@ -8,10 +8,7 @@ export const characters = [
         Blue-haired girl with long braids, wearing a black crop top with gold X emblem, intense blue eyes, tattoos on arms and torso — chaotic and rebellious vibe.
         Wearing`,
         image_url: "https://cdn.leonardo.ai/users/65d71243-f7c2-4204-a1b3-433aaf62da5b/generations/8e6f6b74-4e98-4162-8b6a-6a0eaea1e0ee/variations/Default_Silhouette_of_a_young_lightskinned_woman_with_blue_hai_0_8e6f6b74-4e98-4162-8b6a-6a0eaea1e0ee_0.png",
-        gif_url: '/gifs/jinx.gif',
-        gif_url_2: '/gifs/jinx_shot.gif',
-        gif_url_3: '/gifs/jinx_smile.gif',
-        gif_url_4: '/gifs/jinx_kiss.gif',
+        gif_url: '/gifs/jinx_shot.gif',
         element: 67297
     },
     {

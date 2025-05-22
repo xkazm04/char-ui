@@ -1,0 +1,1 @@
+export type CookStatusType = "success" | "error" | "running" | "waiting";

@@ -3,66 +3,106 @@ import CooksPrompt from "./CooksPrompt";
 import CooksLog from "./CooksLog";
 import { useState } from "react";
 import Image from "next/image";
+import { usePrompts } from "../../functions/promptFns";
+import { useDataConfigs } from "../../functions/configFns";
+import CooksError from "./CooksError";
+import { PromptModel } from "@/app/types/prompt";
+import CooksPromptSetup from "./CooksPromptSetup";
 
 const CooksLayout = () => {
-    const [iterations, setIterations] = useState(3);
     const [isRunning, setIsRunning] = useState(false);
     const [logs, setLogs] = useState<Array<Array<string>>>([]);
     const [isWorking, setIsWorking] = useState(false);
     
-    // Example agent prompts - replace with actual prompts or make dynamic
-    const agentPrompts = [
-        { id: 1, name: "Research Agent", prompt: "Research the given topic and provide key insights." },
-        { id: 2, name: "Analysis Agent", prompt: "Analyze the research and identify patterns." },
-        { id: 3, name: "Summary Agent", prompt: "Create a concise summary of the findings." },
-    ];
-
-    const handleStart = () => {
-        setIsRunning(true);
-        // Simulate workflow execution
-        const newLogs = [];
-        for (let i = 0; i < iterations; i++) {
-            const iterationLog = agentPrompts.map(agent => 
-                `Sample output from ${agent.name} for iteration ${i+1}. This would contain the actual response from the agent based on its prompt and the outputs from previous agents.`
-            );
-            newLogs.push(iterationLog);
+    const { data: prompts = [], isLoading: isLoadingPrompts } = usePrompts();
+    const { data: dataConfigs = [], isLoading: isLoadingConfigs, isError: isConfError, error: errConfig } = useDataConfigs();
+    
+    const promptsByAgent: Record<string, PromptModel[]> = {};
+    prompts.forEach(prompt => {
+        if (!promptsByAgent[prompt.agent]) {
+            promptsByAgent[prompt.agent] = [];
         }
-        setLogs(newLogs);
-        setIsRunning(false);
+        promptsByAgent[prompt.agent].push(prompt);
+    });
+
+    const agentNames = Object.keys(promptsByAgent);
+
+    const handleStart = async () => {
+        setIsRunning(true);
+        setIsWorking(true);
+        
+        try {
+            // const response = await fetch(`${serverUrl}/api/agents/run`, {
+            //   method: 'POST',
+            //   headers: {
+            //     'Content-Type': 'application/json',
+            //   },
+            //   body: JSON.stringify({
+            //     user_id: "user123",  
+            //     message: "Generate character variations"
+            //   }),
+            // });
+            
+            // if (response.ok) {
+            //   const data = await response.json();
+            //   // Process the response data
+            //   // setLogs based on the events from the response
+            // }
+
+            // Placeholder for now
+            const newLogs = [];
+            for (const agent of agentNames) {
+                const agentLog = `Sample output from ${agent} agent.`;
+                newLogs.push([agentLog]);
+            }
+            setLogs(newLogs);
+        } catch (error) {
+            console.error("Error running agent workflow:", error);
+        } finally {
+            setIsRunning(false);
+            setTimeout(() => setIsWorking(false), 3000);
+        }
     };
 
     return (
-        <div className="flex flex-col p-4 gap-4">
-            <CooksConfig 
-                iterations={iterations} 
-                setIterations={setIterations} 
+        <div className="flex flex-col p-4 gap-4 relative h-full">            
+            {/* Loading States */}
+            {(isLoadingPrompts || isLoadingConfigs) && (
+                <div className="flex justify-center items-center text-gray-400 py-4">
+                    <svg className="animate-spin h-5 w-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Loading configuration...
+                </div>
+            )}
+            
+            {/* Main Content */}
+            {!isLoadingConfigs && !isConfError && <CooksConfig 
+                dataConfigs={dataConfigs}
                 onStart={handleStart}
                 isRunning={isRunning}
-            />
-            {/* <div className="fixed bottom-0 opacity-5 z-0 bg-black h-full w-full">
-                <Image
-                    src={isWorking ? "/gifs/vial.gif" : "/landing/vial.png"}
-                    alt="vial"
-                    width={500}
-                    height={300}
-                    className="rounded-lg shadow-lg"
-                    />
-            </div> */}
+            />}
+            {isConfError && (
+                <div className="flex flex-col absolute right-0 text-gray-400 py-4">
+                    <CooksError error={errConfig} />
+                </div>
+            )}
             
             <div className="flex flex-wrap gap-4">
-                {agentPrompts.map(agent => (
+                {Object.entries(promptsByAgent).map(([agent, agentPrompts]) => (
                     <CooksPrompt 
-                        key={agent.id}
-                        name={agent.name}
-                        prompt={agent.prompt}
-                        onChange={(newPrompt: string) => {
-                            console.log(`Updated prompt for ${agent.name}:`, newPrompt);
-                        }}
+                        key={agent}
+                        agent={agent}
+                        prompts={agentPrompts}
                     />
                 ))}
+                {Object.keys(promptsByAgent).length == 0 && <>
+                    <CooksPromptSetup />
+                </>}
             </div>
             
-            <CooksLog agents={agentPrompts.map(a => a.name)} logs={logs} />
+            <CooksLog agents={agentNames} logs={logs} />
         </div>
     );
 };

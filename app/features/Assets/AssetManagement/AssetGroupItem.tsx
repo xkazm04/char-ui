@@ -32,19 +32,19 @@ const AssetGroupItem = React.memo(({ asset, toggleAssetSelection, isFullScreen =
       ...Equipment, 
       ...Clothing, 
       ...Background
-    ].some(item => item.id === assetId);
+    ].some(item => item._id === assetId);
   }, [Body, Equipment, Clothing, Background, assetId]);
   
   const handleAssetSelection = () => {
     if (isInStore) {
       if (!assetId) return
-      if (Body.some(item => (item.id === assetId))) {
+      if (Body.some(item => (item._id === assetId))) {
         removeAsset(assetId, 'Body');
-      } else if (Equipment.some(item => (item.id === assetId))) {
+      } else if (Equipment.some(item => (item._id === assetId))) {
         removeAsset(assetId, 'Equipment');
-      } else if (Clothing.some(item => (item.id === assetId))) {
+      } else if (Clothing.some(item => (item._id === assetId))) {
         removeAsset(assetId, 'Clothing');
-      } else if (Background.some(item => (item.id === assetId))) {
+      } else if (Background.some(item => (item._id === assetId))) {
         removeAsset(assetId, 'Background');
       }
     } else {
@@ -56,7 +56,7 @@ const AssetGroupItem = React.memo(({ asset, toggleAssetSelection, isFullScreen =
       }
 
       addAsset({
-        id: assetId,
+        _id: assetId,
         name: asset.name,
         description: asset.description || '',
         type: assetType,
