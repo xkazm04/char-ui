@@ -1,5 +1,5 @@
 import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { AssetType, PaginatedAssetType } from '../types/asset'; 
+import { AssetType, PaginatedAssetType } from '../types/asset';
 import { useCallback } from 'react';
 
 export interface AssetGroup {
@@ -40,23 +40,23 @@ const fetchAssetsPage = async ({
   params.append('page_size', pageSize.toString());
   params.append('image_quality', '25'); // Optimized quality
   params.append('max_image_width', '400'); // Reasonable size for UI
-  
+
   if (type) {
     params.append('type', type);
   }
 
   const endpoint = useBatching ? '/assets/batched' : '/assets/';
   const response = await fetch(`${API_BASE_URL}${endpoint}?${params.toString()}`);
-  
+
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ 
-      detail: `HTTP error! Status: ${response.status}` 
+    const errorData = await response.json().catch(() => ({
+      detail: `HTTP error! Status: ${response.status}`
     }));
     throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
   }
-  
+
   const data = await response.json();
-  
+
   // Normalize response format for consistency
   if (data.batch_id) {
     // Batched response
@@ -70,25 +70,25 @@ const fetchAssetsPage = async ({
       cache_key: data.cache_key
     } as PaginatedAssetType & { batch_id: string; cache_key: string };
   }
-  
+
   return data;
 };
 
 export const useAllAssets = (type: string | null = null, enabled = true) => {
   return useInfiniteQuery<PaginatedAssetType, Error>({
     queryKey: ['allAssets', type],
-    queryFn: ({ pageParam }) => fetchAssetsPage({ 
-      pageParam, 
-      type, 
+    queryFn: ({ pageParam }) => fetchAssetsPage({
+      pageParam,
+      type,
       pageSize: 50, // Batch size of 50
-      useBatching: true 
+      useBatching: true
     }),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       if (lastPage.current_page < lastPage.total_pages) {
         return lastPage.current_page + 1;
       }
-      return undefined; 
+      return undefined;
     },
     enabled,
     staleTime: 30 * 60 * 1000, // 30 minutes
@@ -101,7 +101,7 @@ export const useAllAssets = (type: string | null = null, enabled = true) => {
 // Optimized asset processing with memoization
 export const processAssetsIntoGroups = (assets: AssetType[]): AssetGroup[] => {
   if (!assets || assets.length === 0) return [];
-  
+
   const assetsByType = assets.reduce<Record<string, AssetType[]>>((acc, asset) => {
     if (!asset.type) return acc;
     const currentAsset = { ...asset, id: asset._id };
@@ -112,7 +112,7 @@ export const processAssetsIntoGroups = (assets: AssetType[]): AssetGroup[] => {
     acc[asset.type].push(currentAsset);
     return acc;
   }, {});
-  
+
   return Object.entries(assetsByType).map(([type, typeAssets]) => {
     const subcategories = typeAssets.reduce<Record<string, AssetType[]>>((acc, asset) => {
       const subcategory = asset.subcategory || 'Other';
@@ -122,7 +122,7 @@ export const processAssetsIntoGroups = (assets: AssetType[]): AssetGroup[] => {
       acc[subcategory].push(asset);
       return acc;
     }, {});
-    
+
     return {
       id: `group-${type}`,
       name: type.charAt(0).toUpperCase() + type.slice(1),
@@ -140,52 +140,52 @@ export const useAssetGroups = (assetTypeFilter: string | null = null, enabled = 
     isFetchingNextPage,
     isLoading,
     error,
-    refetch, 
+    refetch,
   } = useAllAssets(assetTypeFilter, enabled);
 
   const allAssets: AssetType[] = data?.pages.reduce((acc, page) => acc.concat(page.assets), []) || [];
-  
+
   // Memoize asset groups processing
   const assetGroups = processAssetsIntoGroups(allAssets);
 
   return {
-    data: assetGroups, 
-    allFetchedAssets: allAssets, 
-    isLoading, 
+    data: assetGroups,
+    allFetchedAssets: allAssets,
+    isLoading,
     error,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage, 
-    refetch, 
+    isFetchingNextPage,
+    refetch,
   };
 };
 
 // Enhanced hook for prefetching next batches
 export const usePrefetchAssets = (type: string | null = null) => {
   const queryClient = useQueryClient();
-  
+
   const prefetchNextPage = useCallback(async (currentPage: number) => {
     const nextPage = currentPage + 1;
-    
+
     await queryClient.prefetchQuery({
       queryKey: ['allAssets', type],
-      queryFn: () => fetchAssetsPage({ 
-        pageParam: nextPage, 
-        type, 
+      queryFn: () => fetchAssetsPage({
+        pageParam: nextPage,
+        type,
         pageSize: 50,
-        useBatching: true 
+        useBatching: true
       }),
       staleTime: 30 * 60 * 1000,
     });
   }, [queryClient, type]);
-  
+
   return { prefetchNextPage };
 };
 
 // Cache invalidation utility
 export const useInvalidateAssetCache = () => {
   const queryClient = useQueryClient();
-  
+
   const invalidateCache = useCallback(async (typeFilter?: string) => {
     try {
       // Invalidate server cache
@@ -194,7 +194,7 @@ export const useInvalidateAssetCache = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type_filter: typeFilter })
       });
-      
+
       // Invalidate client cache
       await queryClient.invalidateQueries({
         queryKey: typeFilter ? ['allAssets', typeFilter] : ['allAssets']
@@ -203,7 +203,7 @@ export const useInvalidateAssetCache = () => {
       console.error('Cache invalidation failed:', error);
     }
   }, [queryClient]);
-  
+
   return { invalidateCache };
 };
 
@@ -214,8 +214,8 @@ export const useFetchAssetById = (assetId: string, enabled = true) => {
     queryFn: async () => {
       const response = await fetch(`${API_BASE_URL}/assets/${assetId}`);
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ 
-          detail: `HTTP error! Status: ${response.status}` 
+        const errorData = await response.json().catch(() => ({
+          detail: `HTTP error! Status: ${response.status}`
         }));
         throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
       }
@@ -223,4 +223,45 @@ export const useFetchAssetById = (assetId: string, enabled = true) => {
     },
     enabled: !!assetId && enabled,
   });
+};
+
+
+export const handleDelete = async (asset: AssetType, onSuccess: () => void) => {
+  if (confirm(`Are you sure you want to delete "${asset.name}"?`)) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/assets/${asset._id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        if (typeof onSuccess === 'function') {
+          onSuccess();
+        }
+      } else {
+        alert('Failed to delete asset');
+      }
+    } catch (error) {
+      console.error('Error deleting asset:', error);
+      alert('Error deleting asset');
+    }
+  }
+};
+
+export const handleSave = async (genValue: string, assetId: string) => {
+  console.log(`Saving gen value: "${genValue}"`);
+  try {
+    const updateResponse = await fetch(`${API_BASE_URL}/assets/${assetId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gen: genValue }),
+    });
+    if (updateResponse.ok) {
+      console.log('Gen value saved successfully');
+    } else {
+      alert('Failed to save Gen value.');
+    }
+  } catch (error) {
+    console.error('Error saving Gen value:', error);
+    alert('Error saving Gen value.');
+  }
 };

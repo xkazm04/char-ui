@@ -1,7 +1,7 @@
 import { useNavStore } from '@/app/store/navStore';
 import { NavTabTypes } from '@/app/types/nav';
 import { motion } from 'framer-motion';
-import { HelpCircle, PackageIcon, PersonStandingIcon, TestTube } from 'lucide-react';
+import { PackageIcon, PersonStandingIcon, TestTube } from 'lucide-react';
 import { useEffect } from 'react';
 
 type Props = {
@@ -16,7 +16,7 @@ interface NavButtonProps {
 }
 
 const Navbar = ({ tab, setTab }: Props) => {
-  const { assetNavExpanded, setAssetNavExpanded} = useNavStore();
+  const { assetNavExpanded, setAssetNavExpanded, charNavExpanded, setCharNavExpanded} = useNavStore();
 
   useEffect(() => {
     const savedTab = localStorage.getItem('pixelSelectedTab') as NavTabTypes | null;
@@ -83,16 +83,16 @@ const Navbar = ({ tab, setTab }: Props) => {
 
       <div className="hidden md:flex items-center justify-between mt-2 text-xs text-gray-400">
         <div className="flex space-x-4">
-          <div className="hover:text-white flex items-center gap-1">
-            <HelpCircle className="w-3 h-3" />
-            <span>View</span>
-          </div>
-          <button 
+          {tab !== 'cooks' && <button 
             onClick={() => setAssetNavExpanded(!assetNavExpanded)}
             className={`${assetNavExpanded && 'text-sky-400'} hover:brightness-125 cursor-pointer flex items-center gap-1`}
             >Asset list
-          </button>
-          <div>Character list</div>
+          </button>}
+          {tab === 'builder' && <button 
+            onClick={() => setCharNavExpanded(!charNavExpanded)}
+            className={`${charNavExpanded && 'text-sky-400'} hover:brightness-125 cursor-pointer flex items-center gap-1`}
+            >Character list
+          </button>}
         </div>
       </div>
     </header>

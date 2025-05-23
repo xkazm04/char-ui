@@ -19,9 +19,11 @@ const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) 
     const { currentCharacter } = useCharacterStore()
     const { refetch } = useGenerations()
 
+    const char = currentCharacter?.description || ''
+
     const handleGenerate = async () => {
         handleCharacterSketch({
-            prompt: assetPrompt || "wooden sword",
+            prompt: char + assetPrompt,
             element: currentCharacter?.element, 
             generationId,
             setGenerationId,

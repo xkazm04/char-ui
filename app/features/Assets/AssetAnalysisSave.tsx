@@ -1,4 +1,4 @@
-import { Save, Loader2, CheckCheck } from "lucide-react";
+import { Save, Loader2, CheckCheck, Sparkles, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { AssetType, SimilarAsset } from "@/app/types/asset";
 import { serverUrl } from "@/app/constants/urls";
@@ -73,6 +73,7 @@ const AssetAnalysisSave = ({
                 setIsSaving(false);
                 return;
             }
+            
             const assetToSave = {
                 ...asset,
                 description_vector: validationData.description_vector
@@ -90,39 +91,88 @@ const AssetAnalysisSave = ({
                 asset: assetToSave, 
                 setSavedAssetId: () => {} 
             });
-            refetch()
+            refetch();
             setShowSuccess(true);
+            
+            // Auto-hide success after 3 seconds
+            setTimeout(() => {
+                setShowSuccess(false);
+            }, 3000);
             
         } catch (error) {
             console.error("Error saving asset:", error);
             setSaveError(true);
+            
+            // Auto-hide error after 5 seconds
+            setTimeout(() => {
+                setSaveError(false);
+            }, 5000);
         } finally {
             setIsSaving(false);
         }
     };
 
+    const getButtonState = () => {
+        if (isSaving) return 'saving';
+        if (showSuccess) return 'success';
+        if (saveError) return 'error';
+        return 'default';
+    };
+
+    const buttonState = getButtonState();
+
+    const buttonConfig = {
+        saving: {
+            icon: Loader2,
+            text: "Saving...",
+            className: "bg-sky-500/20 border-sky-400/30 text-sky-300 cursor-wait",
+            iconClassName: "animate-spin"
+        },
+        success: {
+            icon: CheckCheck,
+            text: "Saved!",
+            className: "bg-green-500/20 border-green-400/30 text-green-300",
+            iconClassName: ""
+        },
+        error: {
+            icon: AlertTriangle,
+            text: "Failed",
+            className: "bg-red-500/20 border-red-400/30 text-red-300 hover:bg-red-500/30",
+            iconClassName: ""
+        },
+        default: {
+            icon: Save,
+            text: "Save Asset",
+            className: "bg-sky-500/10 border-sky-400/20 text-sky-400 hover:bg-sky-500/20 hover:text-sky-300",
+            iconClassName: ""
+        }
+    };
+
+    const config = buttonConfig[buttonState];
+    const IconComponent = config.icon;
+
     return (
-        <button
-            className="p-1 rounded-lg hover:bg-sky-700/40 transition-colors duration-200 cursor-pointer"
-            title={isSaving ? "Saving..." : showSuccess ? "Saved!" : saveError ? "Save failed!" : "Save"}
+        <motion.button
+            whileHover={{ scale: buttonState === 'default' ? 1.02 : 1 }}
+            whileTap={{ scale: buttonState === 'default' ? 0.98 : 1 }}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm font-medium ${config.className}`}
+            title={config.text}
             onClick={handleSave}
             disabled={isSaving || showSuccess || isGenerating}
         >
-            {isSaving ? (
-                <Loader2 className="h-4 w-4 text-sky-400 animate-spin" />
-            ) : showSuccess ? (
+            <IconComponent className={`h-4 w-4 ${config.iconClassName}`} />
+            <span>{config.text}</span>
+            
+            {buttonState === 'success' && (
                 <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.4 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="ml-1"
                 >
-                    <CheckCheck className="h-4 w-4 text-green-400" />
+                    <Sparkles className="h-3 w-3" />
                 </motion.div>
-            ) : (
-                <Save className={`h-4 w-4 ${saveError ? 'text-red-400' : 'text-sky-400 hover:text-sky-300'}`} />
             )}
-        </button>
+        </motion.button>
     );
 }
 

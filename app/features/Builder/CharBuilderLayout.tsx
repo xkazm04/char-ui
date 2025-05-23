@@ -4,8 +4,6 @@ import BuilderAction from './BuilderAction';
 import CharacterSketchGrid from './CharacterSketchGrid';
 
 export default function CharBuilderLayout() {
-
-
   return (
     <div className="flex flex-row bg-gray-900 h-[90vh] text-white overflow-y-scroll w-full justify-between mb-2">
         <CharacterCard />

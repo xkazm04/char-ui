@@ -104,7 +104,7 @@ const AssetGroupItem = React.memo(({ asset, toggleAssetSelection, isFullScreen =
             ${getBorderColor(asset)}
             ${isInStore ? 'bg-gray-800/70' : 'bg-gray-900/70'} 
             rounded-md cursor-help transition-all duration-300 ease-linear
-            ${isInStore ? 'ring-1 ring-sky-500/50 shadow-sm shadow-sky-500/20' : ''}
+            ${isInStore ? 'ring-1 ring-sky-500/80 shadow-sm shadow-sky-500/20' : ''}
             h-32 w-full transform hover:scale-[1.02] hover:shadow-lg hover:shadow-black/30
             transition-all duration-300 
           `}
@@ -139,7 +139,7 @@ const AssetGroupItem = React.memo(({ asset, toggleAssetSelection, isFullScreen =
             ${getBorderColor(asset)}
             ${isInStore ? 'bg-gray-800/70' : 'bg-gray-900/70'} 
             rounded-md cursor-help transition-all duration-300 ease-linear p-1
-            ${isInStore ? 'ring-1 ring-sky-500/30 border-sky-500/20' : ''}
+            ${isInStore ? 'ring-1 ring-sky-500/80 border-sky-500/20' : ''}
           `}
           onClick={handleAssetSelection}
           onContextMenu={handleContextMenu}

@@ -1,16 +1,17 @@
-import { X, Loader2, CheckCheck, RefreshCw, AlertCircle, Edit } from "lucide-react";
-import { motion } from "framer-motion";
+import { RefreshCw, AlertCircle, Edit, Save, Eye, EyeOff, Wand2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { fadeEffect } from "@/app/components/anim/variants";
-import { useState } from "react";
-import Image from "next/image";
+import { useState, useCallback, useMemo } from "react";
 import AssetsSimilarModal from "./AssetsSimilarModal";
 import { AssetType, SimilarAsset } from "@/app/types/asset";
 import AssetAnalysisSave from "./AssetAnalysisSave";
 import { handleAssetGeneration, handleAssetGenerationAndSave } from "@/app/functions/leoFns";
 import { useAllAssets } from "@/app/functions/assetFns";
+import AssetAnalysisResultHeader from "./AssetAnalysisResultHeader";
+import { catStyles } from "@/app/constants/typeStyles";
 
 type Props = {
-    asset: AssetType
+    asset: AssetType;
     idx: number;
     setOpenaiList: (list: AssetType[] | ((prev: AssetType[]) => AssetType[])) => void;
     setGeminiList: (list: AssetType[] | ((prev: AssetType[]) => AssetType[])) => void;
@@ -31,10 +32,13 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
     const [generationId, setGenerationId] = useState<string | null>(null);
     const [savedAssetId, setSavedAssetId] = useState<string | null>(null);
     const [editGen, setEditGen] = useState<boolean>(false);
+    const [showRawData, setShowRawData] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
+    const [isSaved, setIsSaved] = useState(false); // New state to track if asset is saved
     const { refetch } = useAllAssets();
     const [prompt, setPrompt] = useState<string>(asset.gen || "");
 
-    const handleRemove = (idx: number) => {
+    const handleRemove = useCallback((idx: number) => {
         if (tab === "openai") {
             setOpenaiList((prev) => prev.filter((_, i) => i !== idx));
         } else if (tab === "gemini") {
@@ -42,9 +46,9 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
         } else if (tab === "groq") {
             setGroqList((prev) => prev.filter((_, i) => i !== idx));
         }
-    };
+    }, [tab, setOpenaiList, setGeminiList, setGroqList]);
 
-    const handleRetryGeneration = async () => {
+    const handleRetryGeneration = useCallback(async () => {
         setGeneratedImage(null);
         setGenError(false);
 
@@ -57,8 +61,6 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                     description_vector: descriptionVector || []
                 };
 
-                console.log("Regenerating with asset:", assetToSave);
-
                 await handleAssetGenerationAndSave({
                     prompt: prompt,
                     generationId,
@@ -69,7 +71,7 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                     asset: assetToSave,
                     setSavedAssetId
                 });
-                refetch()
+                refetch();
             } else {
                 await handleAssetGeneration({
                     asset,
@@ -80,14 +82,31 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                     setIsGenerating,
                     setGeneratedImage
                 });
-                refetch()
+                refetch();
             }
         } catch (error) {
             console.error("Error in retry generation:", error);
             setGenError(true);
             setIsGenerating(false);
         }
-    };
+    }, [asset, prompt, generationId, savedAssetId, descriptionVector, refetch]);
+
+    const savePromptChanges = useCallback(() => {
+        setEditGen(false);
+    }, []);
+
+    const typeStyles = useMemo(() => {
+        return catStyles[asset.type as keyof typeof catStyles] || catStyles.default;
+    }, [asset.type]);
+
+    // Handle save success to set saved state
+    const handleSaveSuccess = useCallback(() => {
+        setShowSuccess(true);
+        setIsSaved(true);
+        setTimeout(() => {
+            setShowSuccess(false);
+        }, 3000);
+    }, []);
 
     return (
         <>
@@ -98,130 +117,247 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                className="bg-gray-700 rounded-lg p-4 border border-gray-600 relative flex flex-col justify-between
-                overflow-visible hover:shadow-md hover:shadow-sky-900/20 transition-shadow duration-300 z-10"
+                onHoverStart={() => !isSaved && setIsHovered(true)}
+                onHoverEnd={() => setIsHovered(false)}
+                className={`relative flex flex-col bg-gradient-to-br ${typeStyles.gradient} 
+                backdrop-blur-sm rounded-xl border ${typeStyles.border} hover:border-opacity-60
+                transition-all duration-300 hover:shadow-xl hover:shadow-sky-500/5
+                overflow-hidden group ${isHovered && !isSaved ? 'scale-[1.01]' : 'scale-100'}
+                ${isSaved ? 'pointer-events-none' : ''}`}
             >
-                {/* Loading state */}
-                {isGenerating && (
-                    <div className="absolute inset-0 bg-black/70 z-20 rounded-lg flex items-center justify-center">
-                        <div className="animate-pulse absolut right-2 top-2 text-green-500 text-sm z-30 italic">
-                            {generationId ? 'Regenerating asset preview...' : 'Saved, generating preview..'}
-                        </div>
-                        <Loader2 className="h-10 w-10 text-sky-400 animate-spin" />
-                    </div>
-                )}
-
-                {/* Error state */}
-                {genError && !isGenerating && (
-                    <div className="absolute inset-0 bg-black/80 z-30 rounded-lg flex flex-col items-center justify-center p-4">
-                        <AlertCircle className="h-10 w-10 text-red-500 mb-2" />
-                        <p className="text-red-300 mb-4 text-center">Failed to generate image</p>
-                        <button
-                            onClick={() => handleRetryGeneration()}
-                            className="px-3 py-2 bg-red-900/40 hover:bg-red-900/60 rounded text-white flex items-center"
-                        >
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Try Again
-                        </button>
-                    </div>
-                )}
-
-                {/* Display generated image if available */}
-                {!isGenerating && generatedImage && !genError && (
+                {/* Subtle animated background overlay - only when not saved */}
+                {!isSaved && (
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5 }}
-                        className="absolute inset-0 bg-black/80 z-30 rounded-lg flex items-center justify-center p-4"
-                    >
-                        <div className="absolute top-2 left-2 text-green-600 text-sm z-30">
-                            <CheckCheck />
-                        </div>
-
-                        {/* Retry button */}
-                        <button
-                            onClick={handleRetryGeneration}
-                            className="absolute top-2 right-2 p-1 bg-sky-900/80 cursor-pointer hover:bg-sky-800/80 rounded z-40 transition-colors"
-                            title="Generate new variation"
-                        >
-                            <RefreshCw className="h-4 w-4 text-sky-300" />
-                        </button>
-
-                        {/* Image display - Now supporting both URLs and our MongoDB image endpoint */}
-                        <div className="relative w-full h-full">
-                            <Image
-                                src={generatedImage}
-                                alt={asset.name}
-                                fill
-                                className="object-cover rounded"
-                                key={generatedImage} // Add key to force refresh when URL changes
-                            />
-                        </div>
-                    </motion.div>
+                        className="absolute inset-0 bg-gradient-to-r from-sky-500/2 via-gray-500/2 to-pink-500/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                        animate={{
+                            background: isHovered ? [
+                                "linear-gradient(45deg, rgba(14, 165, 233, 0.02), rgba(168, 85, 247, 0.02), rgba(236, 72, 153, 0.02))",
+                                "linear-gradient(225deg, rgba(168, 85, 247, 0.02), rgba(236, 72, 153, 0.02), rgba(14, 165, 233, 0.02))"
+                            ] : "linear-gradient(45deg, rgba(14, 165, 233, 0), rgba(168, 85, 247, 0), rgba(236, 72, 153, 0))"
+                        }}
+                        transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+                    />
                 )}
 
-                <div>
-                    <span className="absolute top-2 right-2 bg-sky-900/20 border border-gray-400/20 text-white text-xs px-3 py-1 rounded-full font-semibold z-10">
-                        {asset.type}
-                    </span>
-                    <div className="font-bold text-white mb-1">{asset.name}</div>
-                    <div className="text-gray-300 text-sm mb-2">{asset.description}</div>
-                    <div className="text-xs text-gray-400 mb-1">
-                        {!editGen ? 
-                        <div className="">
-                            <div>
-                                <span>Image preview prompt:</span>
-                                <button
-                                    title="Edit generation prompt"
-                                    onClick={() => setEditGen(true)}
-                                    className="text-sky-500 hover:underline ml-1"
-                                ><Edit size={14}/></button>
+                {/* Header with Type Badge and Actions */}
+                <AssetAnalysisResultHeader
+                    asset={asset}
+                    isGenerating={isGenerating}
+                    typeStyles={typeStyles}
+                    handleRemove={handleRemove}
+                    idx={idx}
+                />
+
+                {/* Content Body - only show when no image or not saved */}
+                {(!generatedImage || !isSaved) && (
+                    <div className="px-4 pb-4 flex-1 relative z-10">
+                        <div className="mb-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="text-xs font-medium text-gray-400 uppercase tracking-wider flex items-center gap-1">
+                                    <Wand2 className="h-3 w-3" />
+                                    Generation Prompt
+                                </label>
+                                {!editGen ? (
+                                    <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        onClick={() => setEditGen(true)}
+                                        className="flex items-center gap-1 px-2 py-1 text-xs bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 rounded-md border border-sky-500/20 transition-all"
+                                        disabled={isSaved}
+                                    >
+                                        <Edit className="h-3 w-3" />
+                                        Edit
+                                    </motion.button>
+                                ) : (
+                                    <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        onClick={savePromptChanges}
+                                        className="flex items-center gap-1 px-2 py-1 text-xs bg-green-500/10 hover:bg-green-500/20 text-green-400 rounded-md border border-green-500/20 transition-all"
+                                    >
+                                        <Save className="h-3 w-3" />
+                                        Save
+                                    </motion.button>
+                                )}
                             </div>
-                            <span className="text-sky-200">{asset.gen}</span>
+                            
+                            <AnimatePresence mode="wait">
+                                {editGen ? (
+                                    <motion.textarea
+                                        key="edit-mode"
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/50 rounded-lg text-sm text-gray-200 resize-none focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500/50 transition-all"
+                                        value={prompt}
+                                        onChange={(e) => setPrompt(e.target.value)}
+                                        rows={3}
+                                        placeholder="Enter generation prompt..."
+                                    />
+                                ) : (
+                                    <motion.div
+                                        key="view-mode"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="px-3 py-2 bg-gray-800/30 border border-gray-600/30 rounded-lg text-sm text-sky-200 min-h-[2.5rem] flex items-center"
+                                    >
+                                        {prompt || "No prompt set"}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
-                            :
-                            <textarea
-                                className="w-full px-2 py-1 bg-gray-800 border border-gray-600 rounded text-xs text-gray-200 font-mono mt-1 outline-none focus:ring focus:ring-sky-500"
-                                value={prompt}
-                                onChange={(e) => setPrompt(e.target.value)}
+
+                        {/* Raw Data Toggle */}
+                        <div className="mb-4">
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                onClick={() => setShowRawData(!showRawData)}
+                                className="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-300 transition-colors"
+                                disabled={isSaved}
+                            >
+                                {showRawData ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                                {showRawData ? "Hide" : "Show"} Raw Data
+                            </motion.button>
+                            
+                            <AnimatePresence>
+                                {showRawData && (
+                                    <motion.textarea
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        value={JSON.stringify(asset, null, 2)}
+                                        readOnly
+                                        rows={6}
+                                        className="w-full mt-2 px-3 py-2 bg-gray-900/50 border border-gray-700/50 rounded-lg text-xs text-gray-300 font-mono resize-none focus:outline-none"
+                                    />
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 justify-end">
+                            <AssetAnalysisSave
+                                setShowSimilarModal={setShowSimilarModal}
+                                setIsSaving={setIsSaving}
+                                setSaveError={setSaveError}
+                                setShowSuccess={handleSaveSuccess}
+                                handleAssetGeneration={handleRetryGeneration}
+                                setDescriptionVector={setDescriptionVector}
+                                setGeneratedImage={setGeneratedImage}
+                                setSimilarAssets={setSimilarAssets}
+                                showSuccess={showSuccess}
+                                saveError={saveError}
+                                isGenerating={isGenerating}
+                                isSaving={isSaving}
+                                asset={asset}
+                                prompt={prompt}
                             />
-                        }
+                        </div>
                     </div>
-                    <textarea
-                        value={JSON.stringify(asset, null, 2)}
-                        readOnly
-                        rows={6}
-                        className="w-full px-2 py-1 bg-gray-800 border border-gray-600 rounded text-xs text-gray-200 font-mono mt-2 outline-none focus:ring focus:ring-sky-500"
-                    />
-                </div>
-                <div className="flex gap-2 mt-2 justify-end">
-                    <AssetAnalysisSave
-                        setShowSimilarModal={setShowSimilarModal}
-                        setIsSaving={setIsSaving}
-                        setSaveError={setSaveError}
-                        setShowSuccess={setShowSuccess}
-                        handleAssetGeneration={handleRetryGeneration}
-                        setDescriptionVector={setDescriptionVector}
-                        setGeneratedImage={setGeneratedImage}
-                        setSimilarAssets={setSimilarAssets}
-                        showSuccess={showSuccess}
-                        saveError={saveError}
-                        isGenerating={isGenerating}
-                        isSaving={isSaving}
-                        asset={asset}
-                        prompt={prompt}
-                    />
-                    <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleRemove(idx)}
-                        className="p-1 rounded-lg hover:bg-red-700/40 transition-colors duration-200 cursor-pointer"
-                        title="Remove"
-                        disabled={isGenerating}
-                    >
-                        <X className="h-4 w-4 text-red-400" />
-                    </motion.button>
-                </div>
+                )}
+
+                {/* Full Card Image Overlay - shows when saved */}
+                <AnimatePresence>
+                    {generatedImage && isSaved && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="absolute inset-0 z-40"
+                        >
+                            <div className="relative w-full h-full">
+                                <img
+                                    src={generatedImage}
+                                    alt={asset.name}
+                                    className="w-full h-full object-cover rounded-xl"
+                                />
+                                
+                                {/* Gradient overlay for text readability */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                                
+                                {/* Asset info overlay */}
+                                <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                                    <div className="flex items-start justify-between">
+                                        <div>
+                                            <h3 className="text-lg font-bold mb-1">{asset.name}</h3>
+                                            <p className="text-sm text-gray-200 opacity-90 line-clamp-2">{asset.description}</p>
+                                        </div>
+                                        
+                                        {/* Saved indicator */}
+                                        <div className="flex items-center gap-1 px-2 py-1 bg-green-500/20 backdrop-blur rounded-md border border-green-500/30">
+                                            <motion.div
+                                                initial={{ scale: 0 }}
+                                                animate={{ scale: 1 }}
+                                                transition={{ delay: 0.2 }}
+                                            >
+                                                <Save className="h-4 w-4 text-green-400" />
+                                            </motion.div>
+                                            <span className="text-xs text-green-300 font-medium">Saved</span>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Type badge */}
+                                    <div className="mt-2">
+                                        <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border text-xs font-medium ${typeStyles.badge}`}>
+                                            <span>{asset.type}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Loading Overlay for Generation */}
+                <AnimatePresence>
+                    {isGenerating && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center z-30"
+                        >
+                            <div className="relative">
+                                <div className="w-16 h-16 border-4 border-gray-600 rounded-full"></div>
+                                <div className="absolute top-0 left-0 w-16 h-16 border-4 border-sky-500 rounded-full animate-spin border-t-transparent"></div>
+                            </div>
+                            <motion.p
+                                className="mt-4 text-sm text-sky-300 font-medium text-center"
+                                animate={{ opacity: [0.5, 1, 0.5] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                            >
+                                {generationId ? 'Regenerating preview...' : 'Generating preview...'}
+                            </motion.p>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Error Overlay */}
+                <AnimatePresence>
+                    {genError && !isGenerating && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="absolute inset-0 bg-black/90 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center p-6 z-30"
+                        >
+                            <motion.div
+                                animate={{ rotate: [0, 10, -10, 0] }}
+                                transition={{ duration: 0.5 }}
+                            >
+                                <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+                            </motion.div>
+                            <p className="text-red-300 mb-6 text-center font-medium">Generation Failed</p>
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={handleRetryGeneration}
+                                className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-red-300 border border-red-500/30 transition-all"
+                            >
+                                <RefreshCw className="h-4 w-4" />
+                                Try Again
+                            </motion.button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </motion.div>
 
             <AssetsSimilarModal

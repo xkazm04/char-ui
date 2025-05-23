@@ -8,7 +8,6 @@ import AssetAnalysisUploadConfig from './AssetAnalysisUploadConfig';
 import { AssetTabConfig } from './AssetAnalysisLayout';
 import { serverUrl } from '@/app/constants/urls';
 import { AssetType } from '@/app/types/asset';
-import AssetAnalysisExamples from './AssetAnalysisExamples';
 
 type Props = {
   isLoading: boolean;

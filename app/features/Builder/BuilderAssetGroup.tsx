@@ -113,16 +113,12 @@ const BuilderAssetGroup = ({
                   <div className="flex flex-wrap">
                     {assets.map((asset) => (
                       <AssetTag 
-                        key={asset.id || asset._id} 
+                        key={asset._id} 
                         asset={asset} 
                         onRemove={() => {
-                          // Get the correct ID to use
-                          const assetId = asset.id || asset._id;
-                          
-                          // Use the asset's type if available, or fall back to the section type
+                          const assetId = asset._id;
                           const assetType = asset.type || type;
                           
-                          // Call the onRemove function to remove from store
                           if (!assetId) {
                             console.warn('Asset ID is missing, cannot remove asset');
                             return;

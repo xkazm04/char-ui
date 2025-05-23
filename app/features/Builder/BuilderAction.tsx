@@ -18,7 +18,7 @@ const BuilderAction = () => {
     setIsGenerating
   } = useAssetStore();
   
-  // Use the categories from our store
+  // Use the categories from store
   const categories = useMemo(() => [
     { type: 'Body', title: 'Body', assets: Body, defaultOpen: true },
     { type: 'Equipment', title: 'Equipment', assets: Equipment, defaultOpen: Body.length === 0 },
@@ -29,12 +29,10 @@ const BuilderAction = () => {
   const hasAnyAssets = categories.some(category => category.assets.length > 0);
   const totalAssetCount = categories.reduce((sum, category) => sum + category.assets.length, 0);
 
-  // Handle clear all assets
   const handleClearAll = () => {
     clearAllAssets();
   };
 
-  // Simplified function to clear assets by category
   const clearAssetsByCategory = (type: string) => {
     //eslint-disable-next-line @typescript-eslint/no-explicit-any
     clearAssets(type as any);

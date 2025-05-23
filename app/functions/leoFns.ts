@@ -1,5 +1,6 @@
 import { serverUrl } from "../constants/urls";
 import { AssetType } from "../types/asset";
+
 interface LeonardoImage {
     url: string;
     id: string;
@@ -11,6 +12,23 @@ interface LeonardoResponse {
     status: string;
     data: LeonardoImage[];
     gen: string;
+}
+
+interface GenerationResponse {
+    status: string;
+    asset: {
+        _id: string;
+        id?: string;
+        character_id?: string;
+        image_url: string;
+        description?: string | null;
+        used_assets?: any;
+        meshy?: any;
+        created_at: string;
+        status: string;
+        message: string;
+    };
+    generation_id: string;
 }
 
 interface AssetSaveResponse {
@@ -192,21 +210,37 @@ export const handleCharacterSketch = async ({
                 generation_id: generationId,
             };
             
-            return await makeApiRequest<LeonardoResponse>({
+            return await makeApiRequest<GenerationResponse>({
                 endpoint: "/leo/generation",
                 requestBody,
-                errorMessage: "Failed to generate image"
+                errorMessage: "Failed to generate character sketch"
             });
         },
         setGenError,
         setIsGenerating,
-        successHandler: (data: LeonardoResponse) => {
-            if (data.status === "success" && data.data && data.data.length > 0) {
-                setGenerationId(data.gen);
-                setGeneratedImage(data.data[0].url);
-            } else {
-                throw new Error("No images returned from generation API");
+        successHandler: (data: GenerationResponse) => {
+            console.log("Character generation response:", data);
+            
+            if (data.status === "success") {
+                // Set generation ID
+                if (data.generation_id) {
+                    setGenerationId(data.generation_id);
+                }
+                
+                // Handle the new response format with asset object
+                if (data.asset && data.asset.image_url) {
+                    setGeneratedImage(data.asset.image_url);
+                    return;
+                }
+                
+                // Fallback for older Leonardo-style response
+                if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+                    setGeneratedImage(data.data[0].url);
+                    return;
+                }
             }
+            
+            throw new Error("No valid image URL returned from generation API");
         }
     });
 };
@@ -223,7 +257,6 @@ export const handleAssetGenerationAndSave = async ({
 }: AssetSaveProps) => {
     await executeWithStateManagement({
         apiCall: async () => {
-            // Validation check - make sure asset object exists
             if (!asset || typeof asset !== 'object') {
                 throw new Error("Missing or invalid asset object");
             }
@@ -251,11 +284,10 @@ export const handleAssetGenerationAndSave = async ({
         },
         setGenError,
         setIsGenerating,
-        successHandler: (data: any) => {  // Use 'any' temporarily to inspect structure
+        successHandler: (data: any) => {
             console.log("Asset save response:", JSON.stringify(data, null, 2));
             
             if (data.status === "success") {
-                // If response has Leonardo-style 'data' array
                 if (data.data && data.data.length > 0) {
                     if (data.gen) setGenerationId(data.gen);
                     else if (data.generation_id) setGenerationId(data.generation_id);
@@ -264,9 +296,7 @@ export const handleAssetGenerationAndSave = async ({
                     return;
                 }
                 
-                // If response has asset object with image URL
                 if (data.asset) {
-                    // Set generation ID if available
                     if (data.generation_id) {
                         setGenerationId(data.generation_id);
                     }
@@ -274,18 +304,15 @@ export const handleAssetGenerationAndSave = async ({
                     const assetId = data.asset.id || data.asset._id;
                     
                     if (assetId) {
-                        // First try to use direct image_url if available
                         if (data.asset.image_url) {
                             console.log("Using asset.image_url:", data.asset.image_url);
                             setGeneratedImage(data.asset.image_url);
                         } else {
-                            // Fallback to constructing URL from asset ID
                             const imageUrl = `${serverUrl}/assets/image/${assetId}`;
                             console.log("Constructed imageUrl:", imageUrl);
                             setGeneratedImage(imageUrl);
                         }
                         
-                        // Set saved asset ID if callback provided
                         if (setSavedAssetId) {
                             setSavedAssetId(assetId);
                         }
@@ -294,7 +321,6 @@ export const handleAssetGenerationAndSave = async ({
                 }
             }
             
-            // If neither condition was met, we don't have a valid response
             console.error("Unrecognized response structure:", data);
             throw new Error("Failed to save asset or get image URL");
         }

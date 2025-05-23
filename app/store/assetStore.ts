@@ -2,102 +2,115 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AssetType } from '../types/asset';
 
-// Define the main categories as per the backend
 type MainCategoryType = 'Body' | 'Equipment' | 'Clothing' | 'Background';
 
 interface AssetState {
-  // Organizing assets by main category
   Body: AssetType[];
   Equipment: AssetType[];
   Clothing: AssetType[];
   Background: AssetType[];
   
-  // Track expanded groups
   expandedGroups: Record<string, boolean>;
   
-  // Methods
   addAsset: (asset: AssetType) => void;
   removeAsset: (assetId: string, type: MainCategoryType, subcategory?: string) => void;
   clearAssets: (type?: MainCategoryType, subcategory?: string) => void;
   clearAllAssets: () => void;
-  assetPrompt?: string; 
-  setAssetPrompt?: (prompt: string) => void;
+  assetPrompt: string;
   
-  // Group expansion methods
   setGroupExpanded: (groupId: string, expanded: boolean) => void;
   toggleGroupExpanded: (groupId: string) => void;
   getGroupExpanded: (groupId: string) => boolean;
 
   isGenerating: boolean;
   setIsGenerating: (isGenerating: boolean) => void;
+  
+  // Computed properties
+  getTotalAssetCount: () => number;
+  getAssetsByCategory: (category: MainCategoryType) => AssetType[];
+  getAllSelectedAssets: () => AssetType[];
 }
 
 export const useAssetStore = create<AssetState>()(
   persist(
     (set, get) => ({
-      // Initialize categories
       Body: [],
       Equipment: [],
       Clothing: [],
       Background: [],
       expandedGroups: {},
+      assetPrompt: '',
+      isGenerating: false,
 
       addAsset: (asset) =>
         set((state) => {
-          // Ensure the asset has a valid type, defaulting to Equipment if not
+          // Ensure asset has an ID
+          if (!asset._id && !asset.id) {
+            console.warn('Asset missing ID, cannot add to store');
+            return state;
+          }
+
+          // Normalize the asset type
           const validType = asset.type && ['Body', 'Equipment', 'Clothing', 'Background'].includes(asset.type)
-            ? asset.type
+            ? asset.type as MainCategoryType
             : 'Equipment';
           
-          // Create an asset with the valid type
-          const assetWithValidType = {
+          const normalizedAsset = {
             ...asset,
-            type: validType
+            type: validType,
+            id: asset.id || asset._id // Ensure we have an id field
           };
           
-          // Add to the appropriate category
-          switch (validType) {
-            case 'Body':
-              return { Body: [...state.Body, assetWithValidType] };
-            case 'Equipment':
-              return { Equipment: [...state.Equipment, assetWithValidType] };
-            case 'Clothing':
-              return { Clothing: [...state.Clothing, assetWithValidType] };
-            case 'Background':
-              return { Background: [...state.Background, assetWithValidType] };
-            default:
-              // This shouldn't happen due to the validType check above
-              console.warn(`Unknown asset type: ${validType}`);
-              return state;
+          // Check if asset already exists in the category
+          const existingAssets = state[validType];
+          const assetExists = existingAssets.some(
+            existingAsset => (existingAsset._id === normalizedAsset._id) || (existingAsset.id === normalizedAsset.id)
+          );
+          
+          if (assetExists) {
+            console.log(`Asset ${normalizedAsset.name} already exists in ${validType}`);
+            return state;
           }
+          
+          // Update asset prompt
+          const updatedPrompt = state.assetPrompt 
+            ? `${state.assetPrompt}, ${normalizedAsset.gen || normalizedAsset.name}`
+            : (normalizedAsset.gen || normalizedAsset.name);
+          
+          return {
+            ...state,
+            [validType]: [...existingAssets, normalizedAsset],
+            assetPrompt: updatedPrompt
+          };
         }),
 
       removeAsset: (assetId, type) =>
         set((state) => {
-          const assetToRemove = state[type].find(asset => asset._id === assetId);
+          const assetToRemove = state[type].find(
+            asset => asset._id === assetId || asset.id === assetId
+          );
 
-          if (!assetToRemove || !assetToRemove.gen) {
-            return {
-              ...state,
-              [type]: state[type].filter(asset => asset._id !== assetId)
-            };
+          if (!assetToRemove) {
+            console.warn(`Asset with ID ${assetId} not found in ${type}`);
+            return state;
           }
           
-          // Remove the asset.gen from assetPrompt
-          let updatedAssetPrompt = state.assetPrompt || '';
-          if (updatedAssetPrompt) {
+          // Update asset prompt
+          const genToRemove = assetToRemove.gen || assetToRemove.name;
+          let updatedAssetPrompt = state.assetPrompt;
+          
+          if (genToRemove && updatedAssetPrompt) {
             updatedAssetPrompt = updatedAssetPrompt
-              .replace(`, ${assetToRemove.gen},`, ',') 
-              .replace(`, ${assetToRemove.gen}`, '') 
-              .replace(`${assetToRemove.gen}, `, '') 
-              .replace(`${assetToRemove.gen}`, ''); 
-              
-            updatedAssetPrompt = updatedAssetPrompt.trim().replace(/^,|,$/g, '');
+              .split(', ')
+              .filter(item => item.trim() !== genToRemove.trim())
+              .join(', ');
           }
           
           return {
             ...state,
-            [type]: state[type].filter(asset => asset._id !== assetId),
+            [type]: state[type].filter(asset => 
+              asset._id !== assetId && asset.id !== assetId
+            ),
             assetPrompt: updatedAssetPrompt
           };
         }),
@@ -106,6 +119,7 @@ export const useAssetStore = create<AssetState>()(
         set((state) => {
           if (!type) {
             return {
+              ...state,
               Body: [],
               Equipment: [],
               Clothing: [],
@@ -114,25 +128,20 @@ export const useAssetStore = create<AssetState>()(
             };
           }
           
-          // Find all gen strings from the assets of the specified type
+          // Remove gen strings from prompt for the specific type
           const genStringsToRemove = state[type]
-            .filter(asset => asset.gen)
-            .map(asset => asset.gen);
+            .map(asset => asset.gen || asset.name)
+            .filter(Boolean);
             
-          // Remove all gen strings from the assetPrompt
-          let updatedAssetPrompt = state.assetPrompt || '';
+          let updatedAssetPrompt = state.assetPrompt;
           genStringsToRemove.forEach(gen => {
             if (gen) {
               updatedAssetPrompt = updatedAssetPrompt
-                .replace(`, ${gen},`, ',')
-                .replace(`, ${gen}`, '')
-                .replace(`${gen}, `, '')
-                .replace(`${gen}`, '');
+                .split(', ')
+                .filter(item => item.trim() !== gen.trim())
+                .join(', ');
             }
           });
-          
-          // Clean up any trailing or leading commas
-          updatedAssetPrompt = updatedAssetPrompt.trim().replace(/^,|,$/g, '');
           
           return {
             ...state,
@@ -149,10 +158,7 @@ export const useAssetStore = create<AssetState>()(
           Background: [],
           assetPrompt: ''
         }),
-      assetPrompt: undefined,
-      setAssetPrompt: (prompt) => set({ assetPrompt: prompt }),
       
-      // Group expansion methods
       setGroupExpanded: (groupId, expanded) => 
         set((state) => ({
           expandedGroups: {
@@ -173,11 +179,34 @@ export const useAssetStore = create<AssetState>()(
         const state = get();
         return state.expandedGroups[groupId] ?? false;
       },
-      isGenerating: false,
-      setIsGenerating: (isGenerating) => set({ isGenerating })
+
+      setIsGenerating: (isGenerating) => set({ isGenerating }),
+
+      // Computed properties
+      getTotalAssetCount: () => {
+        const state = get();
+        return state.Body.length + state.Equipment.length + 
+               state.Clothing.length + state.Background.length;
+      },
+
+      getAssetsByCategory: (category) => {
+        const state = get();
+        return state[category] || [];
+      },
+
+      getAllSelectedAssets: () => {
+        const state = get();
+        return [
+          ...state.Body,
+          ...state.Equipment, 
+          ...state.Clothing,
+          ...state.Background
+        ];
+      }
     }),
     {
-      name: 'character-assets-storage'
+      name: 'character-assets-storage',
+      version: 1 // Add version to help with migrations if needed
     }
   )
 );

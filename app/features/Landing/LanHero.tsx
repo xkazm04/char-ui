@@ -1,8 +1,11 @@
 import { useRef, useState, useEffect } from "react";
 import GlowingText from "@/app/components/landing/GlowingText";
 import { NavTabTypes } from "@/app/types/nav";
-import { m, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { LucidePlay } from "lucide-react";
+import { m, useReducedMotion, useScroll, useTransform, useSpring } from "framer-motion";
+import { LucidePlay, Sparkles, ArrowRight, Zap, Github, Star, Users, Cpu, Gitlab, BotIcon } from "lucide-react";
+import { Divider } from "@/app/components/ui/diviiders";
+import { techStacks } from "@/app/constants/landing";
+import Image from "next/image";
 
 type Props = {
     setTab: (tab: NavTabTypes) => void;
@@ -12,21 +15,50 @@ const LanHero = ({ setTab }: Props) => {
     const shouldReduceMotion = useReducedMotion();
     const containerRef = useRef<HTMLDivElement>(null);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-    
-    // Parallax scroll effect
-    const { scrollY } = useScroll();
-    const y1 = useTransform(scrollY, [0, 500], [0, -100]);
-    const y2 = useTransform(scrollY, [0, 500], [0, -50]);
+    const [typedText, setTypedText] = useState("");
+    const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
 
+    const phrases = ["Play", "Characters", "Environments", "UI Elements", "Animations"];
+
+    // Enhanced parallax with spring physics
+    const { scrollY } = useScroll();
+    const y1 = useSpring(useTransform(scrollY, [0, 1000], [0, -200]), { stiffness: 100, damping: 30 });
+    const y2 = useSpring(useTransform(scrollY, [0, 1000], [0, -100]), { stiffness: 100, damping: 30 });
+    const opacity = useSpring(useTransform(scrollY, [0, 500], [1, 0]), { stiffness: 100, damping: 30 });
+
+    // Typewriter effect
+    useEffect(() => {
+        const currentPhrase = phrases[currentPhraseIndex];
+        let currentIndex = 0;
+        const isDeleting = typedText.length > currentPhrase.length;
+
+        const timer = setTimeout(() => {
+            if (!isDeleting && currentIndex < currentPhrase.length) {
+                setTypedText(currentPhrase.slice(0, currentIndex + 1));
+                currentIndex++;
+            } else if (isDeleting && typedText.length > 0) {
+                setTypedText(typedText.slice(0, -1));
+            } else if (isDeleting && typedText.length === 0) {
+                setCurrentPhraseIndex((prev) => (prev + 1) % phrases.length);
+            } else {
+                setTimeout(() => setTypedText(currentPhrase + "|"), 2000);
+            }
+        }, isDeleting ? 50 : 100);
+
+        return () => clearTimeout(timer);
+        //eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [typedText, currentPhraseIndex]);
+
+    // Enhanced mouse tracking
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             if (!containerRef.current) return;
             const rect = containerRef.current.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-            setMousePosition({ 
-                x: (x / rect.width - 0.5) * 20, 
-                y: (y / rect.height - 0.5) * 20 
+            setMousePosition({
+                x: (x / rect.width - 0.5) * 20,
+                y: (y / rect.height - 0.5) * 20
             });
         };
 
@@ -34,211 +66,231 @@ const LanHero = ({ setTab }: Props) => {
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
 
-    // Dynamic background grid pattern
-    const gridCount = 15;
-    const gridItems = Array.from({ length: gridCount });
+    const handleTryDemo = () => {
+        setTab('assets');
+        setTimeout(() => {
+            document.getElementById('main-content')?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    };
 
     return (
-        <section 
+        <section
             ref={containerRef}
-            className="relative min-h-[70vh] pt-2 pb-5 px-6 overflow-hidden flex items-center"
+            className="relative w-full min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden"
         >
-            {/* Dynamic background animation */}
-            <div className="absolute inset-0 -z-10">
-                <div className="absolute inset-0 bg-[#0a0a18]"></div>
-                <div className="absolute inset-0">
-                    <div className="grid grid-cols-5 h-full">
-                        {gridItems.map((_, i) => (
-                            <m.div
-                                key={i}
-                                className="bg-sky-600/5 border-[0.5px] border-sky-500/10"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ 
-                                    delay: i * 0.03, 
-                                    duration: 1 
-                                }}
-                            />
-                        ))}
-                    </div>
+            {/* Enhanced Background Effects */}
+            <m.div className="absolute inset-0 -z-10" style={{ opacity }}>
+                {/* Code Matrix Background */}
+                <div className="absolute inset-0 opacity-5">
+                    {Array.from({ length: 50 }).map((_, i) => (
+                        <m.div
+                            key={i}
+                            className="absolute text-sky-400 font-mono text-xs"
+                            style={{
+                                left: `${Math.random() * 100}%`,
+                                top: `${Math.random() * 100}%`,
+                            }}
+                            animate={{
+                                y: [0, -20, 0],
+                                opacity: [0, 0.8, 0]
+                            }}
+                            transition={{
+                                duration: 3 + Math.random() * 2,
+                                repeat: Infinity,
+                                delay: Math.random() * 2
+                            }}
+                        >
+                            {Math.random() > 0.5 ? '01' : 'AI'}
+                        </m.div>
+                    ))}
                 </div>
-                
-                {/* Abstract background shapes */}
-                <m.div 
-                    className="absolute top-1/4 left-1/3 w-64 h-64 rounded-full bg-gradient-to-r from-sky-600/20 to-sky-600/20 blur-3xl"
+
+                {/* Neural Network Visualization */}
+                <svg className="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 1200 800">
+                    {/* Nodes */}
+                    {Array.from({ length: 20 }).map((_, i) => (
+                        <m.circle
+                            key={i}
+                            cx={100 + (i % 5) * 250}
+                            cy={150 + Math.floor(i / 5) * 150}
+                            r="4"
+                            fill="currentColor"
+                            className="text-sky-400"
+                            animate={{
+                                r: [3, 6, 3],
+                                opacity: [0.3, 1, 0.3]
+                            }}
+                            transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                delay: i * 0.1
+                            }}
+                        />
+                    ))}
+                    {/* Connections */}
+                    {Array.from({ length: 15 }).map((_, i) => (
+                        <m.line
+                            key={i}
+                            x1={100 + (i % 4) * 250}
+                            y1={150 + Math.floor(i / 4) * 150}
+                            x2={350 + (i % 4) * 250}
+                            y2={150 + Math.floor(i / 4) * 150}
+                            stroke="currentColor"
+                            strokeWidth="1"
+                            className="text-sky-500"
+                            animate={{
+                                opacity: [0.1, 0.6, 0.1]
+                            }}
+                            transition={{
+                                duration: 3,
+                                repeat: Infinity,
+                                delay: i * 0.2
+                            }}
+                        />
+                    ))}
+                </svg>
+
+                {/* Enhanced Light Effects */}
+                <m.div
+                    className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-gradient-radial from-sky-500/20 via-sky-600/10 to-transparent blur-3xl"
                     style={{ y: y1 }}
+                    animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.3, 0.6, 0.3]
+                    }}
+                    transition={{ duration: 8, repeat: Infinity }}
                 />
-                <m.div 
-                    className="absolute bottom-1/3 right-1/4 w-96 h-96 rounded-full bg-gradient-to-tr from-purple-600/20 to-fuchsia-600/20 blur-3xl"
+                <m.div
+                    className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] rounded-full bg-gradient-radial from-purple-500/15 via-pink-500/10 to-transparent blur-3xl"
                     style={{ y: y2 }}
+                    animate={{
+                        scale: [1.2, 1, 1.2],
+                        opacity: [0.2, 0.5, 0.2]
+                    }}
+                    transition={{ duration: 10, repeat: Infinity, delay: 2 }}
                 />
-            </div>
+            </m.div>
 
             <div className="max-w-7xl mx-auto w-full">
                 <m.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
+                    transition={{ duration: 1 }}
                     className="relative z-10"
                 >
-                    <m.div
-                        initial={{ y: shouldReduceMotion ? 0 : 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="text-center"
-                    >
-                        {/* Modern badge with glow effect */}
-                        <m.div
-                            initial={{ scale: shouldReduceMotion ? 1 : 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ type: "spring", stiffness: 100, delay: 0.3 }}
-                            className="mb-6 inline-block relative"
+                    {/* Enhanced Typography with Typewriter */}
+                    <div className="text-center mb-12">
+                        <m.h1
+                            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight leading-[0.9] mb-6"
+                            initial={{ opacity: 0, y: 50 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5, duration: 0.8 }}
                         >
-                            <span className="absolute inset-0 bg-sky-500/20 blur-md rounded-full"></span>
-                            <span className="relative bg-gradient-to-r from-sky-900/80 to-sky-900/80 backdrop-blur-sm border border-sky-700/40 text-sky-400 px-5 py-2 rounded-full text-sm font-medium flex items-center">
-                                <m.span 
-                                    className="w-2 h-2 rounded-full bg-sky-400 mr-2"
-                                    animate={{ scale: [1, 1.5, 1] }}
-                                    transition={{ duration: 2, repeat: Infinity }}
-                                />
-                                Advanced Image Analytics
-                            </span>
-                        </m.div>
-
-                        {/* Perspective heading */}
-                        <m.div
-                            style={{ 
-                                rotateX: shouldReduceMotion ? 0 : mousePosition.y * 0.05,
-                                rotateY: shouldReduceMotion ? 0 : mousePosition.x * -0.05,
-                            }}
-                            transition={{ type: "spring", stiffness: 400 }}
-                            className="perspective-1000 mb-6"
-                        >
-                            <m.h1
-                                className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/70"
-                                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.4, duration: 0.6 }}
-                            >
-                                From <GlowingText>
+                            <span className="block relative text-white/90 mb-2">
+                                From  
+                                <GlowingText>
                                     Pixels
-                                    <span className="absolute -inset-1 bg-sky-500/20 blur-xl rounded-full -z-10"></span>
-                                </GlowingText> to{" "}
-                                <m.span
-                                    animate={{ 
-                                        color: ["#60a5fa", "#818cf8", "#60a5fa"]
-                                    }}
-                                    transition={{ 
-                                        duration: 4, 
-                                        repeat: Infinity,
-                                        repeatType: "reverse"
-                                    }}
-                                    className="relative inline-block"
-                                >
-                                    Playable
-                                    <m.span 
-                                        className="absolute -bottom-2 left-0 w-full h-[3px] bg-gradient-to-r from-sky-500 via-sky-600 to-sky-500"
-                                        animate={{ 
-                                            backgroundPosition: ["0% 0%", "100% 0%", "0% 0%"]
-                                        }}
-                                        transition={{ 
-                                            duration: 4, 
-                                            repeat: Infinity
-                                        }}
-                                    />
-                                </m.span>
-                            </m.h1>
-                        </m.div>
+                                </GlowingText>
+                                To
+                            </span>
+                            <span className="block relative">
+                                <span className="relative inline-block min-w-[300px] text-left">
+                                    <m.span
+                                        className="text-sky-400"
+                                        animate={{ opacity: [0, 1, 0] }}
+                                        transition={{ duration: 1, repeat: Infinity }}
+                                    >
+                                        {typedText.includes("|") ? "|" : ""}
+                                    </m.span>
+                                </span>
+                            </span>
+                        </m.h1>
 
-                        {/* Animated highlight paragraph */}
-                        <m.div
-                            className="max-w-2xl mx-auto mb-12 sm:mb-16 relative"
-                            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+                        {/* Professional Subtitle */}
+                        <m.p
+                            className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed font-light"
+                            initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5, duration: 0.6 }}
+                            transition={{ delay: 0.8, duration: 0.8 }}
                         >
-                            <m.span 
-                                className="absolute -inset-1 bg-sky-800/10 blur-xl rounded-full -z-10"
-                                animate={{ 
-                                    opacity: [0.4, 0.8, 0.4]
-                                }}
-                                transition={{ 
-                                    duration: 3, 
-                                    repeat: Infinity
-                                }}
-                            />
-                            <p className="text-lg sm:text-xl md:text-2xl text-gray-200 leading-relaxed font-light">
-                                Transform 2D images into stylized, composable game assets — 
-                                <span className="text-white font-medium bg-gradient-to-r from-sky-500 to-sky-500 bg-[length:0_2px] hover:bg-[length:100%_2px] bg-no-repeat bg-left-bottom transition-all duration-500">
-                                    no coding required
-                                </span>.
-                            </p>
-                        </m.div>
+                            Hackathon project by Devpost and Google Cloud
+                        </m.p>
+                    </div>
 
-                        {/* Enhanced button group with hover effects */}
-                        <m.div
-                            className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6"
-                            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.7, duration: 0.6 }}
-                        >
-                            <m.div
-                                whileHover={{ scale: shouldReduceMotion ? 1 : 1.03 }}
-                                whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
-                                className="relative group"
-                            >
-                                {/* Simplified gradient border that's more visible */}
-                                <m.span 
-                                    className="absolute -inset-0.5 bg-sky-500/40 rounded-xl blur-sm opacity-70 group-hover:opacity-100 transition duration-300"
-                                />
-                                <button
-                                    className="relative bg-[#0a0a18] px-8 py-4 rounded-xl font-medium cursor-pointer
-                                    flex items-center justify-center gap-3 group border border-sky-600/50
-                                    focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-[#15182d]"
-                                    aria-label="Try interactive demo"
-                                    onClick={() => {
-                                        setTab('assets');
-                                        document.getElementById('main-content')?.scrollIntoView({ behavior: 'smooth' });
-                                    }}
-                                >
-                                    <span className="relative w-10 h-10 flex items-center justify-center">
-                                        <span className="absolute inset-0 bg-sky-600 rounded-full opacity-20 group-hover:opacity-30 transition-opacity"></span>
-                                        <LucidePlay className="w-5 h-5 text-sky-400 group-hover:text-sky-300 transition-colors" fill="currentColor" />
-                                    </span>
-                                    <span className="text-sky-400 group-hover:text-sky-300 transition-colors font-semibold">
-                                        Try Demo
-                                    </span>
-                                </button>
-                            </m.div>
-                            
+                    <Divider />
+
+                    {/* Enhanced CTA Section */}
+                    <m.div
+                        className="flex flex-col items-center gap-6 mt-5"
+                        initial={{ opacity: 0, y: 40 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.1, duration: 0.8 }}
+                    >
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            {/* Primary CTA */}
                             <m.button
-                                className="text-white border border-sky-700/50 hover:border-sky-500/80 cursor-pointer
-                                px-8 py-4 rounded-xl backdrop-blur-sm bg-white/5 hover:bg-white/10 transition-all duration-300
-                                flex items-center justify-center gap-3 group
-                                focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-[#15182d]"
-                                whileHover={{ scale: shouldReduceMotion ? 1 : 1.03 }}
-                                whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
-                                aria-label="View use cases"
-                                onClick={() => {
-                                    document.getElementById('main-content')?.scrollIntoView({ behavior: 'smooth' });
-                                }}
+                                className="group relative px-8 py-4 bg-gradient-to-r from-sky-600 to-blue-700 rounded-xl font-semibold text-white flex items-center gap-3 overflow-hidden"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={handleTryDemo}
                             >
-                                <span className="w-10 h-10 flex items-center justify-center">
-                                    <span className="absolute inset-0 bg-sky-600 rounded-full opacity-0 group-hover:opacity-10 transition-opacity"></span>
-                                    <span className="text-xl" aria-hidden="true">📚</span>
-                                </span>
-                                <span className="text-gray-300 group-hover:text-white transition-colors">
-                                    Use Cases
-                                </span>
+                                <div className="absolute inset-0 bg-gradient-to-r from-sky-500 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="relative flex items-center gap-3">
+                                    <LucidePlay className="w-5 h-5 fill-current" />
+                                    <span>Demo app</span>
+                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </div>
                             </m.button>
-                        </m.div>
+
+                            {/* Secondary CTA */}
+                            <m.button
+                                className="px-8 py-4 border border-white/20 rounded-xl font-semibold text-white backdrop-blur-sm hover:bg-white/5 transition-colors flex items-center gap-3"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                            >
+                                <Gitlab className="w-5 h-5" />
+                                <span>Open sourced</span>
+                            </m.button>
+                        </div>
+
+                        {/* Trust Indicators */}
+                        <div className="flex items-center gap-6 text-sm text-gray-400 mt-4">
+                            <div className="flex items-center gap-2">
+                                <Zap className="w-4 h-4" />
+                                <span>Powered by</span>
+                            </div>
+                        </div>
+                    </m.div>
+
+                    {/* Technical Features Grid - TBD rozhýbat */}
+
+                    <m.div
+                        className="mt-20 grid grid-cols-1 md:grid-cols-4 gap-6 max-w-5xl mx-auto"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.4, duration: 0.8 }}
+                    >
+                        {techStacks.map((t, index) => (
+                            <m.div
+                                key={index}
+                                className="group flex flex-col justify-between relative p-6 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-sm hover:bg-black/5 transition-all"
+                                whileHover={{ y: -5 }}
+                                transition={{ type: "spring", stiffness: 400 }}
+                            >
+                                <Image
+                                    src={t.logo}
+                                    alt={t.name}
+                                    fill
+                                    className="absolute top-4 right-4 opacity-7 hover:opacity-20 transition-all z-10 duraiton-200 ease-linear"
+                                    />
+                                <div className="text-sky-400 font-mono text-sm">-></div>
+                            </m.div>
+                        ))}
                     </m.div>
                 </m.div>
-            
-            </div>
-            
-            {/* Gradient light effect */}
-            <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1/3 bg-sky-500/10 blur-[100px] rounded-full"></div>
             </div>
         </section>
     );

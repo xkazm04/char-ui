@@ -1,4 +1,4 @@
-import { LucideCode, Gamepad2, LucideShoppingBasket } from "lucide-react";
+import { LucideCode, Gamepad2, LucideShoppingBasket, Sparkles } from "lucide-react";
 import UcCard from "./UcCard";
 import { m, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -6,77 +6,164 @@ import GlowingText from "@/app/components/landing/GlowingText";
 
 const LanUseCases = () => {
     const [isLoading, setIsLoading] = useState(true);
+    const shouldReduceMotion = useReducedMotion();
+    
     useEffect(() => {
         const timer = setTimeout(() => {
             setIsLoading(false);
-        }, 1200);
+        }, 1000);
 
         return () => clearTimeout(timer);
     }, []);
-    const shouldReduceMotion = useReducedMotion();
-    const staggerAnimation = shouldReduceMotion
-        ? {
-            hidden: { opacity: 0 },
-            visible: { opacity: 1 }
-        }
-        : {
-            hidden: { opacity: 0, y: 20 },
-            visible: { opacity: 1, y: 0 }
-        };
-    return <>
 
-        <section id="main-content" className="py-24 px-6 md:px-16 bg-[#0c0c1d] relative">
-            <div className="absolute inset-0 bg-grid-pattern opacity-5" aria-hidden="true"></div>
+    const useCases = [
+        {
+            icon: <Gamepad2 size={28} />,
+            title: "Game Asset Generation",
+            desc: "Auto-extract gear, weapons, armor from any image with AI precision.",
+            features: ["Real-time processing", "Multiple formats", "Game engine ready"],
+            color: "from-emerald-600/5 to-green-600/5",
+            borderColor: "border-emerald-500/30",
+            glowColor: "shadow-emerald-500/20"
+        },
+        {
+            icon: <LucideShoppingBasket size={28} />,
+            title: "E-commerce Stylist",
+            desc: "Apply stylization from one image to assets and characters instantly.",
+            features: ["Style transfer", "Virtual try-on", "Batch processing"],
+            color: "from-blue-600/5 to-cyan-600/5",
+            borderColor: "border-blue-500/30",
+            glowColor: "shadow-blue-500/20"
+        },
+        {
+            icon: <LucideCode size={28} />,
+            title: "Security Intelligence",
+            desc: "Identify and track people of interest based on distinct clothing patterns.",
+            features: ["Pattern recognition", "Real-time alerts", "Privacy focused"],
+            color: "from-purple-600/20 to-pink-600/5",
+            borderColor: "border-purple-500/30",
+            glowColor: "shadow-purple-500/20"
+        }
+    ];
+
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.2
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { 
+            opacity: 0, 
+            y: shouldReduceMotion ? 0 : 30,
+            scale: shouldReduceMotion ? 1 : 0.9
+        },
+        visible: { 
+            opacity: 1, 
+            y: 0,
+            scale: 1,
+            transition: {
+                type: "spring",
+                stiffness: 100,
+                damping: 15
+            }
+        }
+    };
+
+    return (
+        <section id="use-cases" className="py-16 lg:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-[#0c0c1d] via-[#0a0a18] to-[#0d0d24] relative overflow-hidden">
+            {/* Enhanced Background Effects */}
+            <div className="absolute inset-0">
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-sky-500/5 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '3s' }} />
+                <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]" aria-hidden="true" />
+            </div>
+            
             <div className="relative z-10 max-w-7xl mx-auto">
+                {/* Enhanced Header */}
                 <m.div
                     initial="hidden"
                     whileInView="visible"
-                    variants={staggerAnimation}
-                    transition={{ duration: 0.7 }}
+                    variants={containerVariants}
                     viewport={{ once: true, margin: "-100px" }}
-                    className="text-center mb-16"
+                    className="text-center mb-16 lg:mb-20"
                 >
-                     <h2 className="text-4xl font-bold text-center mb-10"><GlowingText>Use Cases</GlowingText></h2>
-                    <p className="text-gray-400 max-w-2xl mx-auto">Possible ways to commercialize implemented concepts</p>
+                    <m.div variants={itemVariants} className="mb-6">
+                        <h2 className="text-4xl lg:text-6xl font-bold mb-4">
+                            <GlowingText>Use Cases</GlowingText>
+                        </h2>
+                        <div className="flex items-center justify-center gap-2 mb-6">
+                            <Sparkles className="w-5 h-5 text-sky-400" />
+                            <span className="text-sky-400 font-medium text-sm lg:text-base tracking-wider uppercase">
+                                Real-world Applications
+                            </span>
+                            <Sparkles className="w-5 h-5 text-sky-400" />
+                        </div>
+                    </m.div>
+                    
+                    <m.p 
+                        variants={itemVariants}
+                        className="text-gray-300 max-w-3xl mx-auto text-lg lg:text-xl leading-relaxed"
+                    >
+                        Discover how our technology transforms industries through intelligent image analysis and asset generation
+                    </m.p>
                 </m.div>
 
-                <div className="grid gap-6 sm:gap-8 md:grid-cols-1 xl:grid-cols-3 text-sky-500">
+                {/* Enhanced Cards Grid */}
+                <m.div 
+                    className="grid gap-6 lg:gap-8 md:grid-cols-1 xl:grid-cols-3"
+                    initial="hidden"
+                    whileInView="visible"
+                    variants={containerVariants}
+                    viewport={{ once: true, margin: "-50px" }}
+                >
                     {isLoading ? (
-                        // Skeleton loaders for use cases
-                        Array(4).fill(0).map((_, i) => (
-                            <div key={i} className="bg-[#0d1230]/60 rounded-xl p-6 animate-pulse">
-                                <div className="w-14 h-14 bg-sky-900/30 rounded-xl mb-5"></div>
-                                <div className="h-6 bg-sky-900/30 rounded w-3/4 mb-4"></div>
-                                <div className="h-4 bg-sky-900/30 rounded w-full mb-2"></div>
-                                <div className="h-4 bg-sky-900/30 rounded w-4/5"></div>
-                            </div>
+                        // Enhanced Skeleton loaders
+                        Array(3).fill(0).map((_, i) => (
+                            <m.div 
+                                key={i} 
+                                variants={itemVariants}
+                                className="bg-gradient-to-br from-slate-900/60 to-slate-800/60 rounded-2xl lg:rounded-3xl p-8 animate-pulse border border-gray-700/30"
+                            >
+                                <div className="flex items-start mb-6">
+                                    <div className="w-16 h-16 bg-sky-900/30 rounded-2xl mr-4" />
+                                    <div className="flex-1">
+                                        <div className="h-7 bg-sky-900/30 rounded-lg w-3/4 mb-3" />
+                                        <div className="h-4 bg-sky-900/30 rounded w-full mb-2" />
+                                        <div className="h-4 bg-sky-900/30 rounded w-4/5" />
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="h-3 bg-sky-900/30 rounded w-full" />
+                                    <div className="h-3 bg-sky-900/30 rounded w-5/6" />
+                                    <div className="h-3 bg-sky-900/30 rounded w-4/5" />
+                                </div>
+                            </m.div>
                         ))
                     ) : (
-                        <>
-                            <UcCard
-                                icon={<Gamepad2 size={25}/>}
-                                title="Game Asset Generation"
-                                desc="Auto-extract gear, weapons, armor from any image."
-                                index={0}
-                            />
-                            <UcCard
-                                icon={<LucideShoppingBasket size={25} />}
-                                title="E-shop virtual stylist"
-                                desc="Apply stylization from one image to assets and characters."
-                                index={1}
-                            />
-                            <UcCard
-                                icon={<LucideCode size={25}  />}
-                                title="Security intelligence"
-                                desc="Identify and track people of interest based on distinct clothing from security cameras."
-                                index={2}
-                            />
-                        </>
+                        useCases.map((useCase, index) => (
+                            <m.div key={index} variants={itemVariants}>
+                                <UcCard
+                                    icon={useCase.icon}
+                                    title={useCase.title}
+                                    desc={useCase.desc}
+                                    features={useCase.features}
+                                    index={index}
+                                    color={useCase.color}
+                                    borderColor={useCase.borderColor}
+                                    glowColor={useCase.glowColor}
+                                />
+                            </m.div>
+                        ))
                     )}
-                </div>
+                </m.div>
             </div>
         </section>
-    </>
+    );
 }
 
 export default LanUseCases;

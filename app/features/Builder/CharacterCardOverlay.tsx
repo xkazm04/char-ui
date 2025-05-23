@@ -1,9 +1,9 @@
-import { AssetType } from "@/app/types/asset";
+import { UsedAssets } from "@/app/types/gen";
 import { motion } from "framer-motion";
 import { XCircle } from "lucide-react";
 
 type Props = {
-    usedAssets: AssetType[];
+    usedAssets: UsedAssets[];
     handleShowDetails: (e: React.MouseEvent) => void;
 };
 

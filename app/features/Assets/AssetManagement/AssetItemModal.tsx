@@ -2,7 +2,7 @@ import { Trash, X, Save, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { AssetType } from "@/app/types/asset";
-import { useAllAssets } from "@/app/functions/assetFns";
+import { handleDelete, handleSave, useAllAssets } from "@/app/functions/assetFns";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -26,45 +26,7 @@ const AssetItemModal = ({asset, modalRef, setShowModal }: Props) => {
             document.body.style.overflow = 'unset';
         };
     }, []);
-    
-    const handleDelete = async () => {
-        if (confirm(`Are you sure you want to delete "${asset.name}"?`)) {
-            try {
-                const response = await fetch(`http://localhost:8000/assets/${asset._id}`, {
-                    method: 'DELETE',
-                });
 
-                if (response.ok) {
-                    setShowModal(false);
-                    refetch();
-                } else {
-                    alert('Failed to delete asset');
-                }
-            } catch (error) {
-                console.error('Error deleting asset:', error);
-                alert('Error deleting asset');
-            }
-        }
-    };
-
-    const handleGenSave = async () => {
-        console.log(`Saving gen value: "${genValue}" for asset ID: ${asset._id}`);
-        try {
-            const updateResponse = await fetch(`http://localhost:8000/assets/${asset._id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ gen: genValue }),
-            });
-            if (updateResponse.ok) {
-               console.log('Gen value saved successfully');
-            } else {
-                alert('Failed to save Gen value.');
-            }
-        } catch (error) {
-            console.error('Error saving Gen value:', error);
-            alert('Error saving Gen value.');
-        }
-    };
 
     const modalContent = (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100]" onClick={() => setShowModal(false)}>
@@ -74,7 +36,7 @@ const AssetItemModal = ({asset, modalRef, setShowModal }: Props) => {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 className="bg-gray-800 rounded-lg p-3 sm:p-4 w-[95%] sm:max-w-md max-h-[90vh] overflow-y-auto shadow-xl border border-gray-700"
-                onClick={(e) => e.stopPropagation()} // Prevent closing when clicking modal content
+                onClick={(e) => e.stopPropagation()} 
             >
                 <div className="flex justify-between items-center mb-2 sm:mb-3 pb-2 border-b border-gray-700">
                     <h3 className="text-base sm:text-lg font-semibold text-white truncate pr-2">{asset.name}</h3>
@@ -133,7 +95,7 @@ const AssetItemModal = ({asset, modalRef, setShowModal }: Props) => {
                                 />
                                 <div className="flex justify-end gap-2 mt-2">
                                     <button 
-                                        onClick={handleGenSave}
+                                        onClick={() => {handleSave(genValue, asset._id)}}
                                         disabled={genValue === initialGenValue}
                                         className={`px-2 py-1 text-sm flex items-center gap-1 rounded-lg transition-colors duration-200 ${
                                             genValue === initialGenValue
@@ -153,7 +115,7 @@ const AssetItemModal = ({asset, modalRef, setShowModal }: Props) => {
                 {/* Action Buttons with improved styling */}
                 <div className="flex justify-end gap-2 pt-3 border-t border-gray-700">
                     <button
-                        onClick={handleDelete}
+                        onClick={() => { handleDelete(asset, ()=>{ setShowModal(false); refetch()})}}
                         className="flex cursor-pointer items-center gap-1 px-2.5 py-1.5 text-sm bg-red-900/30 hover:bg-red-900/50 text-red-400 rounded transition-colors"
                         aria-label="Delete asset"
                     >

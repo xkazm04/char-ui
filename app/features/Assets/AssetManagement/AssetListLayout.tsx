@@ -36,16 +36,14 @@ const AssetListLayout = () => {
     if (hasNextPage && !isFetchingNextPage && assetNavExpanded) {
       const timer = setTimeout(() => {
         fetchNextPage();
-        // Prefetch the next page as well
         const currentPage = Math.ceil(allFetchedAssets.length / 50);
         prefetchNextPage(currentPage + 1);
-      }, 100); // Small delay to prevent rapid requests
+      }, 100);
       
       return () => clearTimeout(timer);
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage, assetNavExpanded, allFetchedAssets.length, prefetchNextPage]);
 
-  // Memoized filtering for better performance
   const filteredAssetGroups = useMemo(() => {
     if (!mainSearchQuery) return assetGroups;
     
@@ -118,7 +116,7 @@ const AssetListLayout = () => {
             ${isFullScreen ? 'left-0' : 'right-0'} border-l border-gray-800 bg-gray-950/95 text-gray-100`}
           >
             {/* Header */}
-            <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+            <div className="p-4 border-b border-gray-800 flex justify-between pr-20 items-center">
               <h1 className="text-xl font-bold">Asset Manager</h1>
               {mainSearchQuery || activeCategory ? (
                 <div className="text-sm text-gray-400">

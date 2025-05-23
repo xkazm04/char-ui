@@ -60,7 +60,6 @@ const AssetGroupFullScreen = ({
     };
   }, [assetGroups, setGroupExpanded]);
 
-  // Placeholder for Suspense
   const AssetSuspenseFallback = () => (
     <div style={{ height: "220px" }} className="bg-gray-800/10 rounded-md animate-pulse w-full"></div>
   );
