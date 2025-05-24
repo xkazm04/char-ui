@@ -20,7 +20,7 @@ const LanHeroTech = () => {
                     src={t.logo}
                     alt={t.name}
                     fill
-                    className="absolute top-4 right-4 opacity-7 hover:opacity-20 transition-all z-10 duraiton-200 ease-linear"
+                    className="absolute top-4 right-4 opacity-7 hover:opacity-60 transition-all z-10 duraiton-200 ease-linear"
                 />
                 <div className="text-sky-400 font-mono text-sm">-></div>
             </m.div>

@@ -1,118 +1,144 @@
 import StatusTag from "@/app/components/ui/StatusTag";
 import { CookStatusType } from "@/app/types/cooks";
-import { motion, AnimatePresence } from "framer-motion";
+import { AgentLog } from "@/app/functions/agentLogsFns";
+import { motion } from "framer-motion";
 import { useState } from "react";
+import CooksLogItemOutput from "./CooksLogItemOutput";
 
 interface ExpandedCell {
-    row: number;
-    col: number;
-}
-type Props = {
-    row: string[];
-    rowIndex: number;
+    logIndex: number;
 }
 
-const CooksLogItem = ({ row, rowIndex }: Props) => {
+type Props = {
+    log: AgentLog;
+    logIndex: number;
+    agentNames: string[];
+}
+
+const CooksLogItem = ({ log, logIndex, agentNames }: Props) => {
     const [expandedCell, setExpandedCell] = useState<ExpandedCell | null>(null);
     const [hoveredRow, setHoveredRow] = useState<number | null>(null);
-    const mockStatuses: CookStatusType[] = ["success", "success", "error"];
-
-    // Function to truncate text - now using responsive design
-    const truncateText = (text: string) => {
-        const maxLength = {
-            sm: 20,
-            md: 30,
-            lg: 50
-        };
-
-        return text.length > maxLength.lg
-            ? <>
-                <span className="hidden lg:inline">{text.substring(0, maxLength.lg)}...</span>
-                <span className="hidden md:inline lg:hidden">{text.substring(0, maxLength.md)}...</span>
-                <span className="inline md:hidden">{text.substring(0, maxLength.sm)}...</span>
-            </>
-            : text;
+    
+    // Determine status based on output content
+    const getStatus = (output: string): CookStatusType => {
+        const lowerOutput = output.toLowerCase();
+        if (lowerOutput.includes('error') || lowerOutput.includes('failed')) {
+            return 'error';
+        }
+        if (lowerOutput.includes('success') || lowerOutput.includes('completed')) {
+            return 'success';
+        }
+        return 'waiting';
     };
 
-    const handleCellClick = (row: number, col: number) => {
-        if (expandedCell?.row === row && expandedCell?.col === col) {
+
+    const handleCellClick = (logIndex: number) => {
+        if (expandedCell?.logIndex === logIndex) {
             setExpandedCell(null);
         } else {
-            setExpandedCell({ row, col });
+            setExpandedCell({ logIndex });
         }
     };
-    return <>
+
+    const formatTimestamp = (timestamp: string) => {
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString('en-US', { 
+            hour12: false, 
+            hour: '2-digit', 
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    };
+
+    const getAgentColor = (agentName: string) => {
+        const colors = {
+            'analyst': 'text-blue-400 bg-blue-900/20',
+            'artist': 'text-purple-400 bg-purple-900/20', 
+            'critic': 'text-orange-400 bg-orange-900/20',
+            'coordinator': 'text-green-400 bg-green-900/20'
+        };
+        return colors[agentName as keyof typeof colors] || 'text-gray-400 bg-gray-900/20';
+    };
+
+    return (
         <motion.tr
-            className={`${rowIndex % 2 === 0 ? 'bg-gray-800' : 'bg-gray-850'} ${hoveredRow === rowIndex ? 'bg-gray-750' : ''}`}
-            onMouseEnter={() => setHoveredRow(rowIndex)}
+            className={`${logIndex % 2 === 0 ? 'bg-gray-800/50' : 'bg-gray-850/50'} 
+                       ${hoveredRow === logIndex ? 'bg-gray-700/70 shadow-lg' : ''} 
+                       border-b border-gray-700/30 transition-all duration-300`}
+            onMouseEnter={() => setHoveredRow(logIndex)}
             onMouseLeave={() => setHoveredRow(null)}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{
-                duration: 0.3,
-                delay: rowIndex * 0.1,
-                ease: "easeOut"
+                duration: 0.4,
+                delay: logIndex * 0.05,
+                ease: [0.4, 0.0, 0.2, 1]
             }}
         >
-            <td className="px-2 py-1 lg:px-4 lg:py-3 text-2xs lg:text-xs text-gray-300 font-medium">
-                {rowIndex + 1}
-            </td>
-            {row.map((cell, colIndex) => (
-                <td
-                    key={colIndex}
-                    className={`relative px-2 py-1 lg:px-4 lg:py-3 text-2xs lg:text-xs text-gray-300 transition-all duration-300 
-                                            ${expandedCell?.row === rowIndex && expandedCell?.col === colIndex
-                            ? 'bg-gray-700 rounded-lg shadow-lg z-10'
-                            : 'cursor-pointer hover:bg-gray-700'}`}
-                    onClick={() => handleCellClick(rowIndex, colIndex)}
+            {/* Row Number */}
+            <td className="px-3 py-4 text-xs text-gray-400 font-mono">
+                <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: logIndex * 0.05 + 0.2 }}
+                    className="inline-flex items-center justify-center w-6 h-6 bg-gray-700 rounded-full text-xs"
                 >
-                    <AnimatePresence>
-                        {expandedCell?.row === rowIndex && expandedCell?.col === colIndex ? (
-                            <motion.div
-                                className="relative"
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.2 }}
-                            >
-                                <div className="whitespace-pre-wrap break-words max-h-64 overflow-y-auto pr-6">
-                                    {cell}
-                                </div>
-                                <motion.button
-                                    className="absolute top-0 right-0 bg-gray-600 hover:bg-gray-500 text-xs text-white rounded p-1"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setExpandedCell(null);
-                                    }}
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </motion.button>
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                className="flex items-center gap-1"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: 0.2 }}
-                            >
-                                <span className="truncate">{truncateText(cell)}</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </td>
-            ))}
-            <td className="px-2 py-1 lg:px-4 lg:py-3 text-center">
-                <StatusTag status={mockStatuses[rowIndex] || "waiting"} />
+                    {logIndex + 1}
+                </motion.span>
+            </td>
+
+            {/* Timestamp */}
+            <td className="px-3 py-4 text-xs text-gray-400 font-mono">
+                <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: logIndex * 0.05 + 0.1 }}
+                >
+                    {formatTimestamp(log.timestamp)}
+                </motion.div>
+            </td>
+
+            {/* Agent Name */}
+            <td className="px-3 py-4">
+                <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: logIndex * 0.05 + 0.15 }}
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getAgentColor(log.agent_name)}`}
+                >
+                    <div className="w-2 h-2 rounded-full bg-current mr-2 animate-pulse" />
+                    {log.agent_name}
+                </motion.div>
+            </td>
+
+            {/* Output */}
+            <td
+                className={`relative px-3 py-4 text-xs text-gray-300 transition-all duration-300 cursor-pointer
+                           ${expandedCell?.logIndex === logIndex
+                    ? 'bg-gray-600/30 rounded-lg shadow-inner'
+                    : 'hover:bg-gray-700/30'}`}
+                onClick={() => handleCellClick(logIndex)}
+            >
+                <CooksLogItemOutput
+                    log={log}
+                    expandedCell={expandedCell}
+                    setExpandedCell={setExpandedCell}
+                    logIndex={logIndex}
+                />
+            </td>
+
+            {/* Status */}
+            <td className="px-3 py-4 text-center">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: logIndex * 0.05 + 0.3 }}
+                >
+                    <StatusTag status={getStatus(log.output)} />
+                </motion.div>
             </td>
         </motion.tr>
-    </>
-}
+    );
+};
 
 export default CooksLogItem;

@@ -154,21 +154,40 @@
 
 /* Custom scrollbar styling */
 ::-webkit-scrollbar {
-  width: 4px;
-  border-radius: 50px;
+  width: 2px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--background);
+  background: transparent;
+  margin: 4px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--brand-primary);
-  border-radius: 2px;
+  background: oklch(0.4 0 0 / 0.2);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+  transition: all 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--brand-secondary);
+  background: oklch(0.6 0 0 / 0.6);
+  border: 1px solid transparent;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Scrollbar container hover effect */
+*:hover::-webkit-scrollbar-thumb {
+  background: oklch(0.5 0 0 / 0.4);
+}
+
+*:hover::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.6 0 0 / 0.8);
 }
 
 .scrollbar-thin::-webkit-scrollbar {
@@ -177,17 +196,28 @@
 
 .scrollbar-thin::-webkit-scrollbar-track {
   background: transparent;
+  margin: 2px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: var(--brand-primary);
-  opacity: 0.5;
-  border-radius: 20px;
+  background: oklch(0.4 0 0 / 0.15);
+  border-radius: 3px;
+  border: 1px solid transparent;
+  background-clip: content-box;
+  transition: all 0.2s ease;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background-color: var(--brand-secondary);
-  opacity: 0.8;
+  background: oklch(0.6 0 0 / 0.5);
+  border: 0px solid transparent;
+}
+
+.scrollbar-thin:hover::-webkit-scrollbar-thumb {
+  background: oklch(0.5 0 0 / 0.3);
+}
+
+.scrollbar-thin:hover::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.6 0 0 / 0.7);
 }
 
 /* Animation utility classes */

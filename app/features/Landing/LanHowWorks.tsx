@@ -134,7 +134,7 @@ const LanHowWorks = () => {
 
                                             {/* Progress Bar */}
                                             {autoplay && (
-                                                <div className="absolute bottom-0 left-0 right-0 h-1">
+                                                <div className="absolute bottom-0 left-0 right-0 h-[1px]">
                                                     <m.div
                                                         className="h-full bg-gradient-to-r from-gray-500 to-white"
                                                         initial={{ width: "0%" }}

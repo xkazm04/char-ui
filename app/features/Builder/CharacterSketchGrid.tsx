@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CharacterSketchCard from './CharacterSketchCard';
 import { useAssetStore } from '@/app/store/assetStore';
-import { LucideImages, X } from 'lucide-react';
 import { useGenerations } from '@/app/functions/genFns';
 import { ProgressBarTexted } from '@/app/components/anim/ProgressBar';
 import CharacterSketchGridEmpty from './CharacterSketchGridEmpty';
@@ -17,30 +16,21 @@ type SortMode = 'newest' | 'oldest' | 'name';
 export default function CharacterSketchGrid() {
   const { isGenerating, setIsGenerating } = useAssetStore();
   const { currentCharacter} = useCharacterStore()
-  const { data: sketches, isLoading, refetch } = useGenerations({
+  const { data: sketches, isLoading } = useGenerations({
     limit: 50, 
+    characterId: currentCharacter?.id || '',
   });
 
   const [viewMode, setViewMode] = useState<ViewMode>('grid-medium');
   const [sortMode, setSortMode] = useState<SortMode>('newest');
-  const [searchFilter, setSearchFilter] = useState('');
   const [selectedSketches, setSelectedSketches] = useState<Set<string>>(new Set());
 
   // Sort and filter sketches
   const processedSketches = useMemo(() => {
     if (!sketches) return [];
     
-    let filtered = [...sketches];
+    const filtered = [...sketches];
     
-    // Apply search filter
-    if (searchFilter) {
-      filtered = filtered.filter(sketch => 
-        sketch.prompt?.toLowerCase().includes(searchFilter.toLowerCase()) ||
-        sketch.description?.toLowerCase().includes(searchFilter.toLowerCase())
-      );
-    }
-    
-    // Apply sorting
     filtered.sort((a, b) => {
       switch (sortMode) {
         case 'newest':
@@ -55,7 +45,8 @@ export default function CharacterSketchGrid() {
     });
     
     return filtered;
-  }, [sketches, sortMode, searchFilter]);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sketches, sortMode]);
 
   // Grid classes based on view mode
   const gridClasses = useMemo(() => {
@@ -112,39 +103,13 @@ export default function CharacterSketchGrid() {
         setSortMode={setSortMode}
         isGenerating={isGenerating}
         setIsGenerating={setIsGenerating}
-        hasFilter={!!searchFilter}
-        clearFilter={() => setSearchFilter('')}
       />
-
-      {/* Search Bar */}
-      <div className="p-4 border-b border-sky-900/20">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search generations..."
-            value={searchFilter}
-            onChange={(e) => setSearchFilter(e.target.value)}
-            className="w-full bg-gray-900/50 border border-gray-700/50 rounded-lg px-4 py-2 pl-10 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500/50 transition-all"
-          />
-          <LucideImages className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-          {searchFilter && (
-            <button
-              onClick={() => setSearchFilter('')}
-              className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-300 transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      </div>
-
-
 
       {/* Sketches Grid */}
       <div className="flex-1 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-sky-900/50 scrollbar-track-transparent">
         <AnimatePresence mode="wait">
           <motion.div
-            key={`${viewMode}-${sortMode}-${searchFilter}`}
+            key={`${viewMode}-${sortMode}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}

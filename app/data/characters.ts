@@ -2,7 +2,7 @@
 
 export const characters = [
     {
-        id: "1",
+        id: "682cfdfaebbb3e6ada96d358",
         name: "Jinx",
         description: `Silhuette of a person standing in the dark with black background. 
         Blue-haired girl with long braids, wearing a black crop top with gold X emblem, intense blue eyes, tattoos on arms and torso — chaotic and rebellious vibe.
@@ -12,7 +12,7 @@ export const characters = [
         element: 67297
     },
     {
-        id: "2",
+        id: "682cfdfaebbb3e6ada96d357",
         name: "Lara Croft",
         description: `Low-poly female adventurer with sharp angles and blocky features, teal tank top, brown shorts, black fingerless gloves, polygonal face with bold eyebrows, long brown braid, gun holsters, 90s PlayStation 1 graphics, pixelated textures, classic Tomb Raider style. 
         Black transparent background. Looking directly to camera. Wearing`,
@@ -21,7 +21,7 @@ export const characters = [
         element: 68668
     },
     {
-        id: "3",
+        id: "682cfdfaebbb3e6ada96d359",
         name: "Geralt of Rivia",
         description: `White-haired, rugged monster hunter with cat-like yellow eyes and deep facial scars, wearing dark, worn leather and chainmail armor. 
             Carries sword on his back, grizzled beard, stoic expression, and a brooding, battle-hardened aura. Medieval fantasy setting with muted, gritty realism, detailed textures, and high-fidelity RPG aesthetic. 
@@ -31,7 +31,7 @@ export const characters = [
         element: 68670
     },
     {
-        id: "4",
+        id: "682cfdfaebbb3e6ada96d354",
         name: "Kreia",
         description: `Elderly, wise woman in a hooded brown Jedi robe with silver-gray hair tied back, stern and contemplative expression, pale skin, white clouded eyes, exuding mystery and authority. 
         Stands with a calm yet commanding posture, often in dim, ancient Jedi or Sith environments. Style inspired by early-2000s video game graphics, with a slightly angular and textured look. 
@@ -41,7 +41,7 @@ export const characters = [
         element: 68672
     },
     {
-        id: "5",
+        id: "682cfdfaebbb3e6ada96d355",
         name: "Saitama",
         description: `Bald superhero with, wearing a simple yellow jumpsuit with a red cape and gloves. The style is reminiscent of early 2000s anime, with bold outlines and flat colors. 
         Wearing`,

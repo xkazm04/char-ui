@@ -7,7 +7,7 @@ type Props = {
     handleShowDetails: (e: React.MouseEvent) => void;
 };
 
-const CharacterCardOverlay = ({ usedAssets, handleShowDetails }: Props) => {
+const CharacterSketchCardOverlay = ({ usedAssets, handleShowDetails }: Props) => {
     return <>
         <motion.div
             initial={{ opacity: 0 }}
@@ -29,8 +29,8 @@ const CharacterCardOverlay = ({ usedAssets, handleShowDetails }: Props) => {
             </div>
 
             <div className="space-y-3">
-                {usedAssets.length > 0 ? (
-                    ['clothing', 'equipment', 'accessories'].map((type) => {
+                {usedAssets && usedAssets.length > 0 ? (
+                    ['clothing', 'equipment', 'body', 'accessories'].map((type) => {
                         const filteredAssets = usedAssets.filter(asset => asset.type === type);
                         return filteredAssets.length > 0 ? (
                             <div key={type} className="mb-2">
@@ -53,4 +53,4 @@ const CharacterCardOverlay = ({ usedAssets, handleShowDetails }: Props) => {
     </>
 }
 
-export default CharacterCardOverlay;
+export default CharacterSketchCardOverlay;

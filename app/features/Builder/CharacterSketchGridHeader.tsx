@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Filter, X, Grid3x3, Grid2x2, LucideImages, MoreHorizontal, SortAsc, SortDesc, Calendar, XIcon } from "lucide-react";
+import { Sparkles, Grid3x3, Grid2x2, LucideImages, MoreHorizontal, SortAsc, SortDesc, Calendar, XIcon } from "lucide-react";
 import { IconButton } from "@/app/components/ui/IconButton";
 
 type ViewMode = 'grid-small' | 'grid-medium' | 'grid-large';
@@ -14,8 +14,6 @@ interface GridHeaderProps {
     setSortMode: (mode: SortMode) => void;
     isGenerating: boolean;
     setIsGenerating: (generating: boolean) => void;
-    hasFilter: boolean;
-    clearFilter: () => void;
 }
 
 const CharacterSketchGridHeader = ({
@@ -26,8 +24,6 @@ const CharacterSketchGridHeader = ({
     setSortMode,
     isGenerating,
     setIsGenerating,
-    hasFilter,
-    clearFilter
 }: GridHeaderProps) => {
     const [showSortMenu, setShowSortMenu] = useState(false);
 
@@ -49,19 +45,6 @@ const CharacterSketchGridHeader = ({
                         {sketchCount}
                     </span>
                 </div>
-
-                {hasFilter && (
-                    <motion.button
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        onClick={clearFilter}
-                        className="flex items-center gap-1 px-2 py-1 bg-sky-900/40 hover:bg-sky-900/60 rounded-md text-xs text-sky-300 transition-colors"
-                    >
-                        <Filter className="h-3 w-3" />
-                        <span>Filtered</span>
-                        <X className="h-3 w-3" />
-                    </motion.button>
-                )}
             </div>
 
             {isGenerating && (

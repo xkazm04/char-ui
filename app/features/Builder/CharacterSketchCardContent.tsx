@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap } from "lucide-react";
 import Image from "next/image";
-import CharacterCardOverlay from "./CharacterCardOverlay";
+import CharacterSketchCardOverlay from "./CharacterSketchCardOverlay";
 import { useState } from "react";
 import ModelViewer from "../Model/ModelViewer";
 import { UsedAssets } from "@/app/types/gen";
@@ -104,7 +104,7 @@ const CharacterSketchCardContent = ({is3DMode, gen, modelGenerated, modelUrl, sh
             {/* Used assets detail overlay */}
             <AnimatePresence>
                 {showDetails && (
-                    <CharacterCardOverlay
+                    <CharacterSketchCardOverlay
                         usedAssets={usedAssets}
                         handleShowDetails={handleShowDetails}
                     />

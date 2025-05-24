@@ -79,7 +79,7 @@ const BuilderAction = () => {
         </div>
       </div>
 
-      <div className="my-4 max-h-[70vh] overflow-y-auto pr-1 custom-scrollbar">
+      <div className="my-4 max-h-[70vh] overflow-y-auto pr-1">
         {categories.map(category => (
           <BuilderAssetGroup
             key={category.type}
