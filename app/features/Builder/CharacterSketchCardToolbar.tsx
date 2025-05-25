@@ -4,6 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { useAssetStore } from "@/app/store/assetStore";
 import { serverUrl } from "@/app/constants/urls";
 import CharacterGenerate3d from "./CharacterGenerate3d";
+import CharacterDelete from "./CharacterDelete";
+import { GenType } from "@/app/types/gen";
+import { useGenStore } from "@/app/store/genStore";
 
 type Props = {
   modelGenerated: boolean;
@@ -16,13 +19,14 @@ type Props = {
   setModelUrl: (url: string) => void;
   setModelGenerated: (generated: boolean) => void;
   setIs3DMode: (is3D: boolean) => void;
+  gen: GenType;
 };
 
 const CharacterCardToolbar = ({ modelGenerated, is3DMode, handleToggle3D, handleDownload, handleShowDetails, showDetails,
-  imageUrl, setModelUrl, setModelGenerated, setIs3DMode
+  imageUrl, setModelUrl, setModelGenerated, setIs3DMode, gen
 }: Props) => {
   const [generationStatus, setGenerationStatus] = useState<string | null>(null);
-  const { isGenerating, setIsGenerating } = useAssetStore();
+  const { is3dGenerating, setIs3dGenerating } = useGenStore();
   const [taskId, setTaskId] = useState<string | null>(null);
   const [progress, setProgress] = useState<number>(0);
   const [generationError, setGenerationError] = useState<string | null>(null);
@@ -30,7 +34,7 @@ const CharacterCardToolbar = ({ modelGenerated, is3DMode, handleToggle3D, handle
   const handleGenerate3D = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    setIsGenerating(true);
+    setIs3dGenerating(true);
     setProgress(0);
     setGenerationError(null);
 
@@ -42,7 +46,8 @@ const CharacterCardToolbar = ({ modelGenerated, is3DMode, handleToggle3D, handle
         },
         body: JSON.stringify({
           image_url: imageUrl,
-          prompt: 'Generate 3D model of this character', // Optional prompt
+          prompt: 'Generate 3D model of this character', 
+          generation_id: gen._id, 
         }),
       });
 
@@ -61,16 +66,16 @@ const CharacterCardToolbar = ({ modelGenerated, is3DMode, handleToggle3D, handle
         setModelGenerated(true);
         setIs3DMode(true);
         setProgress(100);
-        setIsGenerating(false);
+        setIs3dGenerating(false);
       }
 
     } catch (error) {
       console.error('Failed to generate 3D model:', error);
       setGenerationError(error instanceof Error ? error.message : 'Unknown error occurred');
-      setIsGenerating(false);
+      setIs3dGenerating(false);
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imageUrl, setIsGenerating]);
+  }, [imageUrl, setIs3dGenerating]);
 
 
   useEffect(() => {
@@ -98,18 +103,18 @@ const CharacterCardToolbar = ({ modelGenerated, is3DMode, handleToggle3D, handle
               setModelUrl(glbUrl);
               setModelGenerated(true);
               setIs3DMode(true);
-              setIsGenerating(false);
+              setIs3dGenerating(false);
               clearInterval(intervalId);
             }
           } else if (data.status === 'failed') {
             setGenerationError(data.task_error?.message || 'Model generation failed');
-            setIsGenerating(false);
+            setIs3dGenerating(false);
             clearInterval(intervalId);
           }
         } catch (error) {
           console.error('Failed to check model status:', error);
           setGenerationError('Failed to check model status');
-          setIsGenerating(false);
+          setIs3dGenerating(false);
           clearInterval(intervalId);
         }
       }, 3000); // Check every 3 seconds
@@ -119,7 +124,7 @@ const CharacterCardToolbar = ({ modelGenerated, is3DMode, handleToggle3D, handle
       if (intervalId) clearInterval(intervalId);
     };
     //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [taskId, generationStatus, setIsGenerating]);
+  }, [taskId, generationStatus, is3dGenerating]);
 
   return <>
     <div className="flex justify-between items-center rounded p-1 bg-gray-950/50 opacity-30 
@@ -148,11 +153,14 @@ const CharacterCardToolbar = ({ modelGenerated, is3DMode, handleToggle3D, handle
         >
           <Info size={18} />
         </motion.button>
+      <CharacterDelete
+          generationId={gen._id} 
+          />
       </div>
       <CharacterGenerate3d
         generationError={generationError}
         modelGenerated={modelGenerated}
-        isGenerating={isGenerating}
+        isGenerating={is3dGenerating}
         is3DMode={is3DMode}
         handleGenerate3D={handleGenerate3D}
         handleToggle3D={handleToggle3D}

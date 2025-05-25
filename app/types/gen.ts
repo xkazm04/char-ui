@@ -10,6 +10,7 @@ export type UsedAssets = {
 
 export interface GenType {
     _id: string;
+    leo_id: string;
     character_id: string;
     image_url: string;
     description: string;

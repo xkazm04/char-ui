@@ -1,4 +1,4 @@
-import { useState, memo, useCallback, useRef } from 'react';
+import { useState, memo, useCallback, useRef, useMemo } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import CharacterSketchCardToolbar from './CharacterSketchCardToolbar';
 import { GenType, UsedAssets } from '@/app/types/gen';
@@ -21,9 +21,7 @@ function CharacterSketchCard({
   onSelect
 }: CharacterSketchCardProps) {
   const [showDetails, setShowDetails] = useState(false);
-  const [modelGenerated, setModelGenerated] = useState(false);
   const [is3DMode, setIs3DMode] = useState(false);
-  const [modelUrl, setModelUrl] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0);
@@ -31,6 +29,15 @@ function CharacterSketchCard({
   
   const rotateX = useTransform(mouseY, [-0.5, 0.5], [5, -5]);
   const rotateY = useTransform(mouseX, [-0.5, 0.5], [-5, 5]);
+
+  // Check if model is generated from meshy data
+  const modelGenerated = useMemo(() => {
+    return !!(gen.meshy?.glb_url);
+  }, [gen.meshy?.glb_url]);
+
+  const modelUrl = useMemo(() => {
+    return gen.meshy?.glb_url || null;
+  }, [gen.meshy?.glb_url]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!cardRef.current) return;
@@ -87,13 +94,11 @@ function CharacterSketchCard({
     onSelect?.(!isSelected);
   }, [isSelected, onSelect]);
 
-
   const cardClasses = {
     'grid-small': 'aspect-square',
     'grid-medium': 'aspect-[4/5]',
     'grid-large': 'aspect-[3/4]'
   };
-
 
   return (
     <motion.div
@@ -135,7 +140,6 @@ function CharacterSketchCard({
           </motion.button>
         )}
 
-
         {/* Main Image/3D Content */}
         <CharacterSketchCardContent 
           gen={gen}
@@ -143,11 +147,11 @@ function CharacterSketchCard({
           is3DMode={is3DMode}
           modelUrl={modelUrl}
           modelGenerated={modelGenerated}
-          setModelGenerated={setModelGenerated}
           isHovered={isHovered}
           showDetails={showDetails}
           handleShowDetails={handleShowDetails}
-          />
+        />
+
         {/* Hover Border Effect */}
         <motion.div
           className="absolute inset-0 rounded-xl border-2 border-transparent"
@@ -175,10 +179,10 @@ function CharacterSketchCard({
           handleShowDetails={handleShowDetails}
           showDetails={showDetails}
           imageUrl={gen.image_url}
-          setModelGenerated={setModelGenerated}
-          setModelUrl={setModelUrl}
+          setModelGenerated={() => {}} // Not needed anymore since we use meshy data
+          setModelUrl={() => {}} // Not needed anymore since we use meshy data
           setIs3DMode={setIs3DMode}
-          compact={viewMode === 'grid-small'}
+          gen={gen}
         />
       </motion.div>
     </motion.div>

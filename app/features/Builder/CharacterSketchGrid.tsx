@@ -10,7 +10,7 @@ import CharacterSketchGridBulk from './CharacterSketchGridBulk';
 import { useCharacterStore } from '@/app/store/charStore';
 
 type ViewMode = 'grid-small' | 'grid-medium' | 'grid-large';
-type SortMode = 'newest' | 'oldest' | 'name';
+type SortMode = 'newest' | 'oldest';
 
 
 export default function CharacterSketchGrid() {
@@ -37,8 +37,6 @@ export default function CharacterSketchGrid() {
           return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
         case 'oldest':
           return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
-        case 'name':
-          return (a.prompt || '').localeCompare(b.prompt || '');
         default:
           return 0;
       }
@@ -83,11 +81,6 @@ export default function CharacterSketchGrid() {
     );
   }
 
-  // Empty state
-  if (processedSketches.length === 0 && !isGenerating) {
-    <CharacterSketchGridEmpty />
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -104,6 +97,7 @@ export default function CharacterSketchGrid() {
         isGenerating={isGenerating}
         setIsGenerating={setIsGenerating}
       />
+      {processedSketches.length == 0 && <CharacterSketchGridEmpty />}
 
       {/* Sketches Grid */}
       <div className="flex-1 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-sky-900/50 scrollbar-track-transparent">

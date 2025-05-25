@@ -1,73 +1,7 @@
 import { serverUrl } from "../constants/urls";
-import { AssetType } from "../types/asset";
-
-interface LeonardoImage {
-    url: string;
-    id: string;
-    nsfw: boolean;
-    motionMP4URL?: string;
-}
-
-interface LeonardoResponse {
-    status: string;
-    data: LeonardoImage[];
-    gen: string;
-}
-
-interface GenerationResponse {
-    status: string;
-    asset: {
-        _id: string;
-        id?: string;
-        character_id?: string;
-        image_url: string;
-        description?: string | null;
-        used_assets?: any;
-        meshy?: any;
-        created_at: string;
-        status: string;
-        message: string;
-    };
-    generation_id: string;
-}
-
-interface AssetSaveResponse {
-    status: string;
-    asset: {
-        _id: string;
-        id?: string; 
-        name: string;
-        type: string;
-        subcategory?: string;
-        gen: string;
-        description?: string;
-        image_url?: string;
-        image_embedding?: any[];
-        metadata?: Record<string, any> | null;
-        created_at: string;
-        image_data_size?: number;
-        status?: string;
-        message?: string;
-    };
-    generation_id: string;
-}
-
-type BaseGenProps = {
-    prompt: string;
-    generationId?: string | null;
-    setGenerationId: (id: string) => void;
-    setGenError: (error: boolean) => void;
-    setIsGenerating: (generating: boolean) => void;
-    setGeneratedImage: (imageUrl: string | null) => void;
-}
-
-type PropsAssetGen = BaseGenProps & {
-    asset: AssetType;
-}
-
-type AssetSaveProps = PropsAssetGen & {
-    setSavedAssetId?: (id: string) => void;
-}
+import { PropsAssetGen, PropsCharGen, AssetSaveProps 
+, GenerationResponse, AssetSaveResponse, LeonardoResponse
+} from "../types/genFnTypes";
 
 // Base function for all API calls
 async function makeApiRequest<T>({
@@ -76,10 +10,10 @@ async function makeApiRequest<T>({
     timeout = 30000,
     errorMessage = "API request failed"
 }: {
-    endpoint: string,
-    requestBody: any,
-    timeout?: number,
-    errorMessage?: string
+    endpoint: string;
+    requestBody: any;
+    timeout?: number;
+    errorMessage?: string;
 }): Promise<T> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -116,11 +50,11 @@ async function executeWithStateManagement<T>({
     setIsGenerating,
     successHandler
 }: {
-    apiCall: () => Promise<T>,
-    setGenError: (error: boolean) => void,
-    setIsGenerating: (generating: boolean) => void,
-    successHandler: (data: T) => void
-}) {
+    apiCall: () => Promise<T>;
+    setGenError: (error: boolean) => void;
+    setIsGenerating: (generating: boolean) => void;
+    successHandler: (data: T) => void;
+}): Promise<void> {
     setGenError(false);
     setIsGenerating(true);
 
@@ -143,7 +77,7 @@ export const handleAssetGeneration = async ({
     setGenError, 
     setIsGenerating, 
     setGeneratedImage 
-}: PropsAssetGen) => {
+}: PropsAssetGen): Promise<void> => {
     await executeWithStateManagement({
         apiCall: async () => {
             const requestBody = {
@@ -152,7 +86,7 @@ export const handleAssetGeneration = async ({
                 asset: asset
             };
             
-            return await makeApiRequest<LeonardoResponse>({
+            return await makeApiRequest<LeonardoResponse | GenerationResponse>({
                 endpoint: "/leo/asset",
                 requestBody,
                 errorMessage: "Failed to generate image"
@@ -160,23 +94,24 @@ export const handleAssetGeneration = async ({
         },
         setGenError,
         setIsGenerating,
-        successHandler: (data: any) => {
+        successHandler: (data: LeonardoResponse | GenerationResponse) => {
             console.log("Asset generation response:", data);
-            if (data.status === "success" && data.data && data.data.length > 0) {
-                setGenerationId(data.gen);
+            if (data.status === "success" && 'data' in data && data.data && data.data.length > 0) {
+                setGenerationId('gen' in data ? data.gen : (data as GenerationResponse).generation_id);
                 setGeneratedImage(data.data[0].url);
                 return;
             }
             
-            if (data.status === "success" && data.asset && data.generation_id) {
-                setGenerationId(data.generation_id);
+            if (data.status === "success" && 'asset' in data && data.asset && 'generation_id' in data) {
+                const genResponse = data as GenerationResponse;
+                setGenerationId(genResponse.generation_id);
                 
-                if (data.asset.image_url) {
-                    setGeneratedImage(data.asset.image_url);
+                if (genResponse.asset.image_url) {
+                    setGeneratedImage(genResponse.asset.image_url);
                     return;
                 }
                 
-                const assetId = data.asset.id || data.asset._id;
+                const assetId = genResponse.asset.id || genResponse.asset._id;
                 if (assetId) {
                     const imageUrl = `${serverUrl}/assets/image/${assetId}`;
                     setGeneratedImage(imageUrl);
@@ -188,26 +123,24 @@ export const handleAssetGeneration = async ({
     });
 };
 
-type PropsCharGen = BaseGenProps & {
-    element?: number;
-    generationId?: string | null;
-}
-
 export const handleCharacterSketch = async ({ 
     prompt, 
     element, 
+    character_id,
     setGeneratedImage, 
     generationId,
     setGenerationId, 
     setIsGenerating, 
-    setGenError 
-}: PropsCharGen) => {
+    setGenError,
+    onSuccess
+}: PropsCharGen): Promise<void> => {
     await executeWithStateManagement({
         apiCall: async () => {
             const requestBody = {
                 gen: prompt,
                 element: element || 67297,
                 generation_id: generationId,
+                character_id: character_id || null
             };
             
             return await makeApiRequest<GenerationResponse>({
@@ -222,7 +155,9 @@ export const handleCharacterSketch = async ({
             console.log("Character generation response:", data);
             
             if (data.status === "success") {
-                // Set generation ID
+                if (onSuccess) {
+                    onSuccess();
+                }
                 if (data.generation_id) {
                     setGenerationId(data.generation_id);
                 }
@@ -254,7 +189,7 @@ export const handleAssetGenerationAndSave = async ({
     setGeneratedImage,
     asset,
     setSavedAssetId
-}: AssetSaveProps) => {
+}: AssetSaveProps): Promise<void> => {
     await executeWithStateManagement({
         apiCall: async () => {
             if (!asset || typeof asset !== 'object') {
@@ -284,7 +219,7 @@ export const handleAssetGenerationAndSave = async ({
         },
         setGenError,
         setIsGenerating,
-        successHandler: (data: any) => {
+        successHandler: (data: AssetSaveResponse) => {
             console.log("Asset save response:", JSON.stringify(data, null, 2));
             
             if (data.status === "success") {

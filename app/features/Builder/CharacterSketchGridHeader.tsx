@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Grid3x3, Grid2x2, LucideImages, MoreHorizontal, SortAsc, SortDesc, Calendar, XIcon } from "lucide-react";
+import { Sparkles, Grid3x3, Grid2x2, LucideImages, MoreHorizontal, SortAsc, SortDesc, XIcon } from "lucide-react";
 import { IconButton } from "@/app/components/ui/IconButton";
 
 type ViewMode = 'grid-small' | 'grid-medium' | 'grid-large';
-type SortMode = 'newest' | 'oldest' | 'name';
+type SortMode = 'newest' | 'oldest';
 
 interface GridHeaderProps {
     sketchCount: number;
@@ -81,7 +81,6 @@ const CharacterSketchGridHeader = ({
                     >
                         {sortMode === 'newest' && <SortDesc className="h-4 w-4" />}
                         {sortMode === 'oldest' && <SortAsc className="h-4 w-4" />}
-                        {sortMode === 'name' && <Calendar className="h-4 w-4" />}
                         <MoreHorizontal className="h-4 w-4" />
                     </button>
 
@@ -96,7 +95,6 @@ const CharacterSketchGridHeader = ({
                                 {[
                                     { key: 'newest', label: 'Newest First', icon: SortDesc },
                                     { key: 'oldest', label: 'Oldest First', icon: SortAsc },
-                                    { key: 'name', label: 'By Name', icon: Calendar }
                                 ].map(({ key, label, icon: Icon }) => (
                                     <button
                                         key={key}

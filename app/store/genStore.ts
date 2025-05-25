@@ -4,6 +4,8 @@ interface GenState {
     genIsStarted: boolean;
     setGenIsStarted: (started: boolean) => void;
     startGen: () => void;
+    is3dGenerating: boolean;
+    setIs3dGenerating: (generating: boolean) => void;
 }
 
 export const useGenStore = create<GenState>((set) => ({
@@ -14,5 +16,7 @@ export const useGenStore = create<GenState>((set) => ({
         setTimeout(() => {
             set({ genIsStarted: false });
         }, 10000);
-    }
+    },
+    is3dGenerating: false,
+    setIs3dGenerating: (generating) => set({ is3dGenerating: generating }),
 }))

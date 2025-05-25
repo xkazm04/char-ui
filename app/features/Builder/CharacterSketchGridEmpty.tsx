@@ -26,14 +26,14 @@ const CharacterSketchGridEmpty = () => {
                 >
                     <Sparkles className="h-10 w-10 text-sky-400" />
                 </motion.div>
-                <h3 className="text-2xl font-semibold text-sky-200 mb-3">Ready to Create Magic</h3>
+                <h3 className="text-2xl font-semibold text-sky-200 mb-3">Generate character variation image</h3>
                 <p className="text-gray-400 mb-8 leading-relaxed">
                     Select assets from your collection and generate unique character sketches. Watch your imagination come to life!
                 </p>
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="px-6 py-3 bg-gradient-to-r from-sky-600 to-gray-600 hover:from-sky-500 hover:to-gray-500 rounded-lg cursor-pointer
+                    className="px-6 py-1 bg-gradient-to-r from-sky-600/80 to-sky-700 rounded-lg cursor-pointer
             transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-gray-950 text-white font-medium"
                     onClick={() => setAssetNavExpanded(!assetNavExpanded)}
                 >

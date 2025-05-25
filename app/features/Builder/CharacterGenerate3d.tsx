@@ -28,7 +28,8 @@ const CharacterGenerate3d = ({generationError, modelGenerated, isGenerating, is3
                     whileHover={{ scale: 1.25 }}
                     whileTap={{ scale: 0.95 }}
                     className={`px-2 py-1 text-sky-500/90 rounded cursor-pointer
-                      shadow-lg hover:text-yellow-400 transition-colors flex items-center space-x-1`}
+                        ${isGenerating ? 'bg-gray-700/90 text-gray-100' : 'hover:text-yellow-400'}
+                      shadow-lg  transition-colors flex items-center space-x-1`}
                     onClick={handleGenerate3D}
                     disabled={isGenerating}
                     title="Generate 3D model"

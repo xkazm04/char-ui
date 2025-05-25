@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { serverUrl } from '../constants/urls';
 import { GenType } from '../types/gen';
 
@@ -32,6 +32,19 @@ const fetchCharGenerations = async ({
   return response.json();
 };
 
+const deleteGeneration = async (generationId: string): Promise<void> => {
+  const response = await fetch(`${serverUrl}/gen/${generationId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({
+      detail: `HTTP error! Status: ${response.status}`
+    }));
+    throw new Error(errorData.detail || `Failed to delete generation`);
+  }
+};
+
 export const useGenerations = (
   { characterId, skip, limit }: FetchGenerationsParams = {}, 
   enabled = true
@@ -41,5 +54,22 @@ export const useGenerations = (
     queryFn: () => fetchCharGenerations({ characterId, skip, limit }),
     enabled,
     staleTime: 30 * 60 * 1000,
+  });
+};
+
+export const useDeleteGeneration = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteGeneration,
+    onSuccess: () => {
+      // Invalidate and refetch generations
+      queryClient.invalidateQueries({
+        queryKey: ['generations']
+      });
+    },
+    onError: (error) => {
+      console.error('Error deleting generation:', error);
+    },
   });
 };
