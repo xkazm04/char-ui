@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle } from "lucide-react";
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -43,6 +44,19 @@ const ConfirmationModal = ({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onConfirm, onCancel, isLoading]);
 
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   const variantStyles = {
     danger: {
       icon: 'text-red-400',
@@ -63,21 +77,22 @@ const ConfirmationModal = ({
 
   const styles = variantStyles[variant];
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
           onClick={onCancel}
+          style={{ margin: 0 }}
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
-            className={`bg-gray-900 rounded-lg shadow-xl border ${styles.border} w-full p-6`}
+            className={`bg-gray-900 rounded-lg shadow-xl border ${styles.border} w-full max-w-md p-6`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start space-x-3">
@@ -121,6 +136,11 @@ const ConfirmationModal = ({
       )}
     </AnimatePresence>
   );
+
+  // Only render portal if we're in the browser
+  if (typeof window === 'undefined') return null;
+
+  return createPortal(modalContent, document.body);
 };
 
 export default ConfirmationModal;

@@ -16,4 +16,5 @@ export interface GenType {
     description: string;
     used_assets?: UsedAssets[];
     created_at: string;
+    meshy?: any;
 } 

@@ -153,7 +153,8 @@ export default function CharacterSketchGrid() {
           <CharacterSketchGridBulk 
             selectedSketches={selectedSketches}
             setSelectedSketches={setSelectedSketches}
-            />
+            characterId={currentCharacter?.id}
+          />
         )}
       </AnimatePresence>
     </motion.div>

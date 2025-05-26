@@ -3,7 +3,7 @@ import { Zap, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import CharacterSketchCardOverlay from "./CharacterSketchCardOverlay";
 import { useState, useMemo } from "react";
-import ModelViewer from "../Model/ModelViewer";
+import ModelViewer from "../../../../features/Model/ModelViewer";
 import { UsedAssets } from "@/app/types/gen";
 
 type Props = {
@@ -29,7 +29,6 @@ type Props = {
         };
     };
     is3DMode: boolean;
-    modelGenerated: boolean;
     modelUrl: string | null;
     showDetails: boolean;
     usedAssets?: UsedAssets[];
@@ -39,8 +38,7 @@ type Props = {
 
 const CharacterSketchCardContent = ({
     is3DMode, 
-    gen, 
-    modelGenerated, 
+    gen,  
     modelUrl, 
     showDetails, 
     usedAssets, 
@@ -49,7 +47,6 @@ const CharacterSketchCardContent = ({
 }: Props) => {
     const [imageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState(false);
-    const [modelError, setModelError] = useState<string | null>(null);
     const createdDate = new Date(gen.created_at || Date.now()).toLocaleDateString();
 
     // Check if we have meshy data and use it
@@ -87,7 +84,7 @@ const CharacterSketchCardContent = ({
     }, [has3DModel, gen.meshy?.glb_url, gen.meshy?.fbx_url, gen.meshy?.obj_url, modelUrl, gen._id]);
 
     const meshyStatus = gen.meshy?.status || 'unknown';
-    const hasError = gen.meshy?.task_error || modelError;
+    const hasError = gen.meshy?.task_error;
 
     return (
         <div className="relative w-full h-full overflow-hidden rounded-xl">

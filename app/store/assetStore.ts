@@ -29,6 +29,9 @@ interface AssetState {
   getTotalAssetCount: () => number;
   getAssetsByCategory: (category: MainCategoryType) => AssetType[];
   getAllSelectedAssets: () => AssetType[];
+  
+  // Helper to rebuild prompt from current assets
+  rebuildAssetPrompt: () => void;
 }
 
 export const useAssetStore = create<AssetState>()(
@@ -45,7 +48,7 @@ export const useAssetStore = create<AssetState>()(
       addAsset: (asset) =>
         set((state) => {
           // Ensure asset has an ID
-          if (!asset._id && !asset.id) {
+          if (!asset._id) {
             console.warn('Asset missing ID, cannot add to store');
             return state;
           }
@@ -58,7 +61,7 @@ export const useAssetStore = create<AssetState>()(
           const normalizedAsset = {
             ...asset,
             type: validType,
-            id: asset.id || asset._id // Ensure we have an id field
+            id: asset._id 
           };
           
           // Check if asset already exists in the category
@@ -72,15 +75,28 @@ export const useAssetStore = create<AssetState>()(
             return state;
           }
           
-          // Update asset prompt
-          const updatedPrompt = state.assetPrompt 
-            ? `${state.assetPrompt}, ${normalizedAsset.gen || normalizedAsset.name}`
-            : (normalizedAsset.gen || normalizedAsset.name);
+          // Add asset to category
+          const newState = {
+            ...state,
+            [validType]: [...existingAssets, normalizedAsset]
+          };
+          
+          // Rebuild prompt from all assets
+          const allAssets = [
+            ...newState.Body,
+            ...newState.Equipment,
+            ...newState.Clothing,
+            ...newState.Background
+          ];
+          
+          const promptParts = allAssets
+            .map(asset => asset.gen || asset.name)
+            .filter(Boolean)
+            .filter((value, index, self) => self.indexOf(value) === index); // Remove duplicates
           
           return {
-            ...state,
-            [validType]: [...existingAssets, normalizedAsset],
-            assetPrompt: updatedPrompt
+            ...newState,
+            assetPrompt: promptParts.join(', ')
           };
         }),
 
@@ -95,23 +111,30 @@ export const useAssetStore = create<AssetState>()(
             return state;
           }
           
-          // Update asset prompt
-          const genToRemove = assetToRemove.gen || assetToRemove.name;
-          let updatedAssetPrompt = state.assetPrompt;
-          
-          if (genToRemove && updatedAssetPrompt) {
-            updatedAssetPrompt = updatedAssetPrompt
-              .split(', ')
-              .filter(item => item.trim() !== genToRemove.trim())
-              .join(', ');
-          }
-          
-          return {
+          // Remove asset from category
+          const newState = {
             ...state,
             [type]: state[type].filter(asset => 
               asset._id !== assetId && asset.id !== assetId
-            ),
-            assetPrompt: updatedAssetPrompt
+            )
+          };
+          
+          // Rebuild prompt from remaining assets
+          const allRemainingAssets = [
+            ...newState.Body,
+            ...newState.Equipment,
+            ...newState.Clothing,
+            ...newState.Background
+          ];
+          
+          const promptParts = allRemainingAssets
+            .map(asset => asset.gen || asset.name)
+            .filter(Boolean)
+            .filter((value, index, self) => self.indexOf(value) === index); // Remove duplicates
+          
+          return {
+            ...newState,
+            assetPrompt: promptParts.join(', ')
           };
         }),
 
@@ -128,25 +151,28 @@ export const useAssetStore = create<AssetState>()(
             };
           }
           
-          // Remove gen strings from prompt for the specific type
-          const genStringsToRemove = state[type]
+          // Clear specific category
+          const newState = {
+            ...state,
+            [type]: []
+          };
+          
+          // Rebuild prompt from remaining assets
+          const allRemainingAssets = [
+            ...newState.Body,
+            ...newState.Equipment,
+            ...newState.Clothing,
+            ...newState.Background
+          ];
+          
+          const promptParts = allRemainingAssets
             .map(asset => asset.gen || asset.name)
-            .filter(Boolean);
-            
-          let updatedAssetPrompt = state.assetPrompt;
-          genStringsToRemove.forEach(gen => {
-            if (gen) {
-              updatedAssetPrompt = updatedAssetPrompt
-                .split(', ')
-                .filter(item => item.trim() !== gen.trim())
-                .join(', ');
-            }
-          });
+            .filter(Boolean)
+            .filter((value, index, self) => self.indexOf(value) === index); // Remove duplicates
           
           return {
-            ...state,
-            [type]: [],
-            assetPrompt: updatedAssetPrompt
+            ...newState,
+            assetPrompt: promptParts.join(', ')
           };
         }),
 
@@ -157,6 +183,26 @@ export const useAssetStore = create<AssetState>()(
           Clothing: [],
           Background: [],
           assetPrompt: ''
+        }),
+
+      rebuildAssetPrompt: () =>
+        set((state) => {
+          const allAssets = [
+            ...state.Body,
+            ...state.Equipment,
+            ...state.Clothing,
+            ...state.Background
+          ];
+          
+          const promptParts = allAssets
+            .map(asset => asset.gen || asset.name)
+            .filter(Boolean)
+            .filter((value, index, self) => self.indexOf(value) === index); // Remove duplicates
+          
+          return {
+            ...state,
+            assetPrompt: promptParts.join(', ')
+          };
         }),
       
       setGroupExpanded: (groupId, expanded) => 
@@ -206,7 +252,7 @@ export const useAssetStore = create<AssetState>()(
     }),
     {
       name: 'character-assets-storage',
-      version: 1 // Add version to help with migrations if needed
+      version: 2 // Increment version due to logic changes
     }
   )
 );

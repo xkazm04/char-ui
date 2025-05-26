@@ -2,6 +2,7 @@ import { serverUrl } from "../constants/urls";
 import { PropsAssetGen, PropsCharGen, AssetSaveProps 
 , GenerationResponse, AssetSaveResponse, LeonardoResponse
 } from "../types/genFnTypes";
+import { AssetType } from "../types/asset";
 
 // Base function for all API calls
 async function makeApiRequest<T>({
@@ -69,6 +70,18 @@ async function executeWithStateManagement<T>({
     }
 }
 
+// Helper function to transform frontend assets to backend format
+function transformAssetsForBackend(assets: AssetType[]) {
+    return assets.map(asset => ({
+        id: asset._id,
+        name: asset.name,
+        type: asset.type.toLowerCase(), // Convert to lowercase for consistency
+        subcategory: asset.subcategory || asset.type.toLowerCase(),
+        description: asset.description || "",
+        image_data: asset.image_data_base64 || ""
+    }));
+}
+
 export const handleAssetGeneration = async ({ 
     asset, 
     prompt, 
@@ -127,6 +140,7 @@ export const handleCharacterSketch = async ({
     prompt, 
     element, 
     character_id,
+    used_assets = [],
     setGeneratedImage, 
     generationId,
     setGenerationId, 
@@ -140,8 +154,11 @@ export const handleCharacterSketch = async ({
                 gen: prompt,
                 element: element || 67297,
                 generation_id: generationId,
-                character_id: character_id || null
+                character_id: character_id || null,
+                used_assets: transformAssetsForBackend(used_assets)
             };
+            
+            console.log("Sending character generation request with assets:", requestBody.used_assets);
             
             return await makeApiRequest<GenerationResponse>({
                 endpoint: "/leo/generation",

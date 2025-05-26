@@ -1,9 +1,10 @@
 import { useState, memo, useCallback, useRef, useMemo } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
-import CharacterSketchCardToolbar from './CharacterSketchCardToolbar';
+import CharacterSketchCardToolbar from '../../components/ui/Cards/CharSketchCard/CharacterSketchCardToolbar';
 import { GenType, UsedAssets } from '@/app/types/gen';
-import { CheckSquare, Square } from 'lucide-react';
-import CharacterSketchCardContent from './CharacterSketchCardContent';
+import CharacterSketchCardContent from '../../components/ui/Cards/CharSketchCard/CharacterSketchCardContent';
+import CharacterImageModal from './CharacterImageModal';
+import Character3DModal from '../Model/Character3DModal';
 
 interface CharacterSketchCardProps {
   gen: GenType;
@@ -23,21 +24,22 @@ function CharacterSketchCard({
   const [showDetails, setShowDetails] = useState(false);
   const [is3DMode, setIs3DMode] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [show3DModal, setShow3DModal] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   
-  const rotateX = useTransform(mouseY, [-0.5, 0.5], [5, -5]);
-  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-5, 5]);
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], [2, -2]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-2, 2]);
 
-  // Check if model is generated from meshy data
   const modelGenerated = useMemo(() => {
-    return !!(gen.meshy?.glb_url);
-  }, [gen.meshy?.glb_url]);
+    return !!(gen.meshy?.glb_url || gen.meshy?.fbx_url || gen.meshy?.obj_url);
+  }, [gen.meshy?.glb_url, gen.meshy?.fbx_url, gen.meshy?.obj_url]);
 
   const modelUrl = useMemo(() => {
-    return gen.meshy?.glb_url || null;
-  }, [gen.meshy?.glb_url]);
+    return gen.meshy?.glb_url || gen.meshy?.fbx_url || gen.meshy?.obj_url || null;
+  }, [gen.meshy?.glb_url, gen.meshy?.fbx_url, gen.meshy?.obj_url]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!cardRef.current) return;
@@ -49,8 +51,8 @@ function CharacterSketchCard({
     const x = (e.clientX - centerX) / (rect.width / 2);
     const y = (e.clientY - centerY) / (rect.height / 2);
     
-    mouseX.set(x);
-    mouseY.set(y);
+    mouseX.set(x * 0.5);
+    mouseY.set(y * 0.5);
   }, [mouseX, mouseY]);
 
   const handleMouseLeave = useCallback(() => {
@@ -58,6 +60,14 @@ function CharacterSketchCard({
     mouseY.set(0);
     setIsHovered(false);
   }, [mouseX, mouseY]);
+
+  const handleCardClick = useCallback(() => {
+    if (is3DMode && modelGenerated) {
+      setShow3DModal(true);
+    } else {
+      setShowImageModal(true);
+    }
+  }, [is3DMode, modelGenerated]);
 
   const handleDownload = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -89,11 +99,6 @@ function CharacterSketchCard({
     }
   }, [modelGenerated]);
 
-  const handleSelect = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onSelect?.(!isSelected);
-  }, [isSelected, onSelect]);
-
   const cardClasses = {
     'grid-small': 'aspect-square',
     'grid-medium': 'aspect-[4/5]',
@@ -101,91 +106,111 @@ function CharacterSketchCard({
   };
 
   return (
-    <motion.div
-      ref={cardRef}
-      className="group relative"
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={handleMouseLeave}
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.2 }}
-    >
+    <>
       <motion.div
-        className={`relative rounded-xl overflow-hidden border border-gray-800/50 bg-gradient-to-br from-gray-900/40 to-gray-800/40 backdrop-blur-sm ${cardClasses[viewMode]} ${
-          isSelected ? 'ring-2 ring-sky-500 ring-opacity-60' : ''
-        }`}
-        style={{
-          rotateX: isHovered ? rotateX : 0,
-          rotateY: isHovered ? rotateY : 0,
-          transformPerspective: 1000,
-        }}
-        transition={{ duration: 0.1 }}
+        ref={cardRef}
+        className="group relative cursor-pointer"
+        onMouseMove={handleMouseMove}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={handleMouseLeave}
+        onClick={handleCardClick}
+        whileHover={{ y: -5 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ duration: 0.2 }}
       >
-        {/* Selection Checkbox */}
-        {onSelect && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ 
-              opacity: isHovered || isSelected ? 1 : 0, 
-              scale: isHovered || isSelected ? 1 : 0.8 
-            }}
-            onClick={handleSelect}
-            className="absolute top-3 left-3 z-20 p-1.5 bg-gray-900/80 backdrop-blur rounded-lg hover:bg-gray-800/80 transition-all"
-          >
-            {isSelected ? (
-              <CheckSquare className="h-4 w-4 text-sky-400" />
-            ) : (
-              <Square className="h-4 w-4 text-gray-400" />
-            )}
-          </motion.button>
-        )}
-
-        {/* Main Image/3D Content */}
-        <CharacterSketchCardContent 
-          gen={gen}
-          usedAssets={usedAssets}
-          is3DMode={is3DMode}
-          modelUrl={modelUrl}
-          modelGenerated={modelGenerated}
-          isHovered={isHovered}
-          showDetails={showDetails}
-          handleShowDetails={handleShowDetails}
-        />
-
-        {/* Hover Border Effect */}
         <motion.div
-          className="absolute inset-0 rounded-xl border-2 border-transparent"
-          animate={{
-            borderColor: isHovered 
-              ? 'rgba(56, 189, 248, 0.3)' 
-              : 'transparent'
+          className={`relative rounded-xl overflow-hidden border border-gray-800/50 bg-gradient-to-br from-gray-900/40 to-gray-800/40 backdrop-blur-sm ${cardClasses[viewMode]} ${
+            isSelected ? 'ring-2 ring-sky-500 ring-opacity-60 shadow-lg shadow-sky-500/20' : ''
+          }`}
+          style={{
+            rotateX: isHovered ? rotateX : 0,
+            rotateY: isHovered ? rotateY : 0,
+            transformPerspective: 1000,
           }}
-          transition={{ duration: 0.2 }}
-        />
+          transition={{ duration: 0.1 }}
+        >
+          {/* Main Content */}
+          <CharacterSketchCardContent 
+            gen={gen}
+            usedAssets={usedAssets}
+            is3DMode={is3DMode}
+            modelUrl={modelUrl}
+            isHovered={isHovered}
+            showDetails={showDetails}
+            handleShowDetails={handleShowDetails}
+          />
+
+          {/* Interactive Hover Effects */}
+          <motion.div
+            className="absolute inset-0 rounded-xl bg-gradient-to-t from-sky-500/0 via-transparent to-sky-500/0"
+            animate={{
+              background: isHovered 
+                ? 'linear-gradient(to top, rgba(56, 189, 248, 0.1), transparent, rgba(56, 189, 248, 0.05))'
+                : 'linear-gradient(to top, transparent, transparent, transparent)'
+            }}
+            transition={{ duration: 0.3 }}
+          />
+
+          {/* Click hint overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isHovered ? 1 : 0 }}
+            className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[1px]"
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ 
+                scale: isHovered ? 1 : 0.8,
+                opacity: isHovered ? 1 : 0 
+              }}
+              className="px-4 py-2 bg-gray-900/80 rounded-lg text-white text-sm font-medium"
+            >
+              {is3DMode && modelGenerated ? 'View 3D Model' : 'View Full Size'}
+            </motion.div>
+          </motion.div>
+        </motion.div>
+
+        {/* Enhanced Toolbar */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mt-3"
+        >
+          <CharacterSketchCardToolbar 
+            modelGenerated={modelGenerated}
+            is3DMode={is3DMode}
+            handleToggle3D={handleToggle3D}
+            handleDownload={handleDownload}
+            handleShowDetails={handleShowDetails}
+            showDetails={showDetails}
+            imageUrl={gen.image_url}
+            setModelGenerated={() => {}}
+            setModelUrl={() => {}}
+            setIs3DMode={setIs3DMode}
+            gen={gen}
+            isSelected={isSelected}
+            onSelect={onSelect}
+          />
+        </motion.div>
       </motion.div>
 
-      {/* Enhanced Toolbar */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="mt-3"
-      >
-        <CharacterSketchCardToolbar 
-          modelGenerated={modelGenerated}
-          is3DMode={is3DMode}
-          handleToggle3D={handleToggle3D}
-          handleDownload={handleDownload}
-          handleShowDetails={handleShowDetails}
-          showDetails={showDetails}
-          imageUrl={gen.image_url}
-          setModelGenerated={() => {}} // Not needed anymore since we use meshy data
-          setModelUrl={() => {}} // Not needed anymore since we use meshy data
-          setIs3DMode={setIs3DMode}
-          gen={gen}
-        />
-      </motion.div>
-    </motion.div>
+      {/* Modals */}
+      <CharacterImageModal
+        isOpen={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        gen={gen}
+        usedAssets={usedAssets}
+      />
+
+      <Character3DModal
+        isOpen={show3DModal}
+        onClose={() => setShow3DModal(false)}
+        gen={gen}
+        modelUrl={modelUrl}
+      />
+    </>
   );
 }
 

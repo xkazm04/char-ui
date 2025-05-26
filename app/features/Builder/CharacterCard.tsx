@@ -6,11 +6,20 @@ import CharacterSelector from './CharacterSelector';
 import { useNavStore } from '@/app/store/navStore';
 import GlowingText from '@/app/components/landing/GlowingText';
 import { useAssetStore } from '@/app/store/assetStore';
+import { useEffect } from 'react';
+import { characters } from '@/app/data/characters';
 
 export default function CharacterCard() {
-  const { currentCharacter } = useCharacterStore();
+  const { currentCharacter, setCurrentCharacter } = useCharacterStore();
   const { charNavExpanded, setCharNavExpanded } = useNavStore()
   const { isGenerating } = useAssetStore()
+
+  useEffect(() => {
+    if (!currentCharacter && characters.length > 0) {
+      setCurrentCharacter(characters[0].id);
+    }
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="relative w-full max-w-[300px] h-full overflow-hidden">

@@ -4,6 +4,7 @@ import { useAssetStore } from '@/app/store/assetStore';
 import { RefreshCcw } from 'lucide-react';
 import BuilderAssetGroup from './BuilderAssetGroup';
 import BuilderGenSketch from './BuilderGenSketch';
+import { useNavStore } from '@/app/store/navStore';
 
 const BuilderAction = () => {
   const { 
@@ -28,7 +29,7 @@ const BuilderAction = () => {
 
   const hasAnyAssets = categories.some(category => category.assets.length > 0);
   const totalAssetCount = categories.reduce((sum, category) => sum + category.assets.length, 0);
-
+  const { assetNavExpanded } = useNavStore()
   const handleClearAll = () => {
     clearAllAssets();
   };
@@ -54,13 +55,13 @@ const BuilderAction = () => {
             </p>
           )}
         </div>
-        <div className="flex space-x-2">
+        <div className={`flex space-x-2 transition-all duration-300 
+          ${assetNavExpanded && 'lg:pr-40 3xl:pr-10'}`}>
           <BuilderGenSketch 
             isGenerating={isGenerating}
             setIsGenerating={setIsGenerating}
             hasAnyAssets={hasAnyAssets}
           />
-          
           {hasAnyAssets && (
             <motion.button
               whileTap={{ scale: 0.97 }}

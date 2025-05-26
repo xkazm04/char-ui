@@ -1,4 +1,4 @@
-import { LucideSparkles, Palette } from "lucide-react";
+import { LucideSparkles, Palette, AlertTriangle } from "lucide-react";
 import { m } from "framer-motion";
 import { handleCharacterSketch } from "@/app/functions/leoFns";
 import { useAssetStore } from "@/app/store/assetStore";
@@ -7,6 +7,7 @@ import { useCharacterStore } from "@/app/store/charStore";
 import { useGenerations } from "@/app/functions/genFns";
 import { IMAGE_STYLES, type ImageStyle } from "@/app/constants/imageStyles";
 import { StylePickerModal } from "@/app/components/ui/modal";
+import { usePromptStore } from "@/app/store/promptStore";
 
 type Props = {
     isGenerating: boolean;
@@ -15,11 +16,11 @@ type Props = {
 }
 
 const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) => {
-    const { assetPrompt } = useAssetStore()
+    const { assetPrompt, getAllSelectedAssets } = useAssetStore()
     const [ genError, setGenError ] = useState<boolean>(false)
     const [generationId, setGenerationId] = useState<string | null>(null);
     const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-    const [stylePrompt, setStylePrompt] = useState<string>(''); 
+    const {stylePrompt, setStylePrompt, promptLimit} = usePromptStore() 
     const [selectedStyle, setSelectedStyle] = useState<ImageStyle>(IMAGE_STYLES[0]);
     const [isStylePickerOpen, setIsStylePickerOpen] = useState<boolean>(false);
     const { currentCharacter } = useCharacterStore()
@@ -29,7 +30,8 @@ const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) 
     });
 
     const char = currentCharacter?.description || ''
-    const fullPrompt = char + assetPrompt + stylePrompt;
+    const fullPrompt = char + assetPrompt  + stylePrompt;
+    const isOverLimit = promptLimit && fullPrompt.length > promptLimit;
 
     const handleStyleSelect = (style: ImageStyle) => {
         setSelectedStyle(style);
@@ -37,10 +39,16 @@ const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) 
     };
 
     const handleGenerate = async () => {
+        // Get all selected assets from the store
+        const selectedAssets = getAllSelectedAssets();
+        
+        console.log("Selected assets for generation:", selectedAssets);
+        
         handleCharacterSketch({
             prompt: fullPrompt,
             element: currentCharacter?.element, 
             character_id: currentCharacter?.id,
+            used_assets: selectedAssets, // Pass the selected assets
             generationId,
             setGenerationId,
             setGenError,
@@ -52,6 +60,8 @@ const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) 
         });
     };
 
+    const canGenerate = hasAnyAssets && !isGenerating && !isOverLimit;
+
     return (
         <>
             <div className="flex items-center gap-3">
@@ -62,6 +72,19 @@ const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) 
                         transition={{ duration: 0.3 }} 
                         className="text-red-400/50">
                         Processing error - service down
+                    </m.div>
+                }
+
+                {/* Prompt limit warning */}
+                {isOverLimit && 
+                    <m.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                        className="flex items-center gap-1 text-red-400/80 text-sm"
+                    >
+                        <AlertTriangle className="w-4 h-4" />
+                        <span>Prompt too long</span>
                     </m.div>
                 }
                 
@@ -80,12 +103,13 @@ const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) 
 
                 {/* Generate Button */}
                 <m.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    disabled={!hasAnyAssets || isGenerating}
+                    whileHover={{ scale: canGenerate ? 1.03 : 1 }}
+                    whileTap={{ scale: canGenerate ? 0.97 : 1 }}
+                    disabled={!canGenerate}
                     onClick={handleGenerate}
-                    className={`px-4 py-2 rounded-md text-sm flex items-center transition-all duration-200 ${genError ? 'border border-red-500' : ''}
-                        ${hasAnyAssets && !isGenerating
+                    className={`px-4 py-2 rounded-md text-sm flex items-center transition-all duration-200 relative
+                        ${genError || isOverLimit ? 'border border-red-500' : ''}
+                        ${canGenerate
                         ? 'bg-gradient-to-r from-sky-700 to-sky-600 hover:from-sky-600 hover:to-sky-500 text-white shadow-lg hover:shadow-xl'
                         : 'bg-gray-700/50 text-gray-400 cursor-not-allowed'
                         }`}
@@ -107,12 +131,21 @@ const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) 
                         <>
                             <LucideSparkles className="mr-2 h-4 w-4" />
                             Generate
+                            {isOverLimit && (
+                                <m.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ duration: 0.2, delay: 0.1 }}
+                                    className="absolute -top-1 -right-1"
+                                >
+                                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                                </m.div>
+                            )}
                         </>
                     )}
                 </m.button>
             </div>
 
-            {/* Style Picker Modal */}
             <StylePickerModal
                 isOpen={isStylePickerOpen}
                 selectedStyle={selectedStyle}
