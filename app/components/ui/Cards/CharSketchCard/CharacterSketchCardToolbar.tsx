@@ -1,4 +1,4 @@
-import { Info, LucideDownload, CheckSquare, Square } from "lucide-react";
+import { Info, CheckSquare, Square } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
 import { serverUrl } from "@/app/constants/urls";
@@ -6,7 +6,6 @@ import CharacterGenerate3d from "../../../../features/Builder/CharacterGenerate3
 import CharacterDelete from "../../../../features/Builder/CharacterDelete";
 import { GenType } from "@/app/types/gen";
 import { useGenStore } from "@/app/store/genStore";
-import { downloadImage } from "@/app/utils/downloadHelpers";
 
 type Props = {
   modelGenerated: boolean;
@@ -28,7 +27,6 @@ const CharacterCardToolbar = ({
   modelGenerated, 
   is3DMode, 
   handleToggle3D, 
-  handleDownload, 
   handleShowDetails, 
   showDetails,
   imageUrl, 
@@ -94,12 +92,6 @@ const CharacterCardToolbar = ({
     onSelect?.(!isSelected);
   }, [isSelected, onSelect]);
 
-  const handleDownloadClick = useCallback(async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const filename = imageUrl.split('/').pop() || 'character-sketch.png';
-    await downloadImage(imageUrl, filename);
-  }, [imageUrl]);
-
   const handleInfoClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     handleShowDetails(e);
@@ -142,7 +134,7 @@ const CharacterCardToolbar = ({
           setIs3dGenerating(false);
           clearInterval(intervalId);
         }
-      }, 3000);
+      }, 10000);
     }
 
     return () => {
@@ -173,17 +165,6 @@ const CharacterCardToolbar = ({
             {isSelected ? <CheckSquare size={18} /> : <Square size={18} />}
           </motion.button>
         )}
-
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className="p-2 text-sky-200 rounded-md hover:bg-gray-800/50 hover:text-sky-400 transition-colors cursor-pointer"
-          onClick={handleDownloadClick}
-          aria-label="Download image"
-          title="Download image"
-        >
-          <LucideDownload size={18} />
-        </motion.button>
 
         <motion.button
           whileHover={{ scale: 1.1 }}

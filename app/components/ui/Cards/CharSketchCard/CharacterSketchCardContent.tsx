@@ -5,6 +5,7 @@ import CharacterSketchCardOverlay from "./CharacterSketchCardOverlay";
 import { useState, useMemo } from "react";
 import ModelViewer from "../../../../features/Model/ModelViewer";
 import { UsedAssets } from "@/app/types/gen";
+import { getBestModelUrl, getProxiedThumbnail } from "@/app/functions/meshyFns";
 
 type Props = {
     gen: {
@@ -16,6 +17,7 @@ type Props = {
             glb_url?: string;
             fbx_url?: string;
             obj_url?: string;
+            usdz_url?: string;
             thumbnail_url?: string;
             texture_prompt?: string;
             texture_urls?: Array<{
@@ -47,44 +49,42 @@ const CharacterSketchCardContent = ({
 }: Props) => {
     const [imageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState(false);
-    const createdDate = new Date(gen.created_at || Date.now()).toLocaleDateString();
 
     // Check if we have meshy data and use it
     const has3DModel = useMemo(() => {
-        return !!(gen.meshy?.glb_url || gen.meshy?.fbx_url || gen.meshy?.obj_url || modelUrl);
-    }, [gen.meshy?.glb_url, gen.meshy?.fbx_url, gen.meshy?.obj_url, modelUrl]);
+        return !!(gen.meshy?.glb_url || gen.meshy?.fbx_url || gen.meshy?.obj_url || gen.meshy?.usdz_url || modelUrl);
+    }, [gen.meshy?.glb_url, gen.meshy?.fbx_url, gen.meshy?.obj_url, gen.meshy?.usdz_url, modelUrl]);
 
     const getModelData = useMemo(() => {
         if (!has3DModel) return null;
 
-        // Try different formats in order of preference: GLB -> FBX -> OBJ -> fallback
-        let modelPath = gen.meshy?.glb_url || modelUrl;
-        let format: "glb" | "fbx" | "obj" = "glb";
+        // Use the helper function to get the best proxied model URL
+        const proxiedModelUrl = getBestModelUrl(gen) || modelUrl;
+        
+        if (!proxiedModelUrl) return null;
 
-        if (!modelPath && gen.meshy?.fbx_url) {
-            modelPath = gen.meshy.fbx_url;
-            format = "fbx";
-        }
+        // Determine format from the URL
+        let format: "glb" | "fbx" | "obj" | "usdz" = "glb";
+        
+        if (proxiedModelUrl.includes('/fbx')) format = "fbx";
+        else if (proxiedModelUrl.includes('/obj')) format = "obj";
+        else if (proxiedModelUrl.includes('/usdz')) format = "usdz";
 
-        if (!modelPath && gen.meshy?.obj_url) {
-            modelPath = gen.meshy.obj_url;
-            format = "obj";
-        }
-
-        if (!modelPath) return null;
-
-        console.log(`Using ${format} model:`, modelPath);
+        console.log(`Using ${format} model via proxy:`, proxiedModelUrl);
 
         return {
             id: `character-model-${gen._id}`,
             name: "Character Model",
-            path: modelPath,
+            path: proxiedModelUrl,
             format,
         };
-    }, [has3DModel, gen.meshy?.glb_url, gen.meshy?.fbx_url, gen.meshy?.obj_url, modelUrl, gen._id]);
+    }, [has3DModel, gen, modelUrl]);
 
     const meshyStatus = gen.meshy?.status || 'unknown';
     const hasError = gen.meshy?.task_error;
+
+    // Get proxied thumbnail for potential use
+    const proxiedThumbnail = getProxiedThumbnail(gen);
 
     return (
         <div className="relative w-full h-full overflow-hidden rounded-xl">
@@ -104,12 +104,7 @@ const CharacterSketchCardContent = ({
                             defaultVariant="Default"
                         />
                         
-                        {/* Status indicators */}
-                        <div className="absolute top-2 left-2 px-2 py-1 bg-green-600/80 rounded-md text-xs text-white font-medium">
-                            3D Model ({getModelData.format.toUpperCase()})
-                        </div>
-                        
-                        {gen.meshy?.thumbnail_url && (
+                        {proxiedThumbnail && (
                             <div className="absolute bottom-2 right-2 px-2 py-1 bg-gray-900/80 rounded-md text-xs text-gray-300">
                                 Meshy AI
                             </div>
@@ -165,8 +160,8 @@ const CharacterSketchCardContent = ({
 
                         {/* 3D Model Available Indicator */}
                         {has3DModel && (
-                            <div className="absolute top-2 right-2 px-2 py-1 bg-green-600/80 rounded-md text-xs text-white font-medium">
-                                3D Available
+                            <div className="absolute top-2 right-2 px-2 py-1 text-yellow-400/80 rounded-md text-xs font-bold">
+                                3D
                             </div>
                         )}
 
@@ -203,12 +198,6 @@ const CharacterSketchCardContent = ({
                 className="absolute bottom-3 left-3 right-3"
             >
                 <div className="flex items-center justify-between text-xs text-gray-300">
-                    <span className="text-gray-400">{createdDate}</span>
-                    {has3DModel && (
-                        <span className="text-green-400 text-xs">
-                            3D Ready ({getModelData?.format.toUpperCase()})
-                        </span>
-                    )}
                     {gen.meshy?.meshy_id && meshyStatus === 'processing' && (
                         <span className="text-yellow-400 text-xs">3D Processing</span>
                     )}

@@ -5,189 +5,207 @@ import {
   Environment, 
   ContactShadows, 
   Html,
-  BakeShadows,
   Center,
   AccumulativeShadows,
   RandomizedLight,
-  GradientTexture,
-  OrbitControls
+  Backdrop,
 } from '@react-three/drei';
 import useModelLoader from './useModelLoader';
 import { ModelInfo } from './ModelViewer';
+import PatternedBackground from '@/app/components/3d/PatternedBackground';
+import LightingSystem from '@/app/components/3d/LightingSystem';
 
 interface ModelViewProps {
   modelInfo: ModelInfo;
   variant: string;
-  showFloor?: boolean; // Add option to hide floor
+  showFloor?: boolean;
+  lightingPreset?: string;
 }
 
 const ModelView: React.FC<ModelViewProps> = ({ 
   modelInfo, 
   variant,
-  showFloor = false // Default to false to hide floor
+  showFloor = true,
+  lightingPreset = 'studio'
 }) => {
   const { model, error, isLoading } = useModelLoader({
     path: modelInfo.path,
     format: modelInfo.format
   });
 
-  const spotLightRef = useRef<THREE.SpotLight>(null);
-
-  const wireframe = variant === 'Wireframe';
-  const textured = variant === 'Textured';
-  const animated = variant === 'Animated';
+  const groupRef = useRef<THREE.Group>(null);
+  const originalMaterials = useRef<Map<THREE.Mesh, THREE.Material | THREE.Material[]>>(new Map());
 
   // Animation effect
   useFrame((state) => {
-    if (model && animated) {
-      model.rotation.y = state.clock.getElapsedTime() * 0.3;
-    }
-
-    if (spotLightRef.current && model) {
-      spotLightRef.current.position.x = 5 * Math.sin(state.clock.getElapsedTime() * 0.5);
-      spotLightRef.current.position.z = 5 * Math.cos(state.clock.getElapsedTime() * 0.5);
-      spotLightRef.current.lookAt(0, 0, 0);
+    if (groupRef.current && variant === 'Animated') {
+      groupRef.current.rotation.y = state.clock.getElapsedTime() * 0.5;
     }
   });
 
   if (error) {
     return (
-      <mesh>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="red" />
-        <Html position={[0, 1.5, 0]}>
-          <div className="bg-red-800 p-2 text-white rounded text-xs">
-            Error loading model
-          </div>
-        </Html>
-      </mesh>
+      <Html center>
+        <div className="bg-red-900/80 p-4 text-white rounded-lg text-center max-w-md">
+          <div className="text-4xl mb-2">⚠️</div>
+          <h3 className="font-semibold mb-2">Model Load Error</h3>
+          <p className="text-sm text-red-200">{error.message}</p>
+        </div>
+      </Html>
     );
   }
 
   if (isLoading || !model) {
     return (
-      <mesh>
-        <sphereGeometry args={[0.5, 16, 16]} />
-        <meshStandardMaterial color="#444" wireframe />
-      </mesh>
+      <Html center>
+        <div className="bg-gray-900/90 p-6 rounded-lg border border-sky-500/20">
+          <div className="flex flex-col items-center">
+            <div className="w-8 h-8 border-2 border-sky-500 rounded-full animate-spin border-t-transparent mb-3"></div>
+            <p className="text-gray-300 font-medium">Loading 3D Model...</p>
+          </div>
+        </div>
+      </Html>
     );
   }
 
-  // Apply material modification based on variant
-  if (wireframe && model.traverse) {
+  // Store original materials on first load
+  if (originalMaterials.current.size === 0) {
     model.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        if (Array.isArray(child.material)) {
-          child.material.forEach(mat => {
-            mat.wireframe = true;
-          });
-        } else if (child.material) {
-          child.material.wireframe = true;
-        }
+      if (child instanceof THREE.Mesh && child.material) {
+        originalMaterials.current.set(child, child.material);
       }
     });
   }
 
-  // Enhance materials for better rendering
+  // Apply variant effects
   model.traverse((child) => {
     if (child instanceof THREE.Mesh) {
-      if (child.material) {
-        if (textured) {
-          child.material.envMapIntensity = 1.2;
-          child.castShadow = true;
-          child.receiveShadow = true;
-        }
+      const originalMaterial = originalMaterials.current.get(child);
+      if (!originalMaterial) return;
+
+      switch (variant) {
+        case 'Wireframe':
+          if (Array.isArray(originalMaterial)) {
+            child.material = originalMaterial.map(mat => {
+              const newMat = mat.clone();
+              newMat.wireframe = true;
+              newMat.color = new THREE.Color(0x00ffff);
+              return newMat;
+            });
+          } else {
+            const newMat = originalMaterial.clone();
+            newMat.wireframe = true;
+            newMat.color = new THREE.Color(0x00ffff);
+            child.material = newMat;
+          }
+          break;
+
+        case 'Textured':
+          if (Array.isArray(originalMaterial)) {
+            child.material = originalMaterial.map(mat => {
+              const newMat = mat.clone();
+              newMat.envMapIntensity = 1.5;
+              newMat.roughness = 0.3;
+              newMat.metalness = 0.1;
+              return newMat;
+            });
+          } else {
+            const newMat = originalMaterial.clone();
+            newMat.envMapIntensity = 1.5;
+            newMat.roughness = 0.3;
+            newMat.metalness = 0.1;
+            child.material = newMat;
+          }
+          break;
+
+        case 'X-Ray':
+          if (Array.isArray(originalMaterial)) {
+            child.material = originalMaterial.map(mat => {
+              const newMat = new THREE.MeshBasicMaterial({
+                color: 0x00ff88,
+                transparent: true,
+                opacity: 0.3,
+                wireframe: false
+              });
+              return newMat;
+            });
+          } else {
+            child.material = new THREE.MeshBasicMaterial({
+              color: 0x00ff88,
+              transparent: true,
+              opacity: 0.3,
+              wireframe: false
+            });
+          }
+          break;
+
+        default: // Default
+          child.material = originalMaterial;
+          break;
       }
+      
+      child.castShadow = showFloor;
+      child.receiveShadow = showFloor;
     }
   });
 
   return (
     <>
-      <group>
+      {/* Animated Background */}
+      <PatternedBackground lightingPreset={lightingPreset} />
+      
+      <group ref={groupRef}>
         <Center>
           <primitive object={model} scale={1} />
         </Center>
         
-        {/* Only render shadows if showFloor is true */}
         {showFloor && (
           <>
+            {/* Backdrop for dramatic effect */}
+            <Backdrop
+              floor={2}
+              segments={50}
+              position={[0, -0.5, -2]}
+              scale={[10, 5, 3]}
+            >
+              <meshStandardMaterial color="#1a1a1a" />
+            </Backdrop>
+
+            {/* Soft shadows */}
             <AccumulativeShadows 
               temporal 
               frames={60} 
               alphaTest={0.85} 
               scale={10} 
-              position={[0, -0.5, 0]}
+              position={[0, -0.49, 0]}
+              color="#000000"
+              opacity={0.6}
             >
               <RandomizedLight 
-                amount={4} 
-                radius={9} 
+                amount={8} 
+                radius={5} 
                 intensity={1} 
-                ambient={0.25} 
+                ambient={0.5} 
                 position={[5, 5, -10]} 
               />
             </AccumulativeShadows>
             
             <ContactShadows 
-              opacity={0.6} 
+              opacity={0.4} 
               scale={10} 
-              blur={1} 
+              blur={2} 
               far={10} 
-              resolution={256} 
+              resolution={512} 
               color="#000000" 
             />
           </>
         )}
       </group>
       
-      <spotLight
-        ref={spotLightRef}
-        position={[5, 5, 5]}
-        angle={0.3}
-        penumbra={0.8}
-        intensity={1}
-        castShadow={showFloor} // Only cast shadow if we're showing the floor
-        shadow-mapSize={[2048, 2048]}
-      />
-      
-      <hemisphereLight intensity={0.5} color="#eaeaea" groundColor="#353535" />
-      
-      {/* Environment lighting still needed for model to look good */}
-      <Environment preset="city" />
-      
-      {showFloor && <BakeShadows />}
-
-      {variant === 'Studio' && showFloor && <Background variant={variant} />}
-
-      <OrbitControls 
-        enableDamping={true}
-        dampingFactor={0.05}
-        rotateSpeed={0.5}
-        minDistance={2}
-        maxDistance={10}
-        minPolarAngle={Math.PI / 6}
-        maxPolarAngle={Math.PI / 1.5}
-        target={[0, 0, 0]}
-      />
+      <LightingSystem preset={lightingPreset} showFloor={showFloor} />
+      <Environment preset="city" backgroundIntensity={0.1} /> {/* Much lower intensity */}
     </>
   );
-};
-
-type VariantProps = {
-    variant: string;
-}
-
-const Background = ({ variant }: VariantProps) => {
-  return variant === 'Studio' ? (
-    <mesh position={[0, 0, -15]} scale={[30, 30, 1]}>
-      <planeGeometry />
-      <meshBasicMaterial>
-        <GradientTexture 
-          stops={[0, 1]} 
-          colors={['#202020', '#404040']} 
-        />
-      </meshBasicMaterial>
-    </mesh>
-  ) : null;
 };
 
 export default ModelView;

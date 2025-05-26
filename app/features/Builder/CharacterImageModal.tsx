@@ -2,10 +2,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { GenType, UsedAssets } from "@/app/types/gen";
-import { downloadImage } from "@/app/utils/downloadHelpers";
 import CharModalHeader from "@/app/components/ui/modal/CharImageModal/CharModalHeader";
 import Image from "next/image";
-import CharModalControls from "@/app/components/ui/modal/CharImageModal/CharModalControls";
 import CharModalInfo from "@/app/components/ui/modal/CharImageModal/CharModalInfo";
 
 interface CharacterImageModalProps {
@@ -77,11 +75,6 @@ const CharacterImageModal = ({
     setZoom(1);
     setPosition({ x: 0, y: 0 });
   }, []);
-
-  const handleDownload = useCallback(async () => {
-    const filename = gen.image_url.split('/').pop() || 'character-sketch.png';
-    await downloadImage(gen.image_url, filename);
-  }, [gen.image_url]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (zoom > 1) {
@@ -175,14 +168,6 @@ const CharacterImageModal = ({
             </motion.div>
           </div>
 
-          {/* Controls */}
-          <CharModalControls
-            handleZoomIn={handleZoomIn}
-            handleZoomOut={handleZoomOut}
-            handleReset={handleReset}
-            handleDownload={handleDownload}
-            zoom={zoom}
-          />
           {/* Info Panel */}
           <AnimatePresence>
             {showInfo && usedAssets && (

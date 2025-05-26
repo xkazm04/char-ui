@@ -22,11 +22,12 @@ const Character3DModal = ({
   modelUrl
 }: Character3DModalProps) => {
   const [selectedVariant, setSelectedVariant] = useState('Default');
-  const [showFloor, setShowFloor] = useState(true);
+  const [showFloor, setShowFloor] = useState(false); 
   const [autoRotate, setAutoRotate] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [lightingPreset, setLightingPreset] = useState('studio');
  
-  const variants = ['Default', 'Wireframe', 'Textured', 'Animated'];
+  const variants = ['Default', 'Wireframe', 'Textured', 'X-Ray'];
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -37,19 +38,41 @@ const Character3DModal = ({
           onClose();
           break;
         case 'r':
+        case 'R':
           setAutoRotate(prev => !prev);
           break;
         case 'f':
+        case 'F':
           setShowFloor(prev => !prev);
           break;
         case 'w':
+        case 'W':
           setSelectedVariant('Wireframe');
           break;
         case 'd':
+        case 'D':
           setSelectedVariant('Default');
           break;
+        case 't':
+        case 'T':
+          setSelectedVariant('Textured');
+          break;
+        case 'x':
+        case 'X':
+          setSelectedVariant('X-Ray');
+          break;
         case 's':
+        case 'S':
           setShowSettings(prev => !prev);
+          break;
+        case '1':
+          setLightingPreset('studio');
+          break;
+        case '2':
+          setLightingPreset('environment');
+          break;
+        case '3':
+          setLightingPreset('dramatic');
           break;
       }
     };
@@ -73,14 +96,15 @@ const Character3DModal = ({
   const getModelData = useMemo((): ModelInfo | null => {
     if (!modelUrl) return null;
 
-    // Determine format from URL or meshy data
+    // Determine format from URL path
     let format: "glb" | "fbx" | "obj" = "glb";
     
-    if (gen.meshy?.glb_url) format = "glb";
+    if (modelUrl.includes('/fbx')) format = "fbx";
+    else if (modelUrl.includes('/obj')) format = "obj";
+    else if (modelUrl.includes('/usdz')) format = "glb"; // USDZ fallback to GLB
+    else if (gen.meshy?.glb_url) format = "glb";
     else if (gen.meshy?.fbx_url) format = "fbx";
     else if (gen.meshy?.obj_url) format = "obj";
-    else if (modelUrl.includes('.fbx')) format = "fbx";
-    else if (modelUrl.includes('.obj')) format = "obj";
 
     return {
       id: `character-model-${gen._id}`,
@@ -90,8 +114,6 @@ const Character3DModal = ({
       thumbnail: gen.meshy?.thumbnail_url
     };
   }, [modelUrl, gen._id, gen.meshy]);
-
-
 
   const createdDate = new Date(gen.created_at || Date.now()).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -108,7 +130,7 @@ const Character3DModal = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md"
+          className="fixed inset-0 z-[9999] bg-black backdrop-blur-md"
           onClick={onClose}
         >
           {/* Header */}
@@ -119,15 +141,17 @@ const Character3DModal = ({
             showSettings={showSettings}
             setShowSettings={setShowSettings}
           />  
+          
           {/* 3D Viewer */}
           <div 
             className="h-full w-full"
             onClick={(e) => e.stopPropagation()}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
               className="h-full w-full"
             >
               <ModelViewer
@@ -136,6 +160,8 @@ const Character3DModal = ({
                 defaultModel={getModelData.id}
                 defaultVariant={selectedVariant}
                 showFloor={showFloor}
+                autoRotate={autoRotate}
+                lightingPreset={lightingPreset}
               />
             </motion.div>
           </div>
@@ -149,7 +175,8 @@ const Character3DModal = ({
             gen={gen}
             modelUrl={modelUrl}
             variants={variants}
-            />
+            getModelData={getModelData}
+          />
 
           {/* Settings Panel */}
           <ModelSettings
@@ -158,6 +185,8 @@ const Character3DModal = ({
             setShowFloor={setShowFloor}
             autoRotate={autoRotate}
             setAutoRotate={setAutoRotate}
+            lightingPreset={lightingPreset}
+            setLightingPreset={setLightingPreset}
             getModelData={getModelData}
             gen={gen}
             createdDate={createdDate}

@@ -14,7 +14,7 @@ export const characters = [
     {
         id: "682cfdfaebbb3e6ada96d357",
         name: "Lara Croft",
-        description: `Low-poly adventurer with sharp angles and blocky features, teal tank-top, brown shorts, black fingerless gloves, 
+        description: `Low-poly adventurer with sharp angles and blocky features, teal vest, brown shorts, black fingerless gloves, 
         polygonal face with bold eyebrows, long brown braid, gun holsters. Wearing `,
         image_url: "https://cdn.leonardo.ai/users/65d71243-f7c2-4204-a1b3-433aaf62da5b/generations/ae91c966-345b-4bb3-b690-aece8ac99ba0/variations/Default_Lowpoly_female_adventurer_with_sharp_angles_and_blocky_0_ae91c966-345b-4bb3-b690-aece8ac99ba0_0.png",
         gif_url: '/gifs/lara.gif',

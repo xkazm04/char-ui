@@ -5,6 +5,7 @@ import { GenType, UsedAssets } from '@/app/types/gen';
 import CharacterSketchCardContent from '../../components/ui/Cards/CharSketchCard/CharacterSketchCardContent';
 import CharacterImageModal from './CharacterImageModal';
 import Character3DModal from '../Model/Character3DModal';
+import { getBestModelUrl } from '@/app/functions/meshyFns';
 
 interface CharacterSketchCardProps {
   gen: GenType;
@@ -34,12 +35,13 @@ function CharacterSketchCard({
   const rotateY = useTransform(mouseX, [-0.5, 0.5], [-2, 2]);
 
   const modelGenerated = useMemo(() => {
-    return !!(gen.meshy?.glb_url || gen.meshy?.fbx_url || gen.meshy?.obj_url);
-  }, [gen.meshy?.glb_url, gen.meshy?.fbx_url, gen.meshy?.obj_url]);
+    return !!(gen.meshy?.glb_url || gen.meshy?.fbx_url || gen.meshy?.obj_url || gen.meshy?.usdz_url);
+  }, [gen.meshy?.glb_url, gen.meshy?.fbx_url, gen.meshy?.obj_url, gen.meshy?.usdz_url]);
 
+  // Use the helper function to get the best proxied model URL
   const modelUrl = useMemo(() => {
-    return gen.meshy?.glb_url || gen.meshy?.fbx_url || gen.meshy?.obj_url || null;
-  }, [gen.meshy?.glb_url, gen.meshy?.fbx_url, gen.meshy?.obj_url]);
+    return getBestModelUrl(gen);
+  }, [gen]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!cardRef.current) return;

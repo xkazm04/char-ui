@@ -52,13 +52,13 @@ const CharacterGenerate3d = ({generationError, modelGenerated, isGenerating, is3
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className={`px-2 py-1 text-xs font-medium rounded shadow-lg flex items-center space-x-1 ${is3DMode
+                    className={`px-2 py-1 text-xs font-medium rounded cursor-pointer shadow-lg flex items-center space-x-1 ${is3DMode
                         ? 'text-yellow-500/90 hover:text-yellow-400'
                         : 'bg-gray-700/90 text-gray-100 hover:bg-gray-600'
                         }`}
                     onClick={handleToggle3D}
-                    title={is3DMode ? "Show 2D image" : "Show 3D model"}
-                    aria-label={is3DMode ? "Show 2D image" : "Show 3D model"}
+                    title={is3DMode ? "Show 2D image" : "Show 3D"}
+                    aria-label={is3DMode ? "Switch to 2D" : "Show 3D"}
                 >
                     <ArrowLeftRight size={16} />
                 </motion.button>

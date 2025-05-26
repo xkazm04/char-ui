@@ -17,6 +17,7 @@ const CharacterSelector = () => {
         transition={{ duration: 0.4, ease: "easeInOut" }}
     >
         <div className="p-4 h-full overflow-y-auto">
+            <span className="text-xs text-yellow-100 italic">Custom character models - In Progress</span>
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-sky-300">Characters ({characters.length})</h3>
                 <button
@@ -33,7 +34,8 @@ const CharacterSelector = () => {
                 {characters.map((char) => (
                     <div
                         key={char.id}
-                        className={`w-[150px] p-2 cursor-pointer hover:bg-gray-800/50 rounded-lg transition-colors
+                        className={`w-[150px] p-2 cursor-pointer hover:bg-gray-800/20 rounded-lg transition-colors duration-200 ease-linear
+                            bg-sky-900/5 border border-sky-500/10
                             ${currentCharacter && currentCharacter.id === char.id && 'border border-sky-500'}
                             `}
                         onClick={() => {
