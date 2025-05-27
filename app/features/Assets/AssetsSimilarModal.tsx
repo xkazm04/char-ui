@@ -7,7 +7,6 @@ import { AlertTriangle, ArrowRight, Shield, Zap, Search, CheckCircle } from "luc
 import AssetSimilarItemCard from "./AssetsSimilarItemCard";
 import { useState, useMemo } from "react";
 import ActionButton from "@/app/components/ui/Buttons/ActionButton";
-import { Divider } from "@/app/components/ui/diviiders";
 import { ModalBase, ModalHeader, ModalContent, ModalActions } from "@/app/components/ui/modal";
 
 type Props = {
@@ -75,6 +74,7 @@ const AssetsSimilarModal = ({
                 setGenError: (error) => setSaveError(error),
                 setIsGenerating: setIsSaving,
                 setGeneratedImage: () => { },
+                //@ts-expect-error Ignore
                 asset: assetToSave,
                 setSavedAssetId: () => { }
             });

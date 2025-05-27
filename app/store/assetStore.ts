@@ -70,7 +70,7 @@ export const useAssetStore = create<AssetState>()(
           // Check if asset already exists in the category
           const existingAssets = state[validType];
           const assetExists = existingAssets.some(
-            existingAsset => (existingAsset._id === normalizedAsset._id) || (existingAsset.id === normalizedAsset.id)
+            existingAsset => (existingAsset._id === normalizedAsset._id) 
           );
           
           if (assetExists) {
@@ -106,7 +106,7 @@ export const useAssetStore = create<AssetState>()(
       removeAsset: (assetId, type) =>
         set((state) => {
           const assetToRemove = state[type].find(
-            asset => asset._id === assetId || asset.id === assetId
+            asset => asset._id === assetId
           );
 
           if (!assetToRemove) {
@@ -118,7 +118,7 @@ export const useAssetStore = create<AssetState>()(
           const newState = {
             ...state,
             [type]: state[type].filter(asset => 
-              asset._id !== assetId && asset.id !== assetId
+              asset._id !== assetId
             )
           };
           

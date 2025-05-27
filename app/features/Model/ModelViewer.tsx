@@ -2,6 +2,7 @@ import { useState, useRef, Suspense, useEffect, memo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import { OrbitControls, useProgress, Html } from '@react-three/drei';
+import { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { ErrorBoundary } from 'react-error-boundary';
 import ModelView from './ModelView';
 
@@ -17,9 +18,7 @@ export interface ModelInfo {
 
 interface ModelViewerProps {
   models: ModelInfo[];
-  variants?: string[];
   defaultModel?: string;
-  defaultVariant?: string;
   showFloor?: boolean;
   autoRotate?: boolean;
   lightingPreset?: string;
@@ -93,15 +92,12 @@ const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error, resetError
 
 const ModelViewer: React.FC<ModelViewerProps> = ({ 
   models, 
-  variants = ['Default', 'Wireframe', 'Textured', 'X-Ray'], 
   defaultModel, 
-  defaultVariant,
   autoRotate = false,
   lightingPreset = 'studio',
 }) => {
   const [selectedModelId, setSelectedModelId] = useState<string>(defaultModel || (models.length > 0 ? models[0].id : ''));
-  const [selectedVariant] = useState<string>(defaultVariant || (variants.length > 0 ? variants[0] : 'Default'));
-  const controlsRef = useRef<any>(null);
+  const controlsRef = useRef<OrbitControlsImpl>(null);
 
   const selectedModel = models.find(model => model.id === selectedModelId) || models[0];
 
@@ -150,7 +146,6 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
             <Suspense fallback={<Loader />}>
               <ModelView 
                 modelInfo={selectedModel} 
-                variant={selectedVariant} 
                 showFloor={false}
                 lightingPreset={lightingPreset}
               />

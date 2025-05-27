@@ -4,32 +4,11 @@ import Image from "next/image";
 import CharacterSketchCardOverlay from "./CharacterSketchCardOverlay";
 import { useState, useMemo } from "react";
 import ModelViewer from "../../../../features/Model/ModelViewer";
-import { UsedAssets } from "@/app/types/gen";
+import { UsedAssets, GenType } from "@/app/types/gen";
 import { getBestModelUrl, getProxiedThumbnail } from "@/app/functions/meshyFns";
 
 type Props = {
-    gen: {
-        _id: string;
-        image_url: string;
-        created_at?: string;
-        meshy?: {
-            meshy_id: string;
-            glb_url?: string;
-            fbx_url?: string;
-            obj_url?: string;
-            usdz_url?: string;
-            thumbnail_url?: string;
-            texture_prompt?: string;
-            texture_urls?: Array<{
-                base_color?: string;
-                metallic?: string;
-                normal?: string;
-                roughness?: string;
-            }>;
-            task_error?: any;
-            status?: string;
-        };
-    };
+    gen: GenType;
     is3DMode: boolean;
     modelUrl: string | null;
     showDetails: boolean;
@@ -99,9 +78,7 @@ const CharacterSketchCardContent = ({
                     >
                         <ModelViewer
                             models={[getModelData]}
-                            variants={['Default', 'Wireframe']}
                             defaultModel={getModelData.id}
-                            defaultVariant="Default"
                         />
                         
                         {proxiedThumbnail && (
@@ -167,7 +144,7 @@ const CharacterSketchCardContent = ({
 
                         {/* Processing indicator */}
                         {gen.meshy?.meshy_id && meshyStatus === 'processing' && (
-                            <div className="absolute top-2 left-2 px-2 py-1 bg-yellow-600/80 rounded-md text-xs text-white font-medium">
+                            <div className="absolute top-2 left-2 px-2 py-1 text-yellow-600/80 rounded-md text-xs font-medium">
                                 3D Processing...
                             </div>
                         )}
@@ -179,6 +156,7 @@ const CharacterSketchCardContent = ({
             <AnimatePresence>
                 {showDetails && (
                     <CharacterSketchCardOverlay
+                    //@ts-expect-error Ignore
                         usedAssets={usedAssets}
                         handleShowDetails={handleShowDetails}
                     />

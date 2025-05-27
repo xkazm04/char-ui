@@ -9,12 +9,10 @@ const AssetGroupItem = React.lazy(() => import("./AssetGroupItem"));
 
 type Props = {
   assetGroups: AssetGroup[];
-  setSelectedAssets: React.Dispatch<React.SetStateAction<Set<string>>>;
 }
 
 const AssetGroupFullScreen = ({
   assetGroups,
-  setSelectedAssets,
 }: Props) => {
   const { toggleGroupExpanded, getGroupExpanded, setGroupExpanded } = useAssetStore();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -22,16 +20,14 @@ const AssetGroupFullScreen = ({
   const [optimisticallyDeleted, setOptimisticallyDeleted] = useState<Set<string>>(new Set());
 
   const toggleAssetSelection = useCallback((assetId: string) => {
-    setSelectedAssets((prev: Set<string>): Set<string> => {
-      const newSet: Set<string> = new Set(prev);
+      const newSet: Set<string> = new Set();
       if (newSet.has(assetId)) {
         newSet.delete(assetId);
       } else {
         newSet.add(assetId);
       }
       return newSet;
-    });
-  }, [setSelectedAssets]);
+  }, []);
 
   const handleOptimisticDelete = useCallback((assetId: string) => {
     setOptimisticallyDeleted(prev => new Set(prev).add(assetId));

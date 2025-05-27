@@ -76,7 +76,7 @@ Fulfill a user's request for character variations by guiding the agent team thro
 `;
 
 const CooksMaster = () => {
-    const [isRunning, setIsRunning] = useState(false);
+    const [isRunning] = useState(false);
     const [showPromptModal, setShowPromptModal] = useState(false);
     const [masterPrompt, setMasterPrompt] = useState(masterPromptExample);
     const [updatedPrompt, setUpdatedPrompt] = useState<string | undefined>(undefined);

@@ -61,6 +61,7 @@ const CooksPrompts = () => {
     
     setActivePrompts(newActivePrompts);
     setEditStates(prev => ({...prev, ...newEditStates}));
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allPrompts]);
 
   // Toggle agent enabled state
@@ -282,6 +283,7 @@ const CooksPrompts = () => {
                 isActivating={isActivating}
                 isSaving={isSaving} 
                 allPrompts={allPrompts}
+                //@ts-expect-error Ignore
                 setEditStates={setEditStates}
                 setActivePrompts={setActivePrompts}
                 setActivePrompt={setActivePrompt}

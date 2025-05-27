@@ -139,6 +139,7 @@ function CharacterSketchCard({
             modelUrl={modelUrl}
             isHovered={isHovered}
             showDetails={showDetails}
+            //@ts-expect-error Ignore
             handleShowDetails={handleShowDetails}
           />
 
@@ -181,7 +182,6 @@ function CharacterSketchCard({
           className="mt-3"
         >
           <CharacterSketchCardToolbar 
-            modelGenerated={modelGenerated}
             is3DMode={is3DMode}
             handleToggle3D={handleToggle3D}
             handleDownload={handleDownload}

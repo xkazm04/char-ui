@@ -19,8 +19,9 @@ const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) 
     const { getAllSelectedAssets, getPromptByCategory } = useAssetStore()
     const [ genError, setGenError ] = useState<boolean>(false)
     const [generationId, setGenerationId] = useState<string | null>(null);
-    const {stylePrompt, setStylePrompt, promptLimit} = usePromptStore() 
+    const { promptLimit} = usePromptStore() 
     const [selectedStyle, setSelectedStyle] = useState<ImageStyle>(IMAGE_STYLES[0]);
+    const [preset, setPreset] = useState<string>('');
     const [isStylePickerOpen, setIsStylePickerOpen] = useState<boolean>(false);
     const { currentCharacter } = useCharacterStore()
     const { refetch } = useGenerations({
@@ -40,12 +41,12 @@ const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) 
     const bgPrompt = backgroundPrompt || "Person standing in the dark with black background."
     const equipPrompt = equipmentPrompt || ''
 
-    const fullPrompt = bgPrompt + charPrompt + headPrompt + finalClothingPrompt + equipPrompt + stylePrompt;
+    const fullPrompt = bgPrompt + ". " + charPrompt + ". " + headPrompt + ". " + finalClothingPrompt + " Equiped with " + equipPrompt;
     const isOverLimit = promptLimit && fullPrompt.length > promptLimit;
 
     const handleStyleSelect = (style: ImageStyle) => {
         setSelectedStyle(style);
-        setStylePrompt(style.prompt);
+        setPreset(style.preset || '');
     };
 
     const handleGenerate = async () => {
@@ -57,7 +58,9 @@ const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) 
             prompt: fullPrompt,
             element: currentCharacter?.element, 
             character_id: currentCharacter?.id,
-            used_assets: selectedAssets, // Pass the selected assets
+            used_assets: selectedAssets,
+            weight: preset ? 0.5 : 0.9,
+            preset: preset,
             generationId,
             setGenerationId,
             setGenError,

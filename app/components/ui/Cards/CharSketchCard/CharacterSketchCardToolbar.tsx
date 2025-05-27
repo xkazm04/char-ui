@@ -8,7 +8,6 @@ import { GenType } from "@/app/types/gen";
 import { useGenStore } from "@/app/store/genStore";
 
 type Props = {
-  modelGenerated: boolean;
   is3DMode: boolean;
   handleToggle3D: (e: React.MouseEvent) => void;
   handleDownload: (e: React.MouseEvent) => void;
@@ -24,7 +23,6 @@ type Props = {
 };
 
 const CharacterCardToolbar = ({ 
-  modelGenerated, 
   is3DMode, 
   handleToggle3D, 
   handleShowDetails, 
@@ -37,18 +35,24 @@ const CharacterCardToolbar = ({
   isSelected = false,
   onSelect
 }: Props) => {
-  const [generationStatus, setGenerationStatus] = useState<string | null>(null);
   const { is3dGenerating, setIs3dGenerating } = useGenStore();
-  const [taskId, setTaskId] = useState<string | null>(null);
   const [progress, setProgress] = useState<number>(0);
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [localGenerating, setLocalGenerating] = useState<boolean>(false);
+  const [taskId, setTaskId] = useState<string | null>(null);
+
+  // Use a unified state for generation status
+  const isGenerating = localGenerating || gen.is_3d_generating || is3dGenerating;
+  const hasModel = gen.has_3d_model || false;
 
   const handleGenerate3D = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
 
+    setLocalGenerating(true);
     setIs3dGenerating(true);
     setProgress(0);
     setGenerationError(null);
+    setTaskId(null);
 
     try {
       const response = await fetch(`${serverUrl}/meshy/`, {
@@ -68,24 +72,19 @@ const CharacterCardToolbar = ({
       }
 
       const data = await response.json();
-
-      setModelUrl(data.model_url);
+      console.log('3D generation started:', data);
+      
+      // Store the task_id locally for immediate polling
       setTaskId(data.task_id);
-      setGenerationStatus(data.status);
-
-      if (data.status === 'completed' && data.model_url) {
-        setModelGenerated(true);
-        setIs3DMode(true);
-        setProgress(100);
-        setIs3dGenerating(false);
-      }
 
     } catch (error) {
       console.error('Failed to generate 3D model:', error);
       setGenerationError(error instanceof Error ? error.message : 'Unknown error occurred');
+      setLocalGenerating(false);
       setIs3dGenerating(false);
+      setTaskId(null);
     }
-  }, [imageUrl, setIs3dGenerating, setModelUrl, setTaskId, setGenerationStatus, setModelGenerated, setIs3DMode, setProgress, gen._id]);
+  }, [imageUrl, setIs3dGenerating, gen._id]);
 
   const handleSelect = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -97,22 +96,28 @@ const CharacterCardToolbar = ({
     handleShowDetails(e);
   }, [handleShowDetails]);
 
+  // Polling effect - now works with either taskId (immediate) or gen.meshy?.meshy_id (from database)
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
-    if (taskId && generationStatus === 'processing') {
+    const currentTaskId = taskId || gen.meshy?.meshy_id;
+    
+    // Start polling if we're generating and have a task ID
+    if (isGenerating && !hasModel && currentTaskId) {
+      console.log('Starting polling for task:', currentTaskId);
+      
       intervalId = setInterval(async () => {
         try {
-          const response = await fetch(`${serverUrl}/meshy/status/${taskId}`);
+          const response = await fetch(`${serverUrl}/meshy/status/${currentTaskId}?generation_id=${gen._id}`);
           if (!response.ok) {
             throw new Error(`Status check failed with status ${response.status}`);
           }
 
           const data = await response.json();
+          console.log('Polling status:', data);
 
           setProgress(data.progress || 0);
-          setGenerationStatus(data.status);
-
+          
           if (data.status === 'completed') {
             const glbUrl = data.model_urls?.glb || "";
 
@@ -120,27 +125,83 @@ const CharacterCardToolbar = ({
               setModelUrl(glbUrl);
               setModelGenerated(true);
               setIs3DMode(true);
+              setLocalGenerating(false);
               setIs3dGenerating(false);
+              setTaskId(null);
               clearInterval(intervalId);
+              console.log('3D model completed');
             }
           } else if (data.status === 'failed') {
             setGenerationError(data.task_error?.message || 'Model generation failed');
+            setLocalGenerating(false);
             setIs3dGenerating(false);
+            setTaskId(null);
             clearInterval(intervalId);
+            console.log('3D model generation failed');
           }
         } catch (error) {
           console.error('Failed to check model status:', error);
-          setGenerationError('Failed to check model status');
-          setIs3dGenerating(false);
-          clearInterval(intervalId);
         }
       }, 10000);
     }
 
     return () => {
-      if (intervalId) clearInterval(intervalId);
+      if (intervalId) {
+        console.log('Clearing polling interval');
+        clearInterval(intervalId);
+      }
     };
-  }, [taskId, generationStatus, is3dGenerating, setModelUrl, setModelGenerated, setIs3DMode, setIs3dGenerating]);
+  }, [isGenerating, hasModel, taskId, gen.meshy?.meshy_id, gen._id, setModelUrl, setModelGenerated, setIs3DMode, setIs3dGenerating]);
+
+  // Update local state when gen object changes
+  useEffect(() => {
+    if (hasModel && gen.meshy?.glb_url) {
+      setModelUrl(gen.meshy.glb_url);
+      setModelGenerated(true);
+      setLocalGenerating(false);
+      setIs3dGenerating(false);
+      setTaskId(null);
+      setProgress(100);
+    }
+    
+    if (gen.meshy?.status === 'failed') {
+      setGenerationError('Model generation failed');
+      setLocalGenerating(false);
+      setIs3dGenerating(false);
+      setTaskId(null);
+    }
+    
+    // Update progress if we're generating
+    if (isGenerating && gen.meshy?.progress !== undefined) {
+      setProgress(gen.meshy.progress);
+    }
+
+    // Sync local state with gen object state
+    if (gen.is_3d_generating && !localGenerating) {
+      setLocalGenerating(true);
+    } else if (!gen.is_3d_generating && localGenerating && gen.meshy?.meshy_id) {
+      setLocalGenerating(false);
+      setTaskId(null);
+    }
+
+    // Clear global generating state if the generation object shows it's not generating
+    if (!gen.is_3d_generating && is3dGenerating && gen.meshy?.meshy_id) {
+      setIs3dGenerating(false);
+      setTaskId(null);
+    }
+
+    // Set taskId from gen object if we don't have it locally
+    if (!taskId && gen.meshy?.meshy_id && isGenerating) {
+      setTaskId(gen.meshy.meshy_id);
+    }
+  }, [gen, hasModel, isGenerating, is3dGenerating, localGenerating, taskId, setModelUrl, setModelGenerated, setIs3dGenerating]);
+
+  // Initialize progress from gen object if available
+  useEffect(() => {
+    if (gen.meshy?.progress !== undefined) {
+      setProgress(gen.meshy.progress);
+    }
+  }, [gen.meshy?.progress]);
 
   return (
     <div 
@@ -187,8 +248,8 @@ const CharacterCardToolbar = ({
       <div onClick={(e) => e.stopPropagation()}>
         <CharacterGenerate3d
           generationError={generationError}
-          modelGenerated={modelGenerated}
-          isGenerating={is3dGenerating}
+          modelGenerated={hasModel}
+          isGenerating={isGenerating}
           is3DMode={is3DMode}
           handleGenerate3D={handleGenerate3D}
           handleToggle3D={handleToggle3D}

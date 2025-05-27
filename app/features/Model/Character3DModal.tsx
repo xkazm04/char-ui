@@ -21,12 +21,10 @@ const Character3DModal = ({
   gen,
   modelUrl
 }: Character3DModalProps) => {
-  const [selectedVariant, setSelectedVariant] = useState('Default');
   const [autoRotate, setAutoRotate] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [lightingPreset, setLightingPreset] = useState('studio');
  
-  const variants = ['Default', 'Wireframe', 'Textured', 'X-Ray'];
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -39,22 +37,6 @@ const Character3DModal = ({
         case 'r':
         case 'R':
           setAutoRotate(prev => !prev);
-          break;
-        case 'w':
-        case 'W':
-          setSelectedVariant('Wireframe');
-          break;
-        case 'd':
-        case 'D':
-          setSelectedVariant('Default');
-          break;
-        case 't':
-        case 'T':
-          setSelectedVariant('Textured');
-          break;
-        case 'x':
-        case 'X':
-          setSelectedVariant('X-Ray');
           break;
         case 's':
         case 'S':
@@ -151,9 +133,7 @@ const Character3DModal = ({
             >
               <ModelViewer
                 models={[getModelData]}
-                variants={variants}
                 defaultModel={getModelData.id}
-                defaultVariant={selectedVariant}
                 autoRotate={autoRotate}
                 lightingPreset={lightingPreset}
               />

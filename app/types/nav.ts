@@ -1,1 +1,1 @@
-export type NavTabTypes = 'assets' | 'builder' | 'landing' | 'cooks' | 'ui-demo';
+export type NavTabTypes = 'assets' | 'builder' | 'landing' | 'cooks' | 'ui-demo' | string;

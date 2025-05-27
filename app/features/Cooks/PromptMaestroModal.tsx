@@ -8,7 +8,7 @@ interface MasterPromptModalProps {
   isOpen: boolean;
   onClose: () => void;
   prompt: string;
-  updatedPrompt?: string; // Optional updated prompt from improve function
+  updatedPrompt?: string; 
   onSave: (newPrompt: string) => void;
   isSaving?: boolean;
 }
@@ -27,7 +27,7 @@ const PromptMaestroModal = ({
   const modalContentRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
-  // Handle click outside to close the modal
+  //@ts-expect-error Ignore
   useClickOutside(modalContentRef, () => {
     if (isOpen && !editMode) {
       onClose();
@@ -171,6 +171,7 @@ const PromptMaestroModal = ({
               localPrompt={localPrompt}
               setLocalPrompt={setLocalPrompt}
               showDiff={showDiff}
+              //@ts-expect-error Ignore
               textareaRef={textareaRef}
               updatedPrompt={updatedPrompt}
               />

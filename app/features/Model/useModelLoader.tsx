@@ -54,7 +54,7 @@ const useModelLoader = ({ path, format }: UseModelLoaderProps): UseModelLoaderRe
                 },
                 (error) => {
                   console.error('OBJ loading error:', error);
-                  reject(new Error(`Failed to load OBJ model: ${error.message || 'Unknown error'}`));
+                  reject(new Error(`Failed to load OBJ model`));
                 }
               );
             });
@@ -79,7 +79,7 @@ const useModelLoader = ({ path, format }: UseModelLoaderProps): UseModelLoaderRe
                 },
                 (error) => {
                   console.error('FBX loading error:', error);
-                  reject(new Error(`Failed to load FBX model: ${error.message || 'Unknown error'}`));
+                  reject(new Error(`Failed to load FBX model`));
                 }
               );
             });
@@ -104,12 +104,13 @@ const useModelLoader = ({ path, format }: UseModelLoaderProps): UseModelLoaderRe
                 },
                 (error) => {
                   console.error('GLB loading error:', error);
-                  reject(new Error(`Failed to load GLB model: ${error.message || 'Unknown error'}`));
+                  reject(new Error(`Failed to load GLB model`));
                 }
               );
             });
             
             if (isMounted) {
+              //eslint-disable-next-line @typescript-eslint/no-explicit-any
               const gltfResult = result as any;
               
               // Center and scale the model
@@ -149,7 +150,7 @@ const useModelLoader = ({ path, format }: UseModelLoaderProps): UseModelLoaderRe
                 },
                 (error) => {
                   console.error('STL loading error:', error);
-                  reject(new Error(`Failed to load STL model: ${error.message || 'Unknown error'}`));
+                  reject(new Error(`Failed to load STL model`));
                 }
               );
             });

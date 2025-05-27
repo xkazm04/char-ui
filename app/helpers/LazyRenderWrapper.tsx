@@ -9,14 +9,16 @@ interface LazyRenderWrapperProps {
 
 const LazyRenderWrapper: React.FC<LazyRenderWrapperProps> = ({
   children,
-  placeholderHeight = '200px', // Adjust based on AssetGroupItem's typical height
-  rootMargin = '200px 0px', // Load items 200px before they enter viewport
+  placeholderHeight = '200px', 
+  rootMargin = '200px 0px',
   once = true,
 }) => {
   const [isInView, setIsInView] = useState(false);
   const targetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const currentElement = targetRef.current;
+    
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -25,22 +27,20 @@ const LazyRenderWrapper: React.FC<LazyRenderWrapperProps> = ({
             observer.unobserve(targetRef.current);
           }
         } else if (!once) {
-          // Optional: if you want to un-render when out of view again
-          // setIsInView(false);
         }
       },
       {
-        rootMargin, // How far from the viewport to trigger
+        rootMargin, 
       }
     );
 
-    if (targetRef.current) {
-      observer.observe(targetRef.current);
+    if (currentElement) {
+      observer.observe(currentElement);
     }
 
     return () => {
-      if (targetRef.current) {
-        observer.unobserve(targetRef.current);
+      if (currentElement) {
+        observer.unobserve(currentElement);
       }
     };
   }, [rootMargin, once]);

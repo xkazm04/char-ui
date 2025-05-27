@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { Download, Trash2, X } from "lucide-react";
-import { useState, useCallback } from "react";
+import { Download, X } from "lucide-react";
+import { useState, useCallback, useMemo } from "react";
 import { downloadMultipleImages } from "@/app/utils/downloadHelpers";
 import { useGenerations, useDeleteGeneration } from "@/app/functions/genFns";
 import ConfirmationModal from "@/app/components/ui/modal/ConfirmationModal";
@@ -24,7 +24,10 @@ const CharacterSketchGridBulk = ({ selectedSketches, setSelectedSketches, charac
     });
 
     const deleteGeneration = useDeleteGeneration();
-    const selectedSketchesData = sketches?.filter(sketch => selectedSketches.has(sketch._id)) || [];
+    const selectedSketchesData = useMemo(() => 
+        sketches?.filter(sketch => selectedSketches.has(sketch._id)) || [], 
+        [sketches, selectedSketches]
+    );
 
     const handleBulkDownload = useCallback(async () => {
         if (selectedSketchesData.length === 0) return;
@@ -71,13 +74,10 @@ const CharacterSketchGridBulk = ({ selectedSketches, setSelectedSketches, charac
                     setDeleteProgress({ current: completed, total: selectedSketchesData.length });
                 } catch (error) {
                     console.error(`Failed to delete sketch ${sketch._id}:`, error);
-                    // Continue with other deletions even if one fails
                     completed++;
                     setDeleteProgress({ current: completed, total: selectedSketchesData.length });
                 }
             }
-
-            // Clear selection after deletion attempts
             setSelectedSketches(new Set());
             setShowDeleteConfirm(false);
         } catch (error) {

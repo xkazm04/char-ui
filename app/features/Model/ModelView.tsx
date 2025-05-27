@@ -8,7 +8,6 @@ import {
   Center,
   AccumulativeShadows,
   RandomizedLight,
-  Backdrop,
 } from '@react-three/drei';
 import useModelLoader from './useModelLoader';
 import { ModelInfo } from './ModelViewer';
@@ -17,14 +16,12 @@ import LightingSystem from '@/app/components/3d/LightingSystem';
 
 interface ModelViewProps {
   modelInfo: ModelInfo;
-  variant: string;
   showFloor?: boolean;
   lightingPreset?: string;
 }
 
 const ModelView: React.FC<ModelViewProps> = ({ 
   modelInfo, 
-  variant,
   showFloor = true,
   lightingPreset = 'studio'
 }) => {
@@ -38,7 +35,7 @@ const ModelView: React.FC<ModelViewProps> = ({
 
   // Animation effect
   useFrame((state) => {
-    if (groupRef.current && variant === 'Animated') {
+    if (groupRef.current) {
       groupRef.current.rotation.y = state.clock.getElapsedTime() * 0.5;
     }
   });
@@ -49,7 +46,6 @@ const ModelView: React.FC<ModelViewProps> = ({
         <div className="bg-red-900/80 p-4 text-white rounded-lg text-center max-w-md">
           <div className="text-4xl mb-2">⚠️</div>
           <h3 className="font-semibold mb-2">Model Load Error</h3>
-          <p className="text-sm text-red-200">{error.message}</p>
         </div>
       </Html>
     );
@@ -61,7 +57,6 @@ const ModelView: React.FC<ModelViewProps> = ({
         <div className="bg-gray-900/90 p-6 rounded-lg border border-sky-500/20">
           <div className="flex flex-col items-center">
             <div className="w-8 h-8 border-2 border-sky-500 rounded-full animate-spin border-t-transparent mb-3"></div>
-            <p className="text-gray-300 font-medium">Loading 3D Model...</p>
           </div>
         </div>
       </Html>
@@ -77,82 +72,9 @@ const ModelView: React.FC<ModelViewProps> = ({
     });
   }
 
-  // Apply variant effects
-  model.traverse((child) => {
-    if (child instanceof THREE.Mesh) {
-      const originalMaterial = originalMaterials.current.get(child);
-      if (!originalMaterial) return;
-
-      switch (variant) {
-        case 'Wireframe':
-          if (Array.isArray(originalMaterial)) {
-            child.material = originalMaterial.map(mat => {
-              const newMat = mat.clone();
-              newMat.wireframe = true;
-              newMat.color = new THREE.Color(0x00ffff);
-              return newMat;
-            });
-          } else {
-            const newMat = originalMaterial.clone();
-            newMat.wireframe = true;
-            newMat.color = new THREE.Color(0x00ffff);
-            child.material = newMat;
-          }
-          break;
-
-        case 'Textured':
-          if (Array.isArray(originalMaterial)) {
-            child.material = originalMaterial.map(mat => {
-              const newMat = mat.clone();
-              newMat.envMapIntensity = 1.5;
-              newMat.roughness = 0.3;
-              newMat.metalness = 0.1;
-              return newMat;
-            });
-          } else {
-            const newMat = originalMaterial.clone();
-            newMat.envMapIntensity = 1.5;
-            newMat.roughness = 0.3;
-            newMat.metalness = 0.1;
-            child.material = newMat;
-          }
-          break;
-
-        case 'X-Ray':
-          if (Array.isArray(originalMaterial)) {
-            child.material = originalMaterial.map(mat => {
-              const newMat = new THREE.MeshBasicMaterial({
-                color: 0x00ff88,
-                transparent: true,
-                opacity: 0.3,
-                wireframe: false
-              });
-              return newMat;
-            });
-          } else {
-            child.material = new THREE.MeshBasicMaterial({
-              color: 0x00ff88,
-              transparent: true,
-              opacity: 0.3,
-              wireframe: false
-            });
-          }
-          break;
-
-        default: // Default
-          child.material = originalMaterial;
-          break;
-      }
-      
-      child.castShadow = showFloor;
-      child.receiveShadow = showFloor;
-    }
-  });
-
   return (
     <>
-      {/* Animated Background */}
-      <PatternedBackground lightingPreset={lightingPreset} />
+      <PatternedBackground  />
       
       <group ref={groupRef}>
         <Center>
@@ -161,16 +83,6 @@ const ModelView: React.FC<ModelViewProps> = ({
         
         {showFloor && (
           <>
-            {/* Backdrop for dramatic effect */}
-            <Backdrop
-              floor={2}
-              segments={50}
-              position={[0, -0.5, -2]}
-              scale={[10, 5, 3]}
-            >
-              <meshStandardMaterial color="#1a1a1a" />
-            </Backdrop>
-
             {/* Soft shadows */}
             <AccumulativeShadows 
               temporal 

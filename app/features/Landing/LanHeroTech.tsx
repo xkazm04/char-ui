@@ -22,7 +22,7 @@ const LanHeroTech = () => {
                     fill
                     className="absolute top-4 right-4 opacity-7 hover:opacity-60 transition-all z-10 duraiton-200 ease-linear"
                 />
-                <div className="text-sky-400 font-mono text-sm">-></div>
+                <div className="text-sky-400 font-mono text-sm">{'->'}</div>
             </m.div>
         ))}
     </m.div>

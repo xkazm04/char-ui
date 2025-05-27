@@ -4,15 +4,14 @@ import { PropsAssetGen, PropsCharGen, AssetSaveProps
 } from "../types/genFnTypes";
 import { AssetType } from "../types/asset";
 
-// Base function for all API calls
 async function makeApiRequest<T>({
     endpoint,
     requestBody,
-    timeout = 30000,
+    timeout = 50000,
     errorMessage = "API request failed"
 }: {
     endpoint: string;
-    requestBody: any;
+    requestBody: Record<string, unknown>;
     timeout?: number;
     errorMessage?: string;
 }): Promise<T> {
@@ -110,7 +109,11 @@ export const handleAssetGeneration = async ({
         successHandler: (data: LeonardoResponse | GenerationResponse) => {
             console.log("Asset generation response:", data);
             if (data.status === "success" && 'data' in data && data.data && data.data.length > 0) {
-                setGenerationId('gen' in data ? data.gen : (data as GenerationResponse).generation_id);
+                const leonardoData = data as LeonardoResponse;
+                const generationId = leonardoData.gen;
+                if (generationId) {
+                    setGenerationId(generationId);
+                }
                 setGeneratedImage(data.data[0].url);
                 return;
             }
@@ -140,6 +143,8 @@ export const handleCharacterSketch = async ({
     prompt, 
     element, 
     character_id,
+    weight,
+    preset,
     used_assets = [],
     generationId,
     setGenerationId, 
@@ -152,6 +157,8 @@ export const handleCharacterSketch = async ({
             const requestBody = {
                 gen: prompt,
                 element: element || 67297,
+                weight: weight || 0.9,
+                preset: preset || "",
                 generation_id: generationId,
                 character_id: character_id || null,
                 used_assets: transformAssetsForBackend(used_assets)
@@ -177,10 +184,9 @@ export const handleCharacterSketch = async ({
                 if (data.generation_id) {
                     setGenerationId(data.generation_id);
                 }
-
+            }   else {
+                console.error("Invalid prompt", data);
             }
-            
-            throw new Error("No valid image URL returned from generation API");
         }
     });
 };

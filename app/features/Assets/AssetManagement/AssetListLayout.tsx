@@ -8,7 +8,6 @@ import AssetManCatSelector from './AssetManCatSelector';
 
 const AssetListLayout = () => {
   const [mainSearchQuery, setMainSearchQuery] = useState("");
-  const [selectedAssets, setSelectedAssets] = useState<Set<string>>(new Set());
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const { assetNavExpanded, setAssetNavExpanded, assetNavHighlighted, setAssetNavHighlighted } = useNavStore();
@@ -181,7 +180,6 @@ const AssetListLayout = () => {
                 {!isLoading && !error && filteredAssetGroups.length > 0 && (
                   <AssetGroupList
                     assetGroups={filteredAssetGroups}
-                    setSelectedAssets={setSelectedAssets}
                     isFullScreen={isFullScreen}
                   />
                 )}

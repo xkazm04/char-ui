@@ -43,7 +43,6 @@ export default function CharacterSketchGrid() {
     });
     
     return filtered;
-    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sketches, sortMode]);
 
   // Grid classes based on view mode

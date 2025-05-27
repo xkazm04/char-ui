@@ -39,7 +39,7 @@ const PromptMaestroMd = ({ editMode, textareaRef, localPrompt, updatedPrompt, sh
         return result;
     };
 
-    const fallbackCodeStyle = {
+    const fallbackCodeStyle: React.CSSProperties = {
         backgroundColor: '#1E1E1E',
         padding: '1em',
         borderRadius: '4px',
@@ -64,7 +64,13 @@ const PromptMaestroMd = ({ editMode, textareaRef, localPrompt, updatedPrompt, sh
                     <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
-                            code({ node, inline, className, children, ...props }) {
+                            code({ inline, className, children, ...props }: {
+                                inline?: boolean;
+                                className?: string;
+                                children?: React.ReactNode;
+                                //eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                [key: string]: any;
+                            }) {
                                 const match = /language-(\w+)/.exec(className || '');
                                 
                                 if (inline) {
@@ -101,30 +107,30 @@ const PromptMaestroMd = ({ editMode, textareaRef, localPrompt, updatedPrompt, sh
                                     </div>
                                 );
                             },
-                            h1: ({ node, ...props }) => <h1 className="text-2xl font-bold mb-4 text-sky-300" {...props} />,
-                            h2: ({ node, ...props }) => <h2 className="text-xl font-bold mb-3 mt-6 text-sky-300" {...props} />,
-                            h3: ({ node, ...props }) => <h3 className="text-lg font-bold mb-2 mt-5 text-sky-300" {...props} />,
-                            h4: ({ node, ...props }) => <h4 className="text-base font-bold mb-2 mt-4 text-sky-300" {...props} />,
-                            strong: ({ node, ...props }) => <strong className="font-bold text-yellow-300" {...props} />,
-                            em: ({ node, ...props }) => <em className="italic text-gray-300" {...props} />,
-                            blockquote: ({ node, ...props }) => (
+                            h1: ({ ...props }) => <h1 className="text-2xl font-bold mb-4 text-sky-300" {...props} />,
+                            h2: ({  ...props }) => <h2 className="text-xl font-bold mb-3 mt-6 text-sky-300" {...props} />,
+                            h3: ({  ...props }) => <h3 className="text-lg font-bold mb-2 mt-5 text-sky-300" {...props} />,
+                            h4: ({  ...props }) => <h4 className="text-base font-bold mb-2 mt-4 text-sky-300" {...props} />,
+                            strong: ({  ...props }) => <strong className="font-bold text-yellow-300" {...props} />,
+                            em: ({  ...props }) => <em className="italic text-gray-300" {...props} />,
+                            blockquote: ({  ...props }) => (
                                 <blockquote 
                                     className="border-l-4 border-sky-600 pl-4 py-1 italic bg-gray-800/50 pr-2 rounded-r-md my-4" 
                                     {...props} 
                                 />
                             ),
-                            ul: ({ node, ...props }) => <ul className="list-disc list-inside pl-4 my-4 space-y-1" {...props} />,
-                            ol: ({ node, ...props }) => <ol className="list-decimal list-inside pl-4 my-4 space-y-1" {...props} />,
-                            li: ({ node, ...props }) => <li className="mb-1" {...props} />,
-                            a: ({ node, ...props }) => <a className="text-sky-400 hover:underline" {...props} />,
-                            p: ({ node, ...props }) => <p className="mb-4 leading-relaxed" {...props} />,
-                            hr: ({ node, ...props }) => <hr className="my-6 border-gray-700" {...props} />,
-                            table: ({ node, ...props }) => <table className="border-collapse table-auto w-full my-4" {...props} />,
-                            thead: ({ node, ...props }) => <thead className="bg-gray-800" {...props} />,
-                            tbody: ({ node, ...props }) => <tbody className="bg-gray-900/50" {...props} />,
-                            tr: ({ node, ...props }) => <tr className="border-b border-gray-700" {...props} />,
-                            th: ({ node, ...props }) => <th className="px-4 py-2 text-left" {...props} />,
-                            td: ({ node, ...props }) => <td className="px-4 py-2 border-r last:border-r-0 border-gray-700" {...props} />,
+                            ul: ({  ...props }) => <ul className="list-disc list-inside pl-4 my-4 space-y-1" {...props} />,
+                            ol: ({  ...props }) => <ol className="list-decimal list-inside pl-4 my-4 space-y-1" {...props} />,
+                            li: ({  ...props }) => <li className="mb-1" {...props} />,
+                            a: ({  ...props }) => <a className="text-sky-400 hover:underline" {...props} />,
+                            p: ({  ...props }) => <p className="mb-4 leading-relaxed" {...props} />,
+                            hr: ({  ...props }) => <hr className="my-6 border-gray-700" {...props} />,
+                            table: ({  ...props }) => <table className="border-collapse table-auto w-full my-4" {...props} />,
+                            thead: ({  ...props }) => <thead className="bg-gray-800" {...props} />,
+                            tbody: ({  ...props }) => <tbody className="bg-gray-900/50" {...props} />,
+                            tr: ({  ...props }) => <tr className="border-b border-gray-700" {...props} />,
+                            th: ({  ...props }) => <th className="px-4 py-2 text-left" {...props} />,
+                            td: ({  ...props }) => <td className="px-4 py-2 border-r last:border-r-0 border-gray-700" {...props} />,
                         }}
                     >
                         {showDiff ? highlightDiff() : localPrompt}

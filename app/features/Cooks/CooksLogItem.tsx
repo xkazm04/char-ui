@@ -15,7 +15,7 @@ type Props = {
     agentNames: string[];
 }
 
-const CooksLogItem = ({ log, logIndex, agentNames }: Props) => {
+const CooksLogItem = ({ log, logIndex }: Props) => {
     const [expandedCell, setExpandedCell] = useState<ExpandedCell | null>(null);
     const [hoveredRow, setHoveredRow] = useState<number | null>(null);
     

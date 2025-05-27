@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { Stars } from '@react-three/drei';
 
-const PatternedBackground = ({ lightingPreset }: { lightingPreset: string }) => {
+const PatternedBackground = () => {
   const meshRef = useRef<THREE.Mesh>(null);
   const starsRef = useRef<THREE.Points>(null);
 

@@ -1,6 +1,4 @@
-import { AssetBatchResponse } from "../functions/assetFns";
 import { AssetType } from "./asset";
-import { UsedAssets } from "./gen";
 
 export interface LeonardoImage {
     url: string;
@@ -52,6 +50,8 @@ export interface PropsCharGen {
     element?: number;
     character_id?: string;
     used_assets?: AssetType[];
+    weight?: number;
+    preset?: string;
     generationId: string | null;
     setGenerationId: (id: string) => void;
     setIsGenerating: (generating: boolean) => void;

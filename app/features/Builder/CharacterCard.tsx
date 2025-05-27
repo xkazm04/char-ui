@@ -36,7 +36,6 @@ export default function CharacterCard() {
         <div className="absolute inset-0">
           {currentCharacter  && (
             <Image
-              //@ts-expect-error Ignore
               src={isGenerating ? currentCharacter.gif_url : currentCharacter.image_url}
               alt={'Character Background'}
               fill

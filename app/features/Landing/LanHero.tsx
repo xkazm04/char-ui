@@ -13,7 +13,6 @@ type Props = {
 
 const LanHero = ({ setTab }: Props) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [typedText, setTypedText] = useState("");
     const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
 
@@ -41,22 +40,6 @@ const LanHero = ({ setTab }: Props) => {
         //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [typedText, currentPhraseIndex]);
 
-    // Enhanced mouse tracking
-    useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            if (!containerRef.current) return;
-            const rect = containerRef.current.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            setMousePosition({
-                x: (x / rect.width - 0.5) * 20,
-                y: (y / rect.height - 0.5) * 20
-            });
-        };
-
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
-    }, []);
 
     const handleTryDemo = () => {
         setTab('assets');
@@ -109,8 +92,6 @@ const LanHero = ({ setTab }: Props) => {
                                 </span>
                             </span>
                         </m.h1>
-
-                        {/* Professional Subtitle */}
                         <m.p
                             className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed font-light"
                             initial={{ opacity: 0, y: 30 }}
@@ -124,7 +105,6 @@ const LanHero = ({ setTab }: Props) => {
                     <Divider />
 
                     <LanHeroCta handleTryDemo={handleTryDemo}/>
-                    {/* Technical Features Grid - TBD rozhýbat */}
                     <LanHeroTech />
 
                 </m.div>

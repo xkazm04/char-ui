@@ -171,21 +171,6 @@ const LanHowWorks = () => {
                                             {WORKFLOW_STEPS[activeStep].longDesc}
                                         </p>
 
-                                        {/* Feature Highlights */}
-                                        <div className="space-y-3">
-                                            {WORKFLOW_STEPS[activeStep].features?.map((feature, index) => (
-                                                <m.div
-                                                    key={index}
-                                                    className="flex items-center gap-3"
-                                                    initial={{ opacity: 0, x: -20 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    transition={{ delay: index * 0.1 + 0.3 }}
-                                                >
-                                                    <div className="w-2 h-2 bg-sky-500 rounded-full" />
-                                                    <span className="text-gray-300">{feature}</span>
-                                                </m.div>
-                                            ))}
-                                        </div>
                                     </div>
                                 </div>
                             </m.div>

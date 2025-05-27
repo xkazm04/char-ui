@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { usePrompts } from "../../functions/promptFns";
 import { useDataConfigs } from "../../functions/configFns";
 import CooksError from "./CooksError";
@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import LoadingSpinner from "../../components/anim/LoadingSpinner";
 
-// Lazy load components
 const CooksConfig = lazy(() => import("./CooksConfig"));
 const CooksPrompts = lazy(() => import("./CooksPrompts"));
 const CooksLog = lazy(() => import("./CooksLog"));
@@ -25,8 +24,6 @@ const fadeIn = {
 };
 
 const CooksLayout = () => {
-    const [logs, setLogs] = useState<Array<Array<string>>>([]);
-
     const { data: prompts = [], isLoading: isLoadingPrompts } = usePrompts();
     const { data: dataConfigs = [], isLoading: isLoadingConfigs, isError: isConfError, error: errConfig } = useDataConfigs();
 
@@ -116,7 +113,7 @@ const CooksLayout = () => {
                     animate="visible"
                     transition={{ duration: 0.4, delay: 0.3 }}
                 >
-                    <CooksLog agents={agentNames} logs={logs} />
+                    <CooksLog agents={agentNames}  />
                 </motion.div>
             </Suspense>
         </div>

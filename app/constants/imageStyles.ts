@@ -2,6 +2,7 @@ export interface ImageStyle {
   id: string;
   name: string;
   prompt: string;
+  preset?: string; 
   description: string;
   icon: string;
 }

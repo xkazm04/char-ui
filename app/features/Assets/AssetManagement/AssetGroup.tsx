@@ -4,20 +4,17 @@ import AssetGroupSidebar from "./AssetGroupSidebar";
 
 type Props = {
   assetGroups: AssetGroup[];
-  setSelectedAssets: React.Dispatch<React.SetStateAction<Set<string>>>;
   isFullScreen?: boolean;
 }
 
 const AssetGroupList = ({
   assetGroups,
-  setSelectedAssets,
   isFullScreen = false,
 }: Props) => {
   if (isFullScreen) {
     return (
       <AssetGroupFullScreen
         assetGroups={assetGroups}
-        setSelectedAssets={setSelectedAssets}
       />
     );
   }
@@ -25,7 +22,6 @@ const AssetGroupList = ({
   return (
     <AssetGroupSidebar
       assetGroups={assetGroups}
-      setSelectedAssets={setSelectedAssets}
     />
   );
 }

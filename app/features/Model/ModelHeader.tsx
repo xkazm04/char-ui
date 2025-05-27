@@ -21,7 +21,7 @@ const ModelHeader = ({createdDate, getModelData, onClose, showSettings, setShowS
                 <Grid3X3 className="h-6 w-6 text-sky-400" />
                 <div>
                     <h2 className="text-lg font-semibold text-white">3D Character Model</h2>
-                    <p className="text-sm text-gray-400">{createdDate} • {getModelData.format.toUpperCase()}</p>
+                    <p className="text-sm text-gray-400">{createdDate} • {getModelData.format?.toUpperCase() || 'UNKNOWN'}</p>
                 </div>
             </div>
 

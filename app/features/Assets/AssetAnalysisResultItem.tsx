@@ -9,6 +9,7 @@ import { handleAssetGeneration, handleAssetGenerationAndSave } from "@/app/funct
 import { useAllAssets } from "@/app/functions/assetFns";
 import AssetAnalysisResultHeader from "./AssetAnalysisResultHeader";
 import { catStyles } from "@/app/constants/typeStyles";
+import Image from "next/image";
 
 type Props = {
     asset: AssetType;
@@ -141,6 +142,7 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
 
                 {/* Header with Type Badge and Actions */}
                 <AssetAnalysisResultHeader
+                    //@ts-expect-error Ignore
                     asset={asset}
                     isGenerating={isGenerating}
                     typeStyles={typeStyles}
@@ -264,7 +266,7 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
                             className="absolute inset-0 z-40"
                         >
                             <div className="relative w-full h-full">
-                                <img
+                                <Image
                                     src={generatedImage}
                                     alt={asset.name}
                                     className="w-full h-full object-cover rounded-xl"

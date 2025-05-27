@@ -7,26 +7,22 @@ import { useState, useCallback } from "react";
 
 type Props = {
   assetGroups: AssetGroup[];
-  setSelectedAssets: React.Dispatch<React.SetStateAction<Set<string>>>;
 }
 
 const AssetGroupSidebar = ({
   assetGroups,
-  setSelectedAssets,
 }: Props) => {
   const { toggleGroupExpanded, getGroupExpanded } = useAssetStore();
   const [optimisticallyDeleted, setOptimisticallyDeleted] = useState<Set<string>>(new Set());
 
   const toggleAssetSelection = (assetId: string) => {
-    setSelectedAssets((prev: Set<string>): Set<string> => {
-      const newSet: Set<string> = new Set(prev);
+      const newSet: Set<string> = new Set();
       if (newSet.has(assetId)) {
         newSet.delete(assetId);
       } else {
         newSet.add(assetId);
       }
       return newSet;
-    });
   };
 
   const handleOptimisticDelete = useCallback((assetId: string) => {

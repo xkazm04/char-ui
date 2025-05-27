@@ -78,9 +78,9 @@ export const useAllAssets = (type: string | null = null, enabled = true) => {
   return useInfiniteQuery<PaginatedAssetType, Error>({
     queryKey: ['allAssets', type],
     queryFn: ({ pageParam }) => fetchAssetsPage({
-      pageParam,
+      pageParam: pageParam as number,
       type,
-      pageSize: 50, // Batch size of 50
+      pageSize: 30,
       useBatching: true
     }),
     initialPageParam: 1,
@@ -143,7 +143,7 @@ export const useAssetGroups = (assetTypeFilter: string | null = null, enabled = 
     refetch,
   } = useAllAssets(assetTypeFilter, enabled);
 
-  const allAssets: AssetType[] = data?.pages.reduce((acc, page) => acc.concat(page.assets), []) || [];
+  const allAssets: AssetType[] = data?.pages.reduce((acc, page) => acc.concat(page.assets), [] as AssetType[]) || [];
 
   // Memoize asset groups processing
   const assetGroups = processAssetsIntoGroups(allAssets);

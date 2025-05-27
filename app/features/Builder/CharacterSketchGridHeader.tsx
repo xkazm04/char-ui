@@ -77,11 +77,11 @@ const CharacterSketchGridHeader = ({
                 <div className="relative">
                     <button
                         onClick={() => setShowSortMenu(!showSortMenu)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-gray-900/50 hover:bg-gray-900/70 rounded-md text-sm text-gray-300 transition-colors"
+                        className="flex cursor-pointer items-center gap-1 px-3 py-1.5 bg-gray-900/50 rounded-md text-sm text-gray-300 transition-colors"
                     >
-                        {sortMode === 'newest' && <SortDesc className="h-4 w-4" />}
-                        {sortMode === 'oldest' && <SortAsc className="h-4 w-4" />}
-                        <MoreHorizontal className="h-4 w-4" />
+                        {sortMode === 'newest' && <SortDesc className="h-4 w-4 hover:brightness-125" />}
+                        {sortMode === 'oldest' && <SortAsc className="h-4 w-4 hover:brightness-125" />}
+                        <MoreHorizontal className="h-4 w-4 hover:brightness-125" />
                     </button>
 
                     <AnimatePresence>
@@ -102,7 +102,7 @@ const CharacterSketchGridHeader = ({
                                             setSortMode(key as SortMode);
                                             setShowSortMenu(false);
                                         }}
-                                        className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-sky-900/30 transition-colors ${sortMode === key ? 'text-sky-300 bg-sky-900/20' : 'text-gray-300'
+                                        className={`w-full cursor-pointer flex items-center gap-2 px-3 py-2 text-sm hover:bg-sky-900/30 transition-colors ${sortMode === key ? 'text-sky-300 bg-sky-900/20' : 'text-gray-300'
                                             }`}
                                     >
                                         <Icon className="h-4 w-4" />
