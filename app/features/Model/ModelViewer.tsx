@@ -96,7 +96,6 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
   variants = ['Default', 'Wireframe', 'Textured', 'X-Ray'], 
   defaultModel, 
   defaultVariant,
-  showFloor = false, // Changed from true to false
   autoRotate = false,
   lightingPreset = 'studio',
 }) => {
@@ -134,7 +133,7 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
           }}
         >
           <Canvas
-            shadows={showFloor}
+            shadows={false}
             dpr={[1, 2]}
             camera={{ position: [0, 0, 4], fov: 45 }}
             gl={{ 
@@ -152,7 +151,7 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
               <ModelView 
                 modelInfo={selectedModel} 
                 variant={selectedVariant} 
-                showFloor={showFloor}
+                showFloor={false}
                 lightingPreset={lightingPreset}
               />
             </Suspense>

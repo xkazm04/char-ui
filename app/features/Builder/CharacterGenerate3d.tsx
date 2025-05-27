@@ -57,8 +57,8 @@ const CharacterGenerate3d = ({generationError, modelGenerated, isGenerating, is3
                         : 'bg-gray-700/90 text-gray-100 hover:bg-gray-600'
                         }`}
                     onClick={handleToggle3D}
-                    title={is3DMode ? "Show 2D image" : "Show 3D"}
-                    aria-label={is3DMode ? "Switch to 2D" : "Show 3D"}
+                    title={is3DMode ? "Switch to image" : "Show 3D"}
+                    aria-label={is3DMode ? "Switch to image" : "Show 3D"}
                 >
                     <ArrowLeftRight size={16} />
                 </motion.button>

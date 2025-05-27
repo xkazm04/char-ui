@@ -30,6 +30,9 @@ interface AssetState {
   getAssetsByCategory: (category: MainCategoryType) => AssetType[];
   getAllSelectedAssets: () => AssetType[];
   
+  // Category-specific prompt methods
+  getPromptByCategory: (category: MainCategoryType) => string;
+  
   // Helper to rebuild prompt from current assets
   rebuildAssetPrompt: () => void;
 }
@@ -248,7 +251,19 @@ export const useAssetStore = create<AssetState>()(
           ...state.Clothing,
           ...state.Background
         ];
-      }
+      },
+
+      // Category-specific prompt methods
+      getPromptByCategory: (category) => {
+        const state = get();
+        const assets = state[category];
+        const promptParts = assets
+          .map(asset => asset.gen || asset.name)
+          .filter(Boolean)
+          .filter((value, index, self) => self.indexOf(value) === index); // Remove duplicates
+        
+        return promptParts.join(', ');
+      },
     }),
     {
       name: 'character-assets-storage',

@@ -15,7 +15,7 @@ const LanHeroCta = ({handleTryDemo}: Props) => {
         <div className="flex flex-col sm:flex-row gap-4">
             {/* Primary CTA */}
             <m.button
-                className="group relative px-8 py-4 bg-gradient-to-r from-sky-600 to-blue-700 rounded-xl font-semibold text-white flex items-center gap-3 overflow-hidden"
+                className="group cursor-pointer relative px-8 py-4 bg-gradient-to-r from-sky-600 to-blue-700 rounded-xl font-semibold text-white flex items-center gap-3 overflow-hidden"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleTryDemo}
@@ -29,7 +29,7 @@ const LanHeroCta = ({handleTryDemo}: Props) => {
             </m.button>
 
             <m.button
-                className="px-8 py-4 border border-white/20 rounded-xl font-semibold text-white backdrop-blur-sm hover:bg-white/5 transition-colors flex items-center gap-3"
+                className="px-8 cursor-pointer py-4 border border-white/20 rounded-xl font-semibold text-white backdrop-blur-sm hover:bg-white/5 transition-colors flex items-center gap-3"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
             >

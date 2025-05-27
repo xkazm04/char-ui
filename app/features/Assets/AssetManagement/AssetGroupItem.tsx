@@ -10,9 +10,15 @@ type Props = {
   asset: AssetTypeObj; 
   toggleAssetSelection: (assetId: string) => void;
   isFullScreen?: boolean;
+  onOptimisticDelete?: (assetId: string) => void; // Add this prop
 }
 
-const AssetGroupItem = React.memo(({ asset, toggleAssetSelection, isFullScreen = false }: Props) => {
+const AssetGroupItem = React.memo(({ 
+  asset, 
+  toggleAssetSelection, 
+  isFullScreen = false,
+  onOptimisticDelete 
+}: Props) => {
   const assetId = asset._id
   const [showModal, setShowModal] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
@@ -165,6 +171,7 @@ const AssetGroupItem = React.memo(({ asset, toggleAssetSelection, isFullScreen =
           asset={asset}
           modalRef={modalRef}
           setShowModal={setShowModal}
+          onOptimisticDelete={onOptimisticDelete} // Pass the callback
         />
       )}
     </>

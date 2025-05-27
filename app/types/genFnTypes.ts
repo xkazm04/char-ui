@@ -1,4 +1,6 @@
+import { AssetBatchResponse } from "../functions/assetFns";
 import { AssetType } from "./asset";
+import { UsedAssets } from "./gen";
 
 export interface LeonardoImage {
     url: string;
@@ -36,7 +38,7 @@ export interface AssetSaveResponse {
 }
 
 export interface PropsAssetGen {
-    asset: any;
+    asset: AssetType;
     prompt: string;
     generationId: string | null;
     setGenerationId: (id: string) => void;
@@ -49,12 +51,11 @@ export interface PropsCharGen {
     prompt: string;
     element?: number;
     character_id?: string;
-    used_assets?: AssetType[]; // Add used assets
+    used_assets?: AssetType[];
     generationId: string | null;
     setGenerationId: (id: string) => void;
     setIsGenerating: (generating: boolean) => void;
     setGenError: (error: boolean) => void;
-    setGeneratedImage: (url: string) => void;
     onSuccess?: () => void;
 }
 
@@ -65,6 +66,6 @@ export interface AssetSaveProps {
     setGenError: (error: boolean) => void;
     setIsGenerating: (generating: boolean) => void;
     setGeneratedImage: (url: string) => void;
-    asset: any;
+    asset: AssetType;
     setSavedAssetId?: (id: string) => void;
 }

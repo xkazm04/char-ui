@@ -4,8 +4,6 @@ import { ModelInfo } from './ModelViewer';
 
 type Props = {
     showSettings: boolean;
-    showFloor: boolean;
-    setShowFloor: (show: boolean) => void;
     autoRotate: boolean;
     setAutoRotate: (rotate: boolean) => void;
     lightingPreset: string;
@@ -17,8 +15,6 @@ type Props = {
 
 const ModelSettings = ({
     showSettings, 
-    showFloor, 
-    setShowFloor, 
     autoRotate, 
     setAutoRotate, 
     lightingPreset,
@@ -86,27 +82,6 @@ const ModelSettings = ({
                             </div>
                         </div>
 
-                        {/* Environment Settings */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-3">
-                                Environment
-                            </label>
-                            <div className="space-y-2">
-                                <motion.button
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => setShowFloor(!showFloor)}
-                                    className={`w-full p-3 rounded-lg text-sm transition-all flex items-center justify-between ${
-                                        showFloor
-                                            ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
-                                            : 'bg-gray-800/50 text-gray-300 border border-gray-600/50 hover:bg-gray-700/50'
-                                    }`}
-                                >
-                                    <span>Show Floor & Shadows</span>
-                                    <div className={`w-4 h-4 rounded-full border-2 ${showFloor ? 'bg-sky-400 border-sky-400' : 'border-gray-500'}`} />
-                                </motion.button>
-                            </div>
-                        </div>
 
                         {/* Animation */}
                         <div>
@@ -157,7 +132,6 @@ const ModelSettings = ({
                             <h4 className="text-xs font-medium text-gray-400 mb-2">Keyboard Shortcuts</h4>
                             <div className="grid grid-cols-2 gap-1 text-xs text-gray-500">
                                 <div><kbd className="px-1 py-0.5 bg-gray-800 rounded">R</kbd> Auto-rotate</div>
-                                <div><kbd className="px-1 py-0.5 bg-gray-800 rounded">F</kbd> Toggle floor</div>
                                 <div><kbd className="px-1 py-0.5 bg-gray-800 rounded">W</kbd> Wireframe</div>
                                 <div><kbd className="px-1 py-0.5 bg-gray-800 rounded">D</kbd> Default</div>
                                 <div><kbd className="px-1 py-0.5 bg-gray-800 rounded">1-3</kbd> Lighting</div>

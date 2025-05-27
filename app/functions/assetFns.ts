@@ -227,7 +227,6 @@ export const useFetchAssetById = (assetId: string, enabled = true) => {
 
 
 export const handleDelete = async (asset: AssetType, onSuccess: () => void) => {
-  if (confirm(`Are you sure you want to delete "${asset.name}"?`)) {
     try {
       const response = await fetch(`${API_BASE_URL}/assets/${asset._id}`, {
         method: 'DELETE',
@@ -238,13 +237,10 @@ export const handleDelete = async (asset: AssetType, onSuccess: () => void) => {
           onSuccess();
         }
       } else {
-        alert('Failed to delete asset');
       }
     } catch (error) {
       console.error('Error deleting asset:', error);
-      alert('Error deleting asset');
     }
-  }
 };
 
 export const handleSave = async (genValue: string, assetId: string) => {

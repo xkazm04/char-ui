@@ -15,15 +15,17 @@ export const IMAGE_STYLES: ImageStyle[] = [
     icon: '🎨'
   },
   {
-    id: 'unreal5',
-    name: 'Unreal Engine 5',
+    id: '3d_render',
+    name: '3D Render',
+    preset: '3D_RENDER',
     prompt: ', rendered in Unreal Engine 5, ultra-realistic lighting, high-quality 3D rendering, cinematic quality, ray tracing',
     description: 'Photorealistic 3D rendering',
     icon: '🎮'
   },
   {
     id: 'photorealistic',
-    name: 'Photorealistic',
+    name: 'Photography',
+    preset: 'PHOTOGRAPHY',
     prompt: ', photorealistic, professional photography, studio lighting, high resolution, DSLR quality, detailed textures',
     description: 'Like a real photograph',
     icon: '📷'
@@ -31,50 +33,17 @@ export const IMAGE_STYLES: ImageStyle[] = [
   {
     id: 'anime',
     name: 'Anime',
+    preset: 'ANIME',
     prompt: ', anime style, manga illustration, cel-shaded, vibrant colors, clean lineart, Japanese animation style',
     description: 'Japanese anime aesthetic',
     icon: '🌸'
   },
   {
-    id: 'cartoon',
-    name: 'Cartoon',
-    prompt: ', cartoon style, animated, colorful, exaggerated features, Disney-like animation, friendly and approachable',
-    description: 'Animated cartoon look',
-    icon: '🎪'
+    id: 'sketch_bw',
+    name: 'Sketch',
+    preset: 'SKETCH_BW',
+    prompt: ', black and white sketch, pencil drawing, detailed linework, shading, artistic sketch style',
+    description: 'Black and white sketch style',
+    icon: '✏️'
   },
-  {
-    id: 'cyberpunk',
-    name: 'Cyberpunk',
-    prompt: ', cyberpunk style, neon lighting, futuristic, dark atmosphere, chrome details, sci-fi aesthetic, blade runner inspired',
-    description: 'Futuristic cyberpunk vibe',
-    icon: '🤖'
-  },
-  {
-    id: 'fantasy',
-    name: 'Fantasy Art',
-    prompt: ', fantasy art style, magical atmosphere, ethereal lighting, mystical elements, detailed fantasy illustration',
-    description: 'Magical fantasy artwork',
-    icon: '🧙'
-  },
-  {
-    id: 'oil_painting',
-    name: 'Oil Painting',
-    prompt: ', oil painting style, classical art, painterly brushstrokes, rich textures, museum quality, renaissance inspired',
-    description: 'Traditional oil painting',
-    icon: '🖼️'
-  },
-  {
-    id: 'watercolor',
-    name: 'Watercolor',
-    prompt: ', watercolor painting, soft edges, flowing colors, artistic brushstrokes, delicate and dreamy',
-    description: 'Soft watercolor art',
-    icon: '🎭'
-  },
-  {
-    id: 'pixel_art',
-    name: 'Pixel Art',
-    prompt: ', pixel art style, 16-bit graphics, retro gaming aesthetic, sharp pixels, nostalgic video game look',
-    description: 'Retro pixel graphics',
-    icon: '👾'
-  }
 ];

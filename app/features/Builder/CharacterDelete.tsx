@@ -36,7 +36,7 @@ const CharacterDelete = ({
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        className="p-1.5 rounded hover:bg-gray-800/50 transition-colors cursor-pointer text-red-200 hover:text-red-400"
+        className="p-2 rounded hover:bg-gray-800/50 transition-colors cursor-pointer text-red-200 hover:text-red-400"
         onClick={handleDeleteClick}
         aria-label="Delete Generation"
         title="Delete Generation"

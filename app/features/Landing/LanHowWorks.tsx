@@ -60,7 +60,7 @@ const LanHowWorks = () => {
         };
 
     return (
-        <section className="py-16 lg:py-32 px-4 sm:px-6 lg:px-8 relative bg-gradient-to-b from-[#0a0a18] via-[#0d0d24] to-[#0c0c1d] overflow-hidden">
+        <section className="py-20 lg:py-50 px-4 sm:px-6 lg:px-8 relative bg-gradient-to-b from-[#0a0a18] via-[#0d0d24] to-[#0c0c1d] overflow-hidden">
             {/* Enhanced Background Effects */}
             <div className="absolute inset-0">
                 <div className="absolute top-20 -left-40 w-80 h-80 bg-sky-600/10 rounded-full blur-3xl animate-pulse" />

@@ -22,8 +22,7 @@ const Character3DModal = ({
   modelUrl
 }: Character3DModalProps) => {
   const [selectedVariant, setSelectedVariant] = useState('Default');
-  const [showFloor, setShowFloor] = useState(false); 
-  const [autoRotate, setAutoRotate] = useState(false);
+  const [autoRotate, setAutoRotate] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [lightingPreset, setLightingPreset] = useState('studio');
  
@@ -40,10 +39,6 @@ const Character3DModal = ({
         case 'r':
         case 'R':
           setAutoRotate(prev => !prev);
-          break;
-        case 'f':
-        case 'F':
-          setShowFloor(prev => !prev);
           break;
         case 'w':
         case 'W':
@@ -159,7 +154,6 @@ const Character3DModal = ({
                 variants={variants}
                 defaultModel={getModelData.id}
                 defaultVariant={selectedVariant}
-                showFloor={showFloor}
                 autoRotate={autoRotate}
                 lightingPreset={lightingPreset}
               />
@@ -168,21 +162,14 @@ const Character3DModal = ({
 
           {/* Variant Controls */}
           <ModelControl
-            selectedVariant={selectedVariant}
-            setSelectedVariant={setSelectedVariant}
-            setShowFloor={setShowFloor}
-            setAutoRotate={setAutoRotate}
             gen={gen}
             modelUrl={modelUrl}
-            variants={variants}
             getModelData={getModelData}
           />
 
           {/* Settings Panel */}
           <ModelSettings
             showSettings={showSettings}
-            showFloor={showFloor}
-            setShowFloor={setShowFloor}
             autoRotate={autoRotate}
             setAutoRotate={setAutoRotate}
             lightingPreset={lightingPreset}

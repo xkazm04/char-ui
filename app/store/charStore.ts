@@ -8,11 +8,11 @@ export interface Character {
   id: string;
   name: string;
   description: string;
+  default_clothing: string;
+  default_facial: string;
+  default_style: string;
   image_url: string;
-  gif_url?: string;
-  gif_url_2?: string;
-  gif_url_3?: string;
-  gif_url_4?: string;
+  gif_url: string;
   element?: number; 
 }
 

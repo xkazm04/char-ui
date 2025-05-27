@@ -141,7 +141,6 @@ export const handleCharacterSketch = async ({
     element, 
     character_id,
     used_assets = [],
-    setGeneratedImage, 
     generationId,
     setGenerationId, 
     setIsGenerating, 
@@ -178,18 +177,7 @@ export const handleCharacterSketch = async ({
                 if (data.generation_id) {
                     setGenerationId(data.generation_id);
                 }
-                
-                // Handle the new response format with asset object
-                if (data.asset && data.asset.image_url) {
-                    setGeneratedImage(data.asset.image_url);
-                    return;
-                }
-                
-                // Fallback for older Leonardo-style response
-                if (data.data && Array.isArray(data.data) && data.data.length > 0) {
-                    setGeneratedImage(data.data[0].url);
-                    return;
-                }
+
             }
             
             throw new Error("No valid image URL returned from generation API");

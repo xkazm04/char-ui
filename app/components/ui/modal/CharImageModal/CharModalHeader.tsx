@@ -19,7 +19,6 @@ const CharModalHeader = ({createdDate, showInfo, setShowInfo, onClose}: Props) =
             <div className="flex items-center space-x-3">
                 <ImageIcon className="h-6 w-6 text-sky-400" />
                 <div>
-                    <h2 className="text-lg font-semibold text-white">Character Image</h2>
                     <p className="text-sm text-gray-400">{createdDate}</p>
                 </div>
             </div>
@@ -28,8 +27,9 @@ const CharModalHeader = ({createdDate, showInfo, setShowInfo, onClose}: Props) =
                 <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
+                    title={'Show assets info'}
                     onClick={(e) => { e.stopPropagation(); setShowInfo(!showInfo); }}
-                    className={`p-2 rounded-lg transition-colors ${showInfo ? 'bg-sky-500/20 text-sky-400' : 'bg-gray-800/50 text-gray-400 hover:text-white'
+                    className={`p-2 cursor-pointer rounded-lg transition-colors ${showInfo ? 'bg-sky-500/20 text-sky-400' : 'bg-gray-800/50 text-gray-400 hover:text-white'
                         }`}
                 >
                     <Info size={20} />
@@ -38,8 +38,9 @@ const CharModalHeader = ({createdDate, showInfo, setShowInfo, onClose}: Props) =
                 <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
+                    title={'Close'}
                     onClick={(e) => { e.stopPropagation(); onClose(); }}
-                    className="p-2 bg-gray-800/50 text-gray-400 hover:text-white rounded-lg transition-colors"
+                    className="p-2 cursor-pointer bg-gray-800/50 text-gray-400 hover:text-white rounded-lg transition-colors"
                 >
                     <X size={20} />
                 </motion.button>

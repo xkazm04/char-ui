@@ -19,6 +19,7 @@ const AssetGroupFullScreen = ({
   const { toggleGroupExpanded, getGroupExpanded, setGroupExpanded } = useAssetStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const [columns, setColumns] = useState(3);
+  const [optimisticallyDeleted, setOptimisticallyDeleted] = useState<Set<string>>(new Set());
 
   const toggleAssetSelection = useCallback((assetId: string) => {
     setSelectedAssets((prev: Set<string>): Set<string> => {
@@ -31,6 +32,10 @@ const AssetGroupFullScreen = ({
       return newSet;
     });
   }, [setSelectedAssets]);
+
+  const handleOptimisticDelete = useCallback((assetId: string) => {
+    setOptimisticallyDeleted(prev => new Set(prev).add(assetId));
+  }, []);
 
   useEffect(() => {
     assetGroups.forEach(group => {
@@ -60,6 +65,18 @@ const AssetGroupFullScreen = ({
     };
   }, [assetGroups, setGroupExpanded]);
 
+  // Filter out optimistically deleted assets
+  const filteredAssetGroups = assetGroups.map(group => ({
+    ...group,
+    assets: group.assets.filter(asset => !optimisticallyDeleted.has(asset._id)),
+    subcategories: group.subcategories ? Object.fromEntries(
+      Object.entries(group.subcategories).map(([subcategory, assets]) => [
+        subcategory,
+        assets.filter(asset => !optimisticallyDeleted.has(asset._id))
+      ])
+    ) : undefined
+  }));
+
   const AssetSuspenseFallback = () => (
     <div style={{ height: "220px" }} className="bg-gray-800/10 rounded-md animate-pulse w-full"></div>
   );
@@ -85,7 +102,7 @@ const AssetGroupFullScreen = ({
           hidden: {}
         }}
       >
-        {assetGroups.map(group => {
+        {filteredAssetGroups.map(group => {
           const isExpanded = getGroupExpanded(group.id);
 
           return (
@@ -132,13 +149,11 @@ const AssetGroupFullScreen = ({
                             {Object.entries(group.subcategories).map(([subcategory, assets]) => (
                               assets.length > 0 && (
                                 <div key={`${group.id}-${subcategory}`} className="space-y-2">
-                                  {/* Subcategory heading */}
                                   <div className="flex items-center">
                                     <h4 className="text-xs cursor-default font-medium text-gray-400 uppercase tracking-wider">{subcategory}</h4>
                                     <div className="ml-3 flex-grow h-px bg-gray-800/50"></div>
                                   </div>
                                   
-                                  {/* Assets in subcategory */}
                                   <div className="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
                                     {assets.map(asset => (
                                       <LazyRenderWrapper 
@@ -150,6 +165,7 @@ const AssetGroupFullScreen = ({
                                             asset={asset}
                                             toggleAssetSelection={toggleAssetSelection}
                                             isFullScreen={true}
+                                            onOptimisticDelete={handleOptimisticDelete}
                                           />
                                         </Suspense>
                                       </LazyRenderWrapper>
@@ -160,7 +176,6 @@ const AssetGroupFullScreen = ({
                             ))}
                           </div>
                         ) : (
-                          // Fallback to original view when no subcategories
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-3"> 
                             {group.assets.map(asset => (
                               <LazyRenderWrapper 
@@ -172,6 +187,7 @@ const AssetGroupFullScreen = ({
                                     asset={asset}
                                     toggleAssetSelection={toggleAssetSelection}
                                     isFullScreen={true}
+                                    onOptimisticDelete={handleOptimisticDelete}
                                   />
                                 </Suspense>
                               </LazyRenderWrapper>

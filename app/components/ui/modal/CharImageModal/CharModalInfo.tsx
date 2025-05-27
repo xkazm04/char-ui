@@ -1,6 +1,6 @@
 import { UsedAssets } from "@/app/types/gen";
 import { motion } from "framer-motion";
-import { Calendar } from "lucide-react";
+import { PersonStanding } from "lucide-react";
 
 type Props = {
     usedAssets: UsedAssets[];
@@ -15,8 +15,8 @@ const CharModalInfo = ({usedAssets}: Props) => {
         onClick={(e) => e.stopPropagation()}
     >
         <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-            <Calendar className="h-5 w-5 mr-2 text-sky-400" />
-            Character Details
+            <PersonStanding className="h-5 w-5 mr-2 text-sky-400" />
+            Used assets
         </h3>
 
         {usedAssets && usedAssets.length > 0 ? (

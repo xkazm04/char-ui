@@ -3,6 +3,7 @@ import { AlertCircle, ChevronRight } from "lucide-react";
 import { AssetGroup } from "@/app/functions/assetFns";
 import { useAssetStore } from "@/app/store/assetStore";
 import AssetGroupItem from "./AssetGroupItem";
+import { useState, useCallback } from "react";
 
 type Props = {
   assetGroups: AssetGroup[];
@@ -14,25 +15,39 @@ const AssetGroupSidebar = ({
   setSelectedAssets,
 }: Props) => {
   const { toggleGroupExpanded, getGroupExpanded } = useAssetStore();
+  const [optimisticallyDeleted, setOptimisticallyDeleted] = useState<Set<string>>(new Set());
 
   const toggleAssetSelection = (assetId: string) => {
-    console.log("Toggling asset:", assetId);
     setSelectedAssets((prev: Set<string>): Set<string> => {
       const newSet: Set<string> = new Set(prev);
       if (newSet.has(assetId)) {
-        console.log("Removing asset from selection:", assetId);
         newSet.delete(assetId);
       } else {
-        console.log("Adding asset to selection:", assetId);
         newSet.add(assetId);
       }
       return newSet;
     });
   };
 
+  const handleOptimisticDelete = useCallback((assetId: string) => {
+    setOptimisticallyDeleted(prev => new Set(prev).add(assetId));
+  }, []);
+
+  // Filter out optimistically deleted assets
+  const filteredAssetGroups = assetGroups.map(group => ({
+    ...group,
+    assets: group.assets.filter(asset => !optimisticallyDeleted.has(asset._id)),
+    subcategories: group.subcategories ? Object.fromEntries(
+      Object.entries(group.subcategories).map(([subcategory, assets]) => [
+        subcategory,
+        assets.filter(asset => !optimisticallyDeleted.has(asset._id))
+      ])
+    ) : undefined
+  }));
+
   return (
     <div className="flex flex-col overflow-y-auto flex-1 bg-gray-950/30">
-      {assetGroups.map(group => {
+      {filteredAssetGroups.map(group => {
         const isExpanded = getGroupExpanded(group.id);
 
         return (
@@ -84,9 +99,10 @@ const AssetGroupSidebar = ({
                                   {assets.map(asset => (
                                     <AssetGroupItem
                                       asset={asset}
-                                      key={asset._id || asset._id}
+                                      key={asset._id}
                                       toggleAssetSelection={toggleAssetSelection}
                                       isFullScreen={false}
+                                      onOptimisticDelete={handleOptimisticDelete}
                                     />
                                   ))}
                                 </div>
@@ -100,9 +116,10 @@ const AssetGroupSidebar = ({
                           {group.assets.map(asset => (
                             <AssetGroupItem
                               asset={asset}
-                              key={asset._id || asset._id}
+                              key={asset._id}
                               toggleAssetSelection={toggleAssetSelection}
                               isFullScreen={false}
+                              onOptimisticDelete={handleOptimisticDelete}
                             />
                           ))}
                         </div>

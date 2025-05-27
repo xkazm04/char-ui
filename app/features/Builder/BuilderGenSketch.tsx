@@ -16,10 +16,9 @@ type Props = {
 }
 
 const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) => {
-    const { assetPrompt, getAllSelectedAssets } = useAssetStore()
+    const { getAllSelectedAssets, getPromptByCategory } = useAssetStore()
     const [ genError, setGenError ] = useState<boolean>(false)
     const [generationId, setGenerationId] = useState<string | null>(null);
-    const [generatedImage, setGeneratedImage] = useState<string | null>(null);
     const {stylePrompt, setStylePrompt, promptLimit} = usePromptStore() 
     const [selectedStyle, setSelectedStyle] = useState<ImageStyle>(IMAGE_STYLES[0]);
     const [isStylePickerOpen, setIsStylePickerOpen] = useState<boolean>(false);
@@ -29,8 +28,19 @@ const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) 
         characterId: currentCharacter?.id || '',
     });
 
-    const char = currentCharacter?.description || ''
-    const fullPrompt = char + assetPrompt  + stylePrompt;
+    const charPrompt = currentCharacter?.description
+
+    const bodyPrompt = getPromptByCategory('Body')
+    const clothingPrompt = getPromptByCategory('Clothing')
+    const backgroundPrompt = getPromptByCategory('Background')
+    const equipmentPrompt = getPromptByCategory('Equipment')
+
+    const headPrompt = bodyPrompt || currentCharacter?.default_facial || ''
+    const finalClothingPrompt = clothingPrompt || currentCharacter?.default_clothing || ''
+    const bgPrompt = backgroundPrompt || "Person standing in the dark with black background."
+    const equipPrompt = equipmentPrompt || ''
+
+    const fullPrompt = bgPrompt + charPrompt + headPrompt + finalClothingPrompt + equipPrompt + stylePrompt;
     const isOverLimit = promptLimit && fullPrompt.length > promptLimit;
 
     const handleStyleSelect = (style: ImageStyle) => {
@@ -39,7 +49,6 @@ const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) 
     };
 
     const handleGenerate = async () => {
-        // Get all selected assets from the store
         const selectedAssets = getAllSelectedAssets();
         
         console.log("Selected assets for generation:", selectedAssets);
@@ -53,7 +62,6 @@ const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) 
             setGenerationId,
             setGenError,
             setIsGenerating,
-            setGeneratedImage,
             onSuccess: () => {
                 refetch();
             }
