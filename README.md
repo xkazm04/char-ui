@@ -1,30 +1,18 @@
 # PixelPlay
-
-Hackathon project to experiment with capabilities of multimodal LLMs 
-
-- Image analysis and breakdown into 2D videogames assets
-- 2D assets to 3D models
-- Automated workflows
-
- 
----
-TBD record new screen snippet
-
-## 📚 Table of Contents
-
-- [Studio Story](#studio-story)
-  - [📚 Table of Contents](#-table-of-contents)
-  - [🧠 About](#-about)
-  - [✨ Roadmap](#-roadmap)
-  - [🛠 Tech Stack](#-tech-stack)
-  - [🏗 Project Structure](#-project-structure)
-    - [Layout](#layout)
-  - [🚀 Getting Started](#-getting-started)
-    - [⚙️ Installation](#️-installation)
-    - [🖧 Microservices](#-microservices)
-    - [🔐 Environment Variables](#-environment-variables)
+All-in-one project to learn latest trends in web development and generative AI
+![Demo](public/landing/jinx_generate.gif)
+<html>
+    <h3 align="center">
+      AI-Powered asset management application for image art or 3D assets
+    </h3>
+</html>
 
 ---
+## ✨ Key Features
+- **Image analysis** and breakdown using multimodal LLM. Parse any asset from your gallery or photography.
+- **Vector search** and optimized queries for large scale data management.
+- **2D assets into the 3D models**: generate 3D models from images using Meshy ready for projects in Unity or Unreal
+- **Automated workflows**" tbd
 ---
 
 ## 🛠 Tech Stack
@@ -32,10 +20,6 @@ TBD record new screen snippet
 - **Backend:** FastAPI services (Agentic workflow, Image processing), MongoDB for multiformat storage (image, vector, text in one)
 - **LLMs:** Gemini, LLama for image processing. Flux dev for image gneration. Meshy for 3D generation
 - **Infra:** Google Cloud for services deployment
-
-## 🧠 About
-All-in-one project to learn latest trends in web development and generative AI
-
 
 ### A. Asset generator
 The Asset Management System serves as a comprehensive toolkit for creating, organizing, and utilizing visual assets for characters in creative and entertainment environment. It allows creators to:
@@ -114,7 +98,7 @@ The Builder module provides an interactive, asset-driven interface for character
 
 ## 🏗 Code Structure
 
-High-level overview of the folder structure:
+High-level overview of the frontend folder structure:
 
 ```bash
 ├── public/          # Static assets
@@ -132,12 +116,7 @@ High-level overview of the folder structure:
 ---
 
 ## 🚀 Running locally
-
-TBD 
-- char-service wuth Mongo first,then UI
-
-### ⚙️ Installation
-
+#### NextJS project
 ```bash
 # Frontend repository
 git clone https://github.com/xkazm04/char-ui.git
@@ -146,13 +125,28 @@ npm install
 npm run dev
 ```
 
+#### FastAPI service
+```bash
+# Backend repository
+git clone https://gitlab.com/xkazm04/char-service
+cd char-service
+pip install -r requirements.txt 
+uvicorn main:app --reload
+```
+
+#### MongoDB
+Setup Mongo locally or use Atlas - Mongo cloud service
+- [MongoDB manual installation](https://www.mongodb.com/docs/manual/installation/) 
+- [Mongo Atlas](https://www.mongodb.com/docs/atlas/)
+
+
 ### Architecture 
 
-TBD diagram
+![Diagram](public/gifs/diagram.gif)
 
 ### 🔐 Environment Variables
 
 TBD after done
 
 
-![Seeya bitches](public/gifs/jinx_smile.gif)
+![Seeya](public/gifs/jinx_smile.gif)

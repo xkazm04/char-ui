@@ -64,7 +64,7 @@ const LanHero = ({ setTab }: Props) => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.8, duration: 0.8 }}
                         >
-                            Hackathon project by Devpost and Google Cloud
+                            Become a creative artist on few clicks.
                         </m.p>
                     </div>
 
