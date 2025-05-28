@@ -10,7 +10,7 @@ type Props = {
   asset: AssetTypeObj; 
   toggleAssetSelection: (assetId: string) => void;
   isFullScreen?: boolean;
-  onOptimisticDelete?: (assetId: string) => void; // Add this prop
+  onOptimisticDelete?: (assetId: string) => void; 
 }
 
 const AssetGroupItem = React.memo(({ 
@@ -57,7 +57,7 @@ const AssetGroupItem = React.memo(({
       let assetType = asset.type;
    
       if (!assetType || !['Body', 'Equipment', 'Clothing', 'Background'].includes(assetType)) {
-        assetType = 'Equipment'; // Default category
+        assetType = 'Equipment'; 
         console.warn(`Asset type "${asset.type}" not recognized, defaulting to Equipment`);
       }
 
@@ -138,7 +138,10 @@ const AssetGroupItem = React.memo(({
           </div>
         </motion.div>
       ) : (
-        <div
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
           key={assetId}
           className={`
             flex flex-col items-center border hover:brightness-110
@@ -162,7 +165,7 @@ const AssetGroupItem = React.memo(({
               </span>
             )}
           </div>
-        </div>
+        </motion.div>
       )}
       
       {/* Asset Detail Modal */}
@@ -171,7 +174,7 @@ const AssetGroupItem = React.memo(({
           asset={asset}
           modalRef={modalRef}
           setShowModal={setShowModal}
-          onOptimisticDelete={onOptimisticDelete} // Pass the callback
+          onOptimisticDelete={onOptimisticDelete}
         />
       )}
     </>

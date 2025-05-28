@@ -31,7 +31,7 @@ const AssetAnalysisResultHeader = ({asset, isGenerating, typeStyles, handleRemov
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => handleRemove(idx)}
-                    className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 hover:text-red-300 transition-all"
+                    className="p-2 rounded-lg cursor-pointer bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 hover:text-red-300 transition-all"
                     title="Remove asset"
                     disabled={isGenerating}
                 >

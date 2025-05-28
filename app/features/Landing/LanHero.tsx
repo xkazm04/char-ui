@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef } from "react";
 import GlowingText from "@/app/components/landing/GlowingText";
 import { NavTabTypes } from "@/app/types/nav";
 import { m } from "framer-motion";
@@ -6,6 +6,7 @@ import { Divider } from "@/app/components/ui/diviiders";
 import LanHeroTech from "./LanHeroTech";
 import LanHeroCta from "./LanHeroCta";
 import LanHeroEffects from "./LanHeroEffects";
+import { MorphingText } from "@/components/magicui/morphing-text";
 
 type Props = {
     setTab: (tab: NavTabTypes) => void;
@@ -13,33 +14,8 @@ type Props = {
 
 const LanHero = ({ setTab }: Props) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [typedText, setTypedText] = useState("");
-    const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
 
-    const phrases = ["Play", "Characters", "Environments", "UI Elements", "Animations"];
-
-    useEffect(() => {
-        const currentPhrase = phrases[currentPhraseIndex];
-        let currentIndex = 0;
-        const isDeleting = typedText.length > currentPhrase.length;
-
-        const timer = setTimeout(() => {
-            if (!isDeleting && currentIndex < currentPhrase.length) {
-                setTypedText(currentPhrase.slice(0, currentIndex + 1));
-                currentIndex++;
-            } else if (isDeleting && typedText.length > 0) {
-                setTypedText(typedText.slice(0, -1));
-            } else if (isDeleting && typedText.length === 0) {
-                setCurrentPhraseIndex((prev) => (prev + 1) % phrases.length);
-            } else {
-                setTimeout(() => setTypedText(currentPhrase + "|"), 2000);
-            }
-        }, isDeleting ? 50 : 100);
-
-        return () => clearTimeout(timer);
-        //eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [typedText, currentPhraseIndex]);
-
+    const phrases = ["Play", "Characters", "Art", "Elements", "Animations"];
 
     const handleTryDemo = () => {
         setTab('assets');
@@ -76,21 +52,11 @@ const LanHero = ({ setTab }: Props) => {
                             <span className="block relative text-white/90 mb-2">
                                 From  
                                 <GlowingText>
-                                    Pixels
+                                    Piksels
                                 </GlowingText>
                                 To
                             </span>
-                            <span className="block relative">
-                                <span className="relative inline-block min-w-[300px] text-left">
-                                    <m.span
-                                        className="text-sky-400"
-                                        animate={{ opacity: [0, 1, 0] }}
-                                        transition={{ duration: 1, repeat: Infinity }}
-                                    >
-                                        {typedText.includes("|") ? "|" : ""}
-                                    </m.span>
-                                </span>
-                            </span>
+                            <MorphingText texts={phrases}/>
                         </m.h1>
                         <m.p
                             className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed font-light"

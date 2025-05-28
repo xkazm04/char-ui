@@ -62,7 +62,7 @@ const AssetAnalysisUpload = ({
         }
       }));
 
-      const res = await fetch(`${serverUrl}/assets/analyze`, {
+      const res = await fetch(`${serverUrl}/analyze`, {
         method: 'POST',
         body: formData,
       });

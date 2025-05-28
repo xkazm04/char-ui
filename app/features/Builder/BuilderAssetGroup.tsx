@@ -1,51 +1,8 @@
 import { AssetType } from "@/app/types/asset";
 import { motion, AnimatePresence } from "framer-motion";
-import { LucideChevronDown, LucideChevronRight, LucideTrash2, LucideX } from "lucide-react";
+import { LucideChevronDown, LucideChevronRight, LucideTrash2 } from "lucide-react";
 import { useState } from "react";
-
-interface AssetTagProps {
-  asset: AssetType;
-  onRemove: () => void;
-}
-
-export const assetColor = (type: string) => {
-  switch (type?.toLowerCase()) {
-    case 'body':
-      return 'bg-blue-400/20';
-    case 'equipment':
-      return 'bg-red-500/20';
-    case 'clothing':
-      return 'bg-green-500/20';
-    case 'background':
-      return 'bg-purple-500/20';
-    default:
-      return 'bg-gray-900/20';
-  }
-}
-
-const AssetTag = ({ asset, onRemove }: AssetTagProps) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.8 }}
-      className={`flex items-center ${assetColor(asset.type)}
-         border border-gray-700/50 rounded-full px-3 py-1 text-xs mr-2 mb-2`}
-    >
-      <span className="text-white truncate max-w-[150px]">{asset.name}</span>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
-        className="ml-2 text-gray-400 hover:text-red-400 transition-colors duration-200"
-        aria-label={`Remove ${asset.name}`}
-      >
-        <LucideX className="h-3.5 w-3.5" />
-      </button>
-    </motion.div>
-  );
-};
+import AssetTag from "./BuilderAssetTag";
 
 interface CollapsibleAssetSectionProps {
   title: string;
@@ -56,30 +13,30 @@ interface CollapsibleAssetSectionProps {
   defaultOpen?: boolean;
 }
 
-const BuilderAssetGroup = ({ 
-  title, 
-  assets, 
-  type, 
-  onRemove, 
+const BuilderAssetGroup = ({
+  title,
+  assets,
+  type,
+  onRemove,
   onClearCategory,
-  defaultOpen = true 
+  defaultOpen = true
 }: CollapsibleAssetSectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
-  
+
   return (
     <div className="mb-3 border-b border-sky-900/20 pb-3 last:border-b-0 last:pb-0">
-      <div 
-        className="flex justify-between items-center mb-1.5 cursor-pointer" 
+      <div
+        className="flex justify-between items-center mb-1.5 cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center">
-          {isOpen ? 
-            <LucideChevronDown className="h-3.5 w-3.5 text-sky-400 mr-1.5" /> : 
+          {isOpen ?
+            <LucideChevronDown className="h-3.5 w-3.5 text-sky-400 mr-1.5" /> :
             <LucideChevronRight className="h-3.5 w-3.5 text-sky-400 mr-1.5" />
           }
           <h3 className="text-sm font-medium text-sky-300">{title} <span className="text-xs text-sky-500">({assets.length})</span></h3>
         </div>
-        
+
         {assets.length > 0 && (
           <button
             onClick={(e) => {
@@ -94,7 +51,7 @@ const BuilderAssetGroup = ({
           </button>
         )}
       </div>
-      
+
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -104,27 +61,24 @@ const BuilderAssetGroup = ({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className={`
-              ${assets.length > 0 ? 'min-h-[40px]' : 'h-8'} 
-              rounded-lg p-2 border border-sky-900/20
-            `}>
+            <div className={`h-[40px] rounded-lg px-2 py-0.5`}>
               <AnimatePresence>
                 {assets.length > 0 ? (
                   <div className="flex flex-wrap">
                     {assets.map((asset) => (
-                      <AssetTag 
-                        key={asset._id} 
-                        asset={asset} 
+                      <AssetTag
+                        key={asset._id}
+                        asset={asset}
                         onRemove={() => {
                           const assetId = asset._id;
                           const assetType = asset.type || type;
-                          
+
                           if (!assetId) {
                             console.warn('Asset ID is missing, cannot remove asset');
                             return;
                           }
                           onRemove(assetId, assetType);
-                        }} 
+                        }}
                       />
                     ))}
                   </div>

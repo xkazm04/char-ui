@@ -1,10 +1,11 @@
-import { Save, Loader2, CheckCheck, Sparkles, AlertTriangle } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { AssetType, SimilarAsset } from "@/app/types/asset";
 import { serverUrl } from "@/app/constants/urls";
 import { handleAssetGenerationAndSave } from "@/app/functions/leoFns";
 import { useState } from "react";
 import { useAllAssets } from "@/app/functions/assetFns";
+import { buttonConfig } from "@/app/constants/loading";
 
 type Props = {
     setShowSimilarModal: (show: boolean) => void;
@@ -41,15 +42,18 @@ const AssetAnalysisSave = ({
 }: Props) => {
     const { refetch } = useAllAssets();
     const [generationId, setGenerationId] = useState<string | null>(null);
+    const [isValidating, setIsValidating] = useState(false);
+    const [isProcessingBackground, setIsProcessingBackground] = useState(false);
 
     const handleSave = async () => {
+        setIsValidating(true);
         setIsSaving(true);
         setShowSuccess(false);
         setSaveError(false);
 
         try {
-            // First validate the asset to check for similar items
-            const validateResponse = await fetch(`${serverUrl}/assets/validate`, {
+            // Use hybrid validation with Atlas Vector Search
+            const validateResponse = await fetch(`${serverUrl}/assets/validate?use_atlas_search=true`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -67,98 +71,86 @@ const AssetAnalysisSave = ({
                 setDescriptionVector(validationData.description_vector);
             }
 
+            setIsValidating(false);
+
             if (validationData.similar_assets && validationData.similar_assets.length > 0) {
                 setSimilarAssets(validationData.similar_assets);
                 setShowSimilarModal(true);
-                setIsSaving(false);
+                setIsSaving(false); 
                 return;
             }
             
+            // No similar assets, proceed with save
             const assetToSave = {
                 ...asset,
                 description_vector: validationData.description_vector
             };
             
-            console.log("Attempting to save asset:", assetToSave);
+            console.log("Attempting to save asset with preview (hybrid validation passed):", assetToSave);
             
+            // Direct pass-through, no wrapper function
             await handleAssetGenerationAndSave({
                 prompt: prompt,
                 generationId: generationId,
                 setGenerationId: setGenerationId,
-                setGenError: (error) => setSaveError(error),
+                setGenError: (error) => {
+                    setSaveError(error);
+                    setIsSaving(false);
+                },
                 setIsGenerating: setIsSaving,
-                setGeneratedImage: setGeneratedImage || (() => {}), 
+                setGeneratedImage: setGeneratedImage,
                 asset: assetToSave, 
                 setSavedAssetId: () => {} 
             });
-            refetch();
-            setShowSuccess(true);
             
-            // Auto-hide success after 3 seconds
+            // Set success immediately after the function completes (image should be set by now)
+            setShowSuccess(true);
+            setIsSaving(false);
+            setIsProcessingBackground(true);
+            
+            // Schedule background refresh
             setTimeout(() => {
-                setShowSuccess(false);
-            }, 3000);
+                refetch();
+                setIsProcessingBackground(false);
+            }, 5000);
             
         } catch (error) {
             console.error("Error saving asset:", error);
             setSaveError(true);
+            setIsSaving(false);
+            setIsValidating(false);
+            setIsProcessingBackground(false);
             
-            // Auto-hide error after 5 seconds
             setTimeout(() => {
                 setSaveError(false);
             }, 5000);
-        } finally {
-            setIsSaving(false);
         }
     };
 
     const getButtonState = () => {
+        if (isValidating) return 'validating';
         if (isSaving) return 'saving';
+        if (isProcessingBackground) return 'processing';
         if (showSuccess) return 'success';
         if (saveError) return 'error';
         return 'default';
     };
 
     const buttonState = getButtonState();
-
-    const buttonConfig = {
-        saving: {
-            icon: Loader2,
-            text: "Saving...",
-            className: "bg-sky-500/20 border-sky-400/30 text-sky-300 cursor-wait",
-            iconClassName: "animate-spin"
-        },
-        success: {
-            icon: CheckCheck,
-            text: "Saved!",
-            className: "bg-green-500/20 border-green-400/30 text-green-300",
-            iconClassName: ""
-        },
-        error: {
-            icon: AlertTriangle,
-            text: "Failed",
-            className: "bg-red-500/20 border-red-400/30 text-red-300 hover:bg-red-500/30",
-            iconClassName: ""
-        },
-        default: {
-            icon: Save,
-            text: "Save Asset",
-            className: "bg-sky-500/10 border-sky-400/20 text-sky-400 hover:bg-sky-500/20 hover:text-sky-300",
-            iconClassName: ""
-        }
-    };
-
     const config = buttonConfig[buttonState];
     const IconComponent = config.icon;
 
+    // Button is disabled only when actually processing, not when modal is open
+    const isDisabled = isValidating || isSaving || showSuccess || isGenerating;
+
     return (
         <motion.button
-            whileHover={{ scale: buttonState === 'default' ? 1.02 : 1 }}
-            whileTap={{ scale: buttonState === 'default' ? 0.98 : 1 }}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm font-medium ${config.className}`}
+            whileHover={{ scale: buttonState === 'default' || buttonState === 'error' ? 1.02 : 1 }}
+            whileTap={{ scale: buttonState === 'default' || buttonState === 'error' ? 0.98 : 1 }}
+            className={`flex items-center cursor-pointer z-30 gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm font-medium ${config.className}`}
             title={config.text}
             onClick={handleSave}
-            disabled={isSaving || showSuccess || isGenerating}
+            disabled={isDisabled}
         >
             <IconComponent className={`h-4 w-4 ${config.iconClassName}`} />
             <span>{config.text}</span>

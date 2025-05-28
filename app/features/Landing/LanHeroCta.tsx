@@ -6,6 +6,7 @@ type Props = {
 }
 
 const LanHeroCta = ({handleTryDemo}: Props) => {
+    const repoUrl = "https://gitlab.com/xkazm04/char-ui"
     return <m.div
         className="flex flex-col items-center gap-6 mt-5"
         initial={{ opacity: 0, y: 40 }}
@@ -32,9 +33,10 @@ const LanHeroCta = ({handleTryDemo}: Props) => {
                 className="px-8 cursor-pointer py-4 border border-white/20 rounded-xl font-semibold text-white backdrop-blur-sm hover:bg-white/5 transition-colors flex items-center gap-3"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                onClick={() => window.open(repoUrl, '_blank', 'noopener,noreferrer')}
             >
                 <Gitlab className="w-5 h-5" />
-                <span>Open sourced</span>
+                <span>Open codebase</span>
             </m.button>
         </div>
 

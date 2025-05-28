@@ -1,10 +1,11 @@
 import { FileText, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AssetType } from "@/app/types/asset";
-import { handleDelete, handleSave, useAllAssets } from "@/app/functions/assetFns";
-import { useState, useEffect } from "react";
+import { handleDelete, useAllAssets, useUpdateAsset } from "@/app/functions/assetFns";
+import { useState, useEffect, useRef } from "react";
 import AssetModalFooter from "@/app/components/ui/modal/AssetModal/AssetModalFooter";
 import AssetModalContent from "@/app/components/ui/modal/AssetModal/AssetModalContent";
+import { createPortal } from "react-dom";
 
 type Props = {
     asset: AssetType
@@ -15,43 +16,72 @@ type Props = {
 
 const AssetItemModal = ({ asset, setShowModal, onOptimisticDelete }: Props) => {
     const { refetch } = useAllAssets();
+    const updateAssetMutation = useUpdateAsset();
     const [genValue, setGenValue] = useState(asset.gen || "");
-    const [isEditing, setIsEditing] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-    const initialGenValue = asset.gen || "";
-    const hasChanges = genValue !== initialGenValue;
+    const [mounted, setMounted] = useState(false);
+    const debounceRef = useRef<NodeJS.Timeout | null>(null);
+    const lastSavedValueRef = useRef(asset.gen || "");
+    const isSavingRef = useRef(false);
 
-    // Auto-save functionality
     useEffect(() => {
-        if (!hasChanges || !isEditing) return;
+        setMounted(true);
+        return () => setMounted(false);
+    }, []);
 
-        const timer = setTimeout(() => {
-            handleSave(genValue, asset._id);
-        }, 2000); 
-
-        return () => clearTimeout(timer);
-    }, [genValue, hasChanges, isEditing, asset._id]);
-
-    const handleSaveClick = async () => {
-        setIsSaving(true);
-        try {
-            await handleSave(genValue, asset._id);
-            setIsEditing(false);
-        } catch (error) {
-            console.error('Error saving:', error);
-        } finally {
-            setIsSaving(false);
+    useEffect(() => {
+        const currentAssetGen = asset.gen || "";
+        if (currentAssetGen !== lastSavedValueRef.current && !isSavingRef.current) {
+            setGenValue(currentAssetGen);
+            lastSavedValueRef.current = currentAssetGen;
         }
-    };
+    }, [asset.gen]);
+
+    // Auto-save with debouncing
+    useEffect(() => {
+        const currentValue = genValue;
+        const lastSavedValue = lastSavedValueRef.current;
+
+        if (currentValue !== lastSavedValue && !isSavingRef.current) {
+            if (debounceRef.current) {
+                clearTimeout(debounceRef.current);
+            }
+
+            debounceRef.current = setTimeout(() => {
+                isSavingRef.current = true;
+                updateAssetMutation.mutate(
+                    {
+                        id: asset._id,
+                        updates: { gen: currentValue }
+                    },
+                    {
+                        onSuccess: () => {
+                            lastSavedValueRef.current = currentValue;
+                            isSavingRef.current = false;
+                        },
+                        onError: () => {
+                            isSavingRef.current = false;
+                        }
+                    }
+                );
+            }, 1500);
+        }
+
+        return () => {
+            if (debounceRef.current) {
+                clearTimeout(debounceRef.current);
+            }
+        };
+    }, [genValue, asset._id, updateAssetMutation]);
 
     const handleDeleteClick = async () => {
         setIsDeleting(true);
-        
-        // Optimistic updates
-        setShowModal(false);
-        onOptimisticDelete?.(asset._id);
-        
+
+        setTimeout(() => {
+            setShowModal(false);
+            onOptimisticDelete?.(asset._id);
+        }, 2000);
+
         try {
             await handleDelete(asset, () => {
                 refetch();
@@ -62,13 +92,21 @@ const AssetItemModal = ({ asset, setShowModal, onOptimisticDelete }: Props) => {
         }
     };
 
-    return (
+    const modalContent = (
         <AnimatePresence>
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+                style={{
+                    zIndex: 9999,
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0
+                }}
                 onClick={() => setShowModal(false)}
             >
                 <motion.div
@@ -77,6 +115,7 @@ const AssetItemModal = ({ asset, setShowModal, onOptimisticDelete }: Props) => {
                     exit={{ scale: 0.95, opacity: 0 }}
                     transition={{ type: "spring", damping: 25, stiffness: 300 }}
                     className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden"
+                    style={{ zIndex: 10000 }}
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Header */}
@@ -89,6 +128,12 @@ const AssetItemModal = ({ asset, setShowModal, onOptimisticDelete }: Props) => {
                                 <h2 className="text-lg font-semibold text-white">{asset.name}</h2>
                                 <p className="text-sm text-gray-400">
                                     {asset.type}{asset.subcategory ? ` • ${asset.subcategory}` : ''}
+                                    {/* Show similarity score if available */}
+                                    {(asset as any).searchSimilarity && (
+                                        <span className="ml-2 text-purple-400">
+                                            ({((asset as any).searchSimilarity * 100).toFixed(1)}% match)
+                                        </span>
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -104,23 +149,27 @@ const AssetItemModal = ({ asset, setShowModal, onOptimisticDelete }: Props) => {
                     <AssetModalContent
                         asset={asset}
                         genValue={genValue}
-                        hasChanges={hasChanges}
                         setGenValue={setGenValue}
-                        setIsEditing={setIsEditing}
-                        isSaving={isSaving}
-                        handleSaveClick={handleSaveClick}
-                        />
+                        isUpdating={updateAssetMutation.isPending}
+                        updateError={updateAssetMutation.error}
+                        isSuccess={updateAssetMutation.isSuccess}
+                        lastSavedValue={lastSavedValueRef.current}
+                    />
 
                     {/* Footer */}
                     <AssetModalFooter
                         isDeleting={isDeleting}
                         setShowModal={setShowModal}
                         handleDeleteClick={handleDeleteClick}
-                        />
+                    />
                 </motion.div>
             </motion.div>
         </AnimatePresence>
     );
+
+    if (!mounted) return null;
+
+    return createPortal(modalContent, document.body);
 }
 
 export default AssetItemModal;

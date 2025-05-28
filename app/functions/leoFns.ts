@@ -98,7 +98,7 @@ export const handleAssetGeneration = async ({
                 asset: asset
             };
             
-            return await makeApiRequest<LeonardoResponse | GenerationResponse>({
+            return await makeApiRequest<AssetSaveResponse>({
                 endpoint: "/leo/asset",
                 requestBody,
                 errorMessage: "Failed to generate image"
@@ -106,11 +106,23 @@ export const handleAssetGeneration = async ({
         },
         setGenError,
         setIsGenerating,
-        successHandler: (data: LeonardoResponse | GenerationResponse) => {
+        successHandler: (data: AssetSaveResponse) => {
             console.log("Asset generation response:", data);
-            if (data.status === "success" && 'data' in data && data.data && data.data.length > 0) {
-                const leonardoData = data as LeonardoResponse;
-                const generationId = leonardoData.gen;
+            
+            // Handle new preview_url format (matches handleAssetGenerationAndSave)
+            if (data.status === "success" && data.preview_url) {
+                console.log("Using preview URL immediately:", data.preview_url);
+                setGeneratedImage(data.preview_url);
+                
+                if (data.generation_id) {
+                    setGenerationId(data.generation_id);
+                }
+                return;
+            }
+            
+            // Fallback for backward compatibility
+            if (data.status === "success" && data.data && data.data.length > 0) {
+                const generationId = data.gen;
                 if (generationId) {
                     setGenerationId(generationId);
                 }
@@ -118,23 +130,26 @@ export const handleAssetGeneration = async ({
                 return;
             }
             
-            if (data.status === "success" && 'asset' in data && data.asset && 'generation_id' in data) {
-                const genResponse = data as GenerationResponse;
-                setGenerationId(genResponse.generation_id);
+            if (data.status === "success" && data.asset) {
+                if (data.generation_id) {
+                    setGenerationId(data.generation_id);
+                }
                 
-                if (genResponse.asset.image_url) {
-                    setGeneratedImage(genResponse.asset.image_url);
+                if (data.asset.image_url) {
+                    setGeneratedImage(data.asset.image_url);
                     return;
                 }
                 
-                const assetId = genResponse.asset.id || genResponse.asset._id;
+                const assetId = data.asset.id || data.asset._id;
                 if (assetId) {
                     const imageUrl = `${serverUrl}/assets/image/${assetId}`;
                     setGeneratedImage(imageUrl);
                     return;
                 }
             }
-            throw new Error("Unrecognized response format from image generation API");
+            
+            console.error("No preview_url in response:", data);
+            throw new Error("Failed to get preview URL from server");
         }
     });
 };
@@ -201,74 +216,119 @@ export const handleAssetGenerationAndSave = async ({
     asset,
     setSavedAssetId
 }: AssetSaveProps): Promise<void> => {
+    setGenError(false);
+    setIsGenerating(true);
+
+    try {
+        if (!asset || typeof asset !== 'object') {
+            throw new Error("Missing or invalid asset object");
+        }
+
+        if (!asset.type || !asset.name || !asset.gen) {
+            throw new Error("Asset is missing required fields (type, name, or gen)");
+        }
+
+        const requestBody = {
+            gen: prompt || "wooden sword",
+            generation_id: generationId,
+            asset: asset,
+            name: asset.name || "Unnamed Asset",
+            type: asset.type || "Uncategorized",
+        };
+
+        console.log("Sending request to save asset with preview:", JSON.stringify(requestBody));
+        
+        const response = await fetch(`${serverUrl}/leo/asset`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json() as AssetSaveResponse;
+        console.log("Asset save response:", JSON.stringify(data, null, 2));
+        
+        // NEW: Only handle preview_url response (no more fallback logic)
+        if (data.status === "success" && data.preview_url) {
+            console.log("Using preview URL immediately:", data.preview_url);
+            setGeneratedImage(data.preview_url);
+            
+            if (data.generation_id) {
+                setGenerationId(data.generation_id);
+            }
+            
+            setIsGenerating(false);
+            return;
+        }
+        
+        // If no preview_url, something went wrong
+        console.error("No preview_url in response:", data);
+        throw new Error("Failed to get preview URL from server");
+        
+    } catch (error) {
+        console.error(`Error in asset generation and save`, error);
+        setGenError(true);
+        setIsGenerating(false);
+        throw error;
+    }
+};
+
+// Add new function for preview-only generation (no saving)
+export const handleAssetGenerationPreview = async ({ 
+    asset, 
+    prompt, 
+    generationId, 
+    setGenerationId, 
+    setGenError, 
+    setIsGenerating, 
+    setGeneratedImage 
+}: PropsAssetGen): Promise<void> => {
     await executeWithStateManagement({
         apiCall: async () => {
-            if (!asset || typeof asset !== 'object') {
-                throw new Error("Missing or invalid asset object");
-            }
-
-            if (!asset.type || !asset.name || !asset.gen) {
-                throw new Error("Asset is missing required fields (type, name, or gen)");
-            }
-
             const requestBody = {
                 gen: prompt || "wooden sword",
                 generation_id: generationId,
-                asset: asset,
-                name: asset.name || "Unnamed Asset",
-                type: asset.type || "Uncategorized",
+                asset: asset
             };
-
-            console.log("Sending request to save asset:", JSON.stringify(requestBody));
             
-            return await makeApiRequest<AssetSaveResponse>({
-                endpoint: "/leo/asset",
+            // Use preview endpoint for faster response
+            return await makeApiRequest<LeonardoResponse | GenerationResponse>({
+                endpoint: "/leo/asset-preview",
                 requestBody,
-                timeout: 60000,
-                errorMessage: "Failed to generate and save image"
+                errorMessage: "Failed to generate preview"
             });
         },
         setGenError,
         setIsGenerating,
-        successHandler: (data: AssetSaveResponse) => {
-            console.log("Asset save response:", JSON.stringify(data, null, 2));
+        successHandler: (data: LeonardoResponse | GenerationResponse) => {
+            console.log("Asset preview response:", data);
             
-            if (data.status === "success") {
-                if (data.data && data.data.length > 0) {
-                    if (data.gen) setGenerationId(data.gen);
-                    else if (data.generation_id) setGenerationId(data.generation_id);
-                    
-                    setGeneratedImage(data.data[0].url);
-                    return;
+            if (data.status === "success" && 'preview_url' in data) {
+                const previewData = data as any;
+                setGeneratedImage(previewData.preview_url);
+                if (previewData.generation_id) {
+                    setGenerationId(previewData.generation_id);
                 }
-                
-                if (data.asset) {
-                    if (data.generation_id) {
-                        setGenerationId(data.generation_id);
-                    }
-                    
-                    const assetId = data.asset.id || data.asset._id;
-                    
-                    if (assetId) {
-                        if (data.asset.image_url) {
-                            console.log("Using asset.image_url:", data.asset.image_url);
-                            setGeneratedImage(data.asset.image_url);
-                        } else {
-                            const imageUrl = `${serverUrl}/assets/image/${assetId}`;
-                            console.log("Constructed imageUrl:", imageUrl);
-                            setGeneratedImage(imageUrl);
-                        }
-                        
-                        if (setSavedAssetId) {
-                            setSavedAssetId(assetId);
-                        }
-                        return;
-                    }
-                }
+                return;
             }
             
-            console.error("Unrecognized response structure:", data);
-            throw new Error("Failed to save asset or get image URL");
+            // Fallback to existing logic
+            if (data.status === "success" && 'data' in data && data.data && data.data.length > 0) {
+                const leonardoData = data as LeonardoResponse;
+                const generationId = leonardoData.gen;
+                if (generationId) {
+                    setGenerationId(generationId);
+                }
+                setGeneratedImage(data.data[0].url);
+                return;
+            }
+            
+            throw new Error("Failed to generate preview");
         }
     });
 };

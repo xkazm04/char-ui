@@ -7,14 +7,41 @@ export interface LeonardoImage {
     motionMP4URL?: string;
 }
 
+// Update AssetSaveResponse to be the primary interface
+export interface AssetSaveResponse {
+    status: "success" | "error";
+    preview_url?: string;  // Primary field for new flow
+    generation_id?: string;
+    message?: string;
+    // Legacy fields for backward compatibility
+    data?: Array<{
+        url: string;
+        id: string;
+        nsfw: boolean;
+        motionMP4URL?: string;
+    }>;
+    asset?: {
+        id?: string;
+        _id?: string;
+        image_url?: string;
+    };
+    gen?: string;
+}
+
+// Legacy interfaces for backward compatibility
 export interface LeonardoResponse {
-    status: string;
-    data: Array<{ url: string; id: string }>;
+    status: "success" | "error";
+    data: Array<{
+        url: string;
+        id: string;
+        nsfw: boolean;
+        motionMP4URL?: string;
+    }>;
     gen?: string;
 }
 
 export interface GenerationResponse {
-    status: string;
+    status: "success" | "error";
     asset: {
         id?: string;
         _id?: string;
@@ -23,16 +50,11 @@ export interface GenerationResponse {
     generation_id: string;
 }
 
-export interface AssetSaveResponse {
-    status: string;
-    data?: Array<{ url: string; id: string }>;
-    asset?: {
-        id?: string;
-        _id?: string;
-        image_url?: string;
-    };
+export interface AssetPreviewResponse {
+    status: "success" | "error";
+    preview_url?: string;
     generation_id?: string;
-    gen?: string;
+    message?: string;
 }
 
 export interface PropsAssetGen {

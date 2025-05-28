@@ -1,9 +1,9 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import React, { useEffect, useState, useRef, useCallback, Suspense } from "react"; 
-import { AssetGroup } from "@/app/functions/assetFns";
 import { useAssetStore } from "@/app/store/assetStore";
 import LazyRenderWrapper from "@/app/helpers/LazyRenderWrapper";
+import { AssetGroup } from "@/app/types/asset";
 
 const AssetGroupItem = React.lazy(() => import("./AssetGroupItem"));
 
@@ -16,7 +16,6 @@ const AssetGroupFullScreen = ({
 }: Props) => {
   const { toggleGroupExpanded, getGroupExpanded, setGroupExpanded } = useAssetStore();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [columns, setColumns] = useState(3);
   const [optimisticallyDeleted, setOptimisticallyDeleted] = useState<Set<string>>(new Set());
 
   const toggleAssetSelection = useCallback((assetId: string) => {
@@ -38,27 +37,6 @@ const AssetGroupFullScreen = ({
       setGroupExpanded(group.id, true);
     });
 
-    const calculateColumns = () => {
-      if (!containerRef.current) return;
-      const width = containerRef.current.clientWidth;
-
-      if (width < 640) {
-        setColumns(1);
-      } else if (width < 960) {
-        setColumns(2);
-      } else if (width < 1280) {
-        setColumns(3);
-      } else {
-        setColumns(4);
-      }
-    };
-
-    calculateColumns();
-    window.addEventListener('resize', calculateColumns);
-
-    return () => {
-      window.removeEventListener('resize', calculateColumns);
-    };
   }, [assetGroups, setGroupExpanded]);
 
   // Filter out optimistically deleted assets
@@ -85,7 +63,7 @@ const AssetGroupFullScreen = ({
       <motion.div
         className={`grid gap-4 auto-rows-min`}
         style={{
-          gridTemplateColumns: `repeat(${columns}, minmax(300px, 1fr))`
+          gridTemplateColumns: `repeat(3, minmax(300px, 1fr))`
         }}
         initial="hidden"
         animate="visible"

@@ -34,7 +34,7 @@ const AssetManCatSelector = ({setIsFullScreen, isFullScreen, setActiveCategory, 
                 <button
                     onClick={() => setActiveCategory(null)}
                     className={`p-2 rounded-md text-xs flex flex-col items-center
-                  border-2 ${activeCategory === null ? 'bg-gray-700 border-white' : 'bg-gray-800 border-gray-700 hover:bg-gray-700'}
+                  border-1 ${activeCategory === null ? 'bg-gray-700 border-sky-200' : 'bg-gray-800 border-gray-700 hover:bg-gray-700'}
                   transition-all`}
                     title="All Categories"
                 >

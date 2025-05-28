@@ -1,13 +1,11 @@
-import { useAllAssets } from "@/app/functions/assetFns";
-import { handleAssetGenerationAndSave } from "@/app/functions/leoFns";
-import { useNavStore } from "@/app/store/navStore";
 import { AssetType, SimilarAsset } from "@/app/types/asset";
 import { motion } from "framer-motion";
-import { AlertTriangle, ArrowRight, Shield, Zap, Search, CheckCircle } from "lucide-react";
-import AssetSimilarItemCard from "./AssetsSimilarItemCard";
+import { AlertTriangle, Search, Database, Brain } from "lucide-react";
 import { useState, useMemo } from "react";
-import ActionButton from "@/app/components/ui/Buttons/ActionButton";
-import { ModalBase, ModalHeader, ModalContent, ModalActions } from "@/app/components/ui/modal";
+import { ModalBase, ModalHeader, ModalContent } from "@/app/components/ui/modal";
+import SimilarStats from "./AssetsSimilar/SimilarStats";
+import SimilarItem from "./AssetsSimilar/SimilarItem";
+import SimilarFooter from "./AssetsSimilar/SimilarFooter";
 
 type Props = {
     showSimilarModal: boolean;
@@ -18,7 +16,8 @@ type Props = {
     setShowSuccess: (show: boolean) => void;
     asset: AssetType;
     descriptionVector?: number[] | null;
-    handleAssetGeneration: () => void;
+    setGeneratedImage?: (url: string | null) => void;
+    prompt?: string;
 }
 
 const AssetsSimilarModal = ({
@@ -30,14 +29,12 @@ const AssetsSimilarModal = ({
     setShowSuccess,
     asset,
     descriptionVector,
-    handleAssetGeneration
+    setGeneratedImage,
+    prompt
 }: Props) => {
-    const { setAssetNavHighlighted } = useNavStore();
-    const { refetch } = useAllAssets();
-    const [isSaving, setLocalSaving] = useState(false);
-    const [searchFilter, setSearchFilter] = useState("");
 
-    // Filter similar assets based on search
+    const [searchFilter, setSearchFilter] = useState("");
+    
     const filteredSimilarAssets = useMemo(() => {
         if (!searchFilter) return similarAssets;
         return similarAssets.filter(similar =>
@@ -46,69 +43,34 @@ const AssetsSimilarModal = ({
         );
     }, [similarAssets, searchFilter]);
 
-    // Calculate average similarity
-    const averageSimilarity = useMemo(() => {
-        if (!similarAssets.length) return 0;
-        return Math.round(similarAssets.reduce((sum, asset) => sum + asset.similarity, 0) / similarAssets.length);
+    // Calculate statistics for both similarity scores
+    const similarityStats = useMemo(() => {
+        if (!similarAssets.length) return { 
+            openai: { avg: 0, max: 0 }, 
+            mongo: { avg: 0, max: 0 },
+            hasMongoData: false 
+        };
+        
+        const openaiSimilarities = similarAssets.map(asset => asset.similarity * 100);
+        const mongoSimilarities = similarAssets
+            .filter(asset => asset.similarity_mongo !== undefined)
+            .map(asset => asset.similarity_mongo! * 100);
+        
+        const hasMongoData = mongoSimilarities.length > 0;
+        
+        return {
+            openai: {
+                avg: Math.round(openaiSimilarities.reduce((sum, val) => sum + val, 0) / openaiSimilarities.length),
+                max: Math.round(Math.max(...openaiSimilarities))
+            },
+            mongo: hasMongoData ? {
+                avg: Math.round(mongoSimilarities.reduce((sum, val) => sum + val, 0) / mongoSimilarities.length),
+                max: Math.round(Math.max(...mongoSimilarities))
+            } : { avg: 0, max: 0 },
+            hasMongoData
+        };
     }, [similarAssets]);
 
-    const handleConfirmSave = async () => {
-        setLocalSaving(true);
-        setShowSimilarModal(false);
-        setIsSaving(true);
-        setSaveError(false);
-
-        try {
-            const assetToSave = {
-                type: asset.type,
-                name: asset.name,
-                gen: asset.gen,
-                description: asset.description,
-                description_vector: descriptionVector || [],
-            };
-
-            await handleAssetGenerationAndSave({
-                prompt: asset.gen,
-                generationId: null,
-                setGenerationId: () => { },
-                setGenError: (error) => setSaveError(error),
-                setIsGenerating: setIsSaving,
-                setGeneratedImage: () => { },
-                //@ts-expect-error Ignore
-                asset: assetToSave,
-                setSavedAssetId: () => { }
-            });
-
-            setIsSaving(false);
-            setLocalSaving(false);
-            setShowSuccess(true);
-            setAssetNavHighlighted(true);
-            refetch();
-
-            setTimeout(() => {
-                setShowSuccess(false);
-                handleAssetGeneration();
-            }, 2000);
-        } catch (error) {
-            console.error('Error saving asset:', error);
-            setIsSaving(false);
-            setLocalSaving(false);
-            setSaveError(true);
-        }
-    };
-
-    const getSimilarityColor = (similarity: number) => {
-        if (similarity >= 90) return "text-red-400 bg-red-500/10 border-red-500/20";
-        if (similarity >= 75) return "text-orange-400 bg-orange-500/10 border-orange-500/20";
-        if (similarity >= 60) return "text-yellow-400 bg-yellow-500/10 border-yellow-500/20";
-        return "text-green-400 bg-green-500/10 border-green-500/20";
-    };
-
-    const getSimilarityIcon = (similarity: number) => {
-        if (similarity >= 90) return AlertTriangle;
-        if (similarity >= 75) return Shield;
-        return CheckCircle;
-    };
 
     return (
         <ModalBase 
@@ -118,7 +80,7 @@ const AssetsSimilarModal = ({
         >
             <ModalHeader 
                 title="Similar Assets Detected"
-                subtitle="Review existing assets before saving"
+                subtitle={`Found ${similarAssets.length} similar asset${similarAssets.length !== 1 ? 's' : ''} using ${similarityStats.hasMongoData ? 'hybrid validation' : 'OpenAI similarity'}`}
                 icon={
                     <motion.div
                         animate={{ rotate: [0, 5, -5, 0] }}
@@ -129,22 +91,11 @@ const AssetsSimilarModal = ({
                 }
             />
 
-            {/* Stats Bar */}
-            <div className="px-6 py-4 bg-gray-800/30 border-b border-gray-700/30">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <Search className="h-4 w-4 text-sky-400" />
-                            <span className="text-sm text-gray-300">
-                                <span className="font-semibold text-white">{similarAssets.length}</span> similar asset{similarAssets.length !== 1 ? 's' : ''} found
-                            </span>
-                        </div>
-                        <div className={`px-2 py-1 rounded-md border text-xs font-medium ${getSimilarityColor(averageSimilarity)}`}>
-                            {averageSimilarity}% avg similarity
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {/* Enhanced Stats Bar with Dual Similarity */}
+            <SimilarStats
+                similarityStats={similarityStats}
+                similarAssets={similarAssets}
+            />
 
             {/* Search Filter */}
             {similarAssets.length > 3 && (
@@ -170,22 +121,11 @@ const AssetsSimilarModal = ({
                     transition={{ delay: 0.1 }}
                 >
                     {filteredSimilarAssets.map((similar, index) => {
-                        const SimilarityIcon = getSimilarityIcon(similar.similarity);
-                        return (
-                            <motion.div
-                                key={similar.id}
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: index * 0.05 }}
-                                className="relative group"
-                            >
-                                <div className={`absolute -top-2 -right-2 z-10 px-2 py-1 rounded-full border text-xs font-bold flex items-center gap-1 ${getSimilarityColor(similar.similarity)}`}>
-                                    <SimilarityIcon className="h-3 w-3" />
-                                    {Math.round(similar.similarity)}%
-                                </div>
-                                <AssetSimilarItemCard similar={similar} />
-                            </motion.div>
-                        );
+                        return <SimilarItem
+                            key={similar.id}
+                            similar={similar}
+                            index={index}
+                        />
                     })}
                 </motion.div>
 
@@ -196,7 +136,7 @@ const AssetsSimilarModal = ({
                     </div>
                 )}
 
-                {/* Warning Message */}
+                {/* Enhanced Warning Message */}
                 <div className="mt-6 p-4 bg-orange-500/5 border border-orange-500/20 rounded-lg">
                     <div className="flex items-start gap-3">
                         <div className="p-1 bg-orange-500/10 rounded border border-orange-500/20 mt-0.5">
@@ -205,44 +145,38 @@ const AssetsSimilarModal = ({
                         <div className="flex-1">
                             <p className="text-sm text-orange-300 font-medium mb-1">Potential Duplicate Content</p>
                             <p className="text-xs text-orange-200/80 leading-relaxed">
-                                The assets above share similar characteristics with your new asset.
-                                Consider if this content already exists before proceeding.
+                                {similarityStats.hasMongoData 
+                                    ? 'Our hybrid validation system found similar assets using both MongoDB Atlas Vector Search and OpenAI similarity analysis.' 
+                                    : 'Similar assets were found using OpenAI similarity analysis.'
+                                } Consider if this content already exists before proceeding.
                             </p>
+                            {similarityStats.hasMongoData && (
+                                <div className="mt-2 flex items-center gap-4 text-xs">
+                                    <div className="flex items-center gap-1 text-blue-300">
+                                        <Database className="h-3 w-3" />
+                                        <span>Atlas Search: More precise vector matching</span>
+                                    </div>
+                                    <div className="flex items-center gap-1 text-purple-300">
+                                        <Brain className="h-3 w-3" />
+                                        <span>OpenAI: Semantic understanding</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
             </ModalContent>
 
-            <ModalActions align="between">
-                <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowSimilarModal(false)}
-                    className="px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 hover:text-white rounded-lg border border-gray-600/30 transition-all"
-                    disabled={isSaving}
-                >
-                    Cancel
-                </motion.button>
-                <ActionButton
-                    onClick={handleConfirmSave}
-                    disabled={isSaving}
-                >
-                    <>
-                        {isSaving ? (
-                            <>
-                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                Saving...
-                            </>
-                        ) : (
-                            <>
-                                <Zap className="h-4 w-4" />
-                                Save Anyway
-                                <ArrowRight className="h-4 w-4" />
-                            </>
-                        )}
-                    </>
-                </ActionButton>
-            </ModalActions>
+            <SimilarFooter
+                asset={asset}
+                setIsSaving={setIsSaving}
+                setSaveError={setSaveError}
+                setShowSimilarModal={setShowSimilarModal}
+                setShowSuccess={setShowSuccess}
+                descriptionVector={descriptionVector}
+                setGeneratedImage={setGeneratedImage}
+                prompt={prompt}
+            />
         </ModalBase>
     );
 }

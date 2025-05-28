@@ -1,13 +1,26 @@
 import { characters } from "@/app/data/characters";
-import { useCharacterStore } from "@/app/store/charStore";
+import { Character, useCharacterStore } from "@/app/store/charStore";
 import { useNavStore } from "@/app/store/navStore";
 import { motion } from "framer-motion";
-import { LucideChevronUp } from "lucide-react";
+import { LucideChevronUp } from "lucide-react"
 import Image from "next/image";
+import { useState } from "react";
 
 const CharacterSelector = () => {
     const { currentCharacter, setCurrentCharacter } = useCharacterStore()
     const { charNavExpanded, setCharNavExpanded } = useNavStore()
+    const [hoveredCharacter, setHoveredCharacter] = useState<string | null>(null);
+
+    const shouldShowAvatarVariant = (charName: string) => {
+        return charName === 'Joe' || charName === 'Jinx';
+    };
+
+    const getImageSrc = (char: Character) => {
+        if (!shouldShowAvatarVariant(char.name)) {
+            return char.image_url;
+        }
+        return hoveredCharacter === char.id ? char.avatar_gif : char.avatar_url;
+    };
 
     return <motion.div
         className="absolute bottom-0 left-0 right-0 bg-[#0a0a18]/95 backdrop-blur-md border-t border-sky-900/30"
@@ -34,7 +47,7 @@ const CharacterSelector = () => {
                 {characters.map((char) => (
                     <div
                         key={char.id}
-                        className={`w-[150px] p-2 cursor-pointer hover:bg-gray-800/20 rounded-lg transition-colors duration-200 ease-linear
+                        className={`p-2 cursor-pointer hover:bg-gray-800/20 rounded-lg transition-colors duration-200 ease-linear
                             bg-sky-900/5 border border-sky-500/10
                             ${currentCharacter && currentCharacter.id === char.id && 'border border-sky-500'}
                             `}
@@ -42,15 +55,18 @@ const CharacterSelector = () => {
                             setCurrentCharacter(char.id);
                             setCharNavExpanded(!charNavExpanded)
                         }}
+                        onMouseEnter={() => shouldShowAvatarVariant(char.name) && setHoveredCharacter(char.id)}
+                        onMouseLeave={() => shouldShowAvatarVariant(char.name) && setHoveredCharacter(null)}
                     >
-                        <Image
-                            src={char.image_url}
-                            alt={char.name}
-                            width={100}
-                            height={100}
-                            className="w-full h-auto rounded-lg mb-2"
-                        />
-                        <h4 className="text-sm font-medium text-sky-300">{char.name}</h4>
+                        <div className="flex flex-col items-center hover:opacity-90 transition-opacity duration-200">
+                            <Image
+                                src={getImageSrc(char)}
+                                alt={char.name}
+                                width={shouldShowAvatarVariant(char.name) ? 150 : 200}
+                                height={shouldShowAvatarVariant(char.name) ? 150 : 200}
+                                className="w-full h-auto rounded-lg mb-2"
+                            />
+                        </div>
                     </div>
                 ))}
             </div>

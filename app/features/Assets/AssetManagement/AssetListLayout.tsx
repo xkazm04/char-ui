@@ -1,18 +1,30 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Hammer, Search, X, Loader } from 'lucide-react';
-import AssetGroupList from './AssetGroup';
+import { Hammer, Sparkles } from 'lucide-react';
 import { useNavStore } from '@/app/store/navStore';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useAssetGroups, usePrefetchAssets } from '@/app/functions/assetFns';
+import {  useAssetGroups, usePrefetchAssets, } from '@/app/functions/assetFns';
 import AssetManCatSelector from './AssetManCatSelector';
+import AssetSearch from './AssetSearch';
+import { processSearchResultsIntoGroups, useSemanticAssetSearch } from '@/app/functions/assetSearchFns';
+import AssetGroupFullScreen from './AssetGroupFullScreen';
+import AssetGroupSidebar from './AssetGroupSidebar';
 
 const AssetListLayout = () => {
   const [mainSearchQuery, setMainSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [searchMode, setSearchMode] = useState<'text' | 'semantic'>('text');
   const { assetNavExpanded, setAssetNavExpanded, assetNavHighlighted, setAssetNavHighlighted } = useNavStore();
   
   const { prefetchNextPage } = usePrefetchAssets(activeCategory);
+
+  const { 
+    searchAssets, 
+    results: semanticResults, 
+    isLoading: isSemanticLoading, 
+    error: semanticError,
+    clearResults: clearSemanticResults 
+  } = useSemanticAssetSearch();
 
   const handleHammerClick = useCallback(() => {
     setAssetNavExpanded(!assetNavExpanded);
@@ -30,9 +42,8 @@ const AssetListLayout = () => {
     isFetchingNextPage 
   } = useAssetGroups(activeCategory, assetNavExpanded);
 
-  // Optimized auto-fetch with prefetching
   useEffect(() => {
-    if (hasNextPage && !isFetchingNextPage && assetNavExpanded) {
+    if (searchMode === 'text' && hasNextPage && !isFetchingNextPage && assetNavExpanded) {
       const timer = setTimeout(() => {
         fetchNextPage();
         const currentPage = Math.ceil(allFetchedAssets.length / 50);
@@ -41,9 +52,13 @@ const AssetListLayout = () => {
       
       return () => clearTimeout(timer);
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage, assetNavExpanded, allFetchedAssets.length, prefetchNextPage]);
+  }, [searchMode, hasNextPage, isFetchingNextPage, fetchNextPage, assetNavExpanded, allFetchedAssets.length, prefetchNextPage]);
 
-  const filteredAssetGroups = useMemo(() => {
+  // Process results based on search mode
+  const displayAssetGroups = useMemo(() => {
+    if (searchMode === 'semantic') {
+      return processSearchResultsIntoGroups(semanticResults);
+    }
     if (!mainSearchQuery) return assetGroups;
     
     return assetGroups.map(group => {
@@ -56,23 +71,46 @@ const AssetListLayout = () => {
         );
       });
 
+      // Update subcategories to only include filtered assets
+      const filteredSubcategories = group.subcategories ? 
+        Object.entries(group.subcategories).reduce((acc, [subcategory, assets]) => {
+          const filteredSubAssets = assets.filter(asset => {
+            const searchLower = mainSearchQuery.toLowerCase();
+            return (
+              (asset.name && asset.name.toLowerCase().includes(searchLower)) ||
+              (asset.description && asset.description.toLowerCase().includes(searchLower)) ||
+              (asset.subcategory && asset.subcategory.toLowerCase().includes(searchLower))
+            );
+          });
+          
+          if (filteredSubAssets.length > 0) {
+            acc[subcategory] = filteredSubAssets;
+          }
+          return acc;
+        }, {} as Record<string, typeof group.assets>) : undefined;
+
       return {
         ...group,
         assets: filteredAssets,
+        subcategories: filteredSubcategories,
         hasMatchingAssets: filteredAssets.length > 0
       };
     }).filter(group => group.hasMatchingAssets);
-  }, [assetGroups, mainSearchQuery]);
+  }, [assetGroups, semanticResults, mainSearchQuery, searchMode]);
 
   const totalDisplayedAssets = useMemo(() => 
-    filteredAssetGroups.reduce((sum, group) => sum + group.assets.length, 0),
-    [filteredAssetGroups]
+    displayAssetGroups.reduce((sum, group) => sum + group.assets.length, 0),
+    [displayAssetGroups]
   );
 
   const handleClearFilters = useCallback(() => {
     setMainSearchQuery("");
     setActiveCategory(null);
-  }, []);
+    clearSemanticResults();
+  }, [clearSemanticResults]);
+
+  const currentlyLoading = searchMode === 'semantic' ? isSemanticLoading : isLoading;
+  const currentError = searchMode === 'semantic' ? semanticError : error;
 
   return (
     <>
@@ -116,16 +154,21 @@ const AssetListLayout = () => {
           >
             {/* Header */}
             <div className="p-4 border-b border-gray-800 flex justify-between pr-20 items-center">
+              {isFullScreen && <div/>}
               <h1 className="text-xl font-bold">Asset Manager</h1>
-              {mainSearchQuery || activeCategory ? (
-                <div className="text-sm text-gray-400">
-                  {totalDisplayedAssets} asset{totalDisplayedAssets !== 1 ? 's' : ''} found
+              <div className="flex items-center gap-3">
+                {searchMode === 'semantic' && (
+                  <span className="text-xs text-purple-400 flex items-center gap-1">
+                    <Sparkles size={12} />
+                    AI Search
+                  </span>
+                )}
+                <div className="text-sm text-gray-400 flex flex-row gap-1">
+                   {hasNextPage && <div className='h-2 w-2 rounded-2xl bg-emerald-400 animate-pulse'/>}
+                  {totalDisplayedAssets} asset{totalDisplayedAssets !== 1 ? 's' : ''} 
+                  {searchMode === 'semantic' ? ' found' : ' loaded'}
                 </div>
-              ) : (
-                <div className="text-sm text-gray-400">
-                  {allFetchedAssets.length} asset{allFetchedAssets.length !== 1 ? 's' : ''} loaded
-                </div>
-              )}
+              </div>
             </div>
 
             <AssetManCatSelector
@@ -137,63 +180,40 @@ const AssetListLayout = () => {
 
             <div className="flex flex-1 overflow-hidden">
               <div className="w-full border-r border-gray-800 flex flex-col">
-                <div className="p-3 border-b border-gray-800">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Search loaded assets..."
-                      className="w-full bg-gray-800 rounded-md px-3 py-2 pl-9 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                      value={mainSearchQuery}
-                      onChange={(e) => setMainSearchQuery(e.target.value)}
-                    />
-                    <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
-                    {mainSearchQuery && (
-                      <button
-                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-200"
-                        onClick={() => setMainSearchQuery("")}
-                      >
-                        <X size={16} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-                
-                {(isLoading || (isFetchingNextPage && assetGroups.length === 0)) && (
-                  <div className="flex flex-col items-center justify-center h-40 text-gray-400">
-                    <Loader className="h-8 w-8 animate-spin mb-2" />
-                    <p>Loading assets...</p>
-                  </div>
-                )}
-                
-                {error && !isLoading && (
-                  <div className="flex flex-col items-center justify-center h-40 text-red-400 p-4 text-center">
-                    <p>{error instanceof Error ? error.message : 'Failed to load assets.'}</p>
-                    <button 
-                      className="mt-4 px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-md text-sm"
-                      onClick={() => refetch()}
-                    >
-                      Retry
-                    </button>
-                  </div>
-                )}
-                
-                {!isLoading && !error && filteredAssetGroups.length > 0 && (
-                  <AssetGroupList
-                    assetGroups={filteredAssetGroups}
-                    isFullScreen={isFullScreen}
+                <AssetSearch
+                  mainSearchQuery={mainSearchQuery}
+                  setMainSearchQuery={setMainSearchQuery}
+                  searchMode={searchMode}
+                  setSearchMode={setSearchMode}
+                  currentlyLoading={currentlyLoading}
+                  currentError={currentError}
+                  refetch={refetch}
+                  searchAssets={searchAssets}
+                  clearSemanticResults={clearSemanticResults}
+                  activeCategory={activeCategory}
                   />
+                
+                {!currentlyLoading && !currentError && displayAssetGroups.length > 0 && (
+                  <>
+                    {isFullScreen ? 
+                      <AssetGroupFullScreen assetGroups={displayAssetGroups} /> : 
+                      <AssetGroupSidebar assetGroups={displayAssetGroups} />}
+                  </>
                 )}
                 
-                {!isLoading && !error && (
+                {!currentlyLoading && !currentError && (
                   <>
-                    {isFetchingNextPage && assetGroups.length > 0 && (
+                    {searchMode === 'text' && isFetchingNextPage && assetGroups.length > 0 && (
                       <div className="p-4 text-center text-sm text-gray-400">Fetching more assets...</div>
                     )}
-                    {filteredAssetGroups.length === 0 && !isFetchingNextPage && (
+                    {displayAssetGroups.length === 0 && !isFetchingNextPage && (
                       <div className="flex flex-col items-center justify-center h-40 text-gray-400 p-4 text-center">
                         {mainSearchQuery || activeCategory ? (
                           <div className="text-center">
                             <p>No matching assets found.</p>
+                            {searchMode === 'semantic' && (
+                              <p className="mt-1 text-xs">Try different keywords or lower the similarity threshold</p>
+                            )}
                             <button
                               className="mt-3 px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-md text-sm"
                               onClick={handleClearFilters}

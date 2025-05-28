@@ -8,14 +8,17 @@ export interface AssetTabConfig {
   openai: {
     apiKey: string;
     enabled: boolean;
+    reference_url: string;
   };
   gemini: {
     apiKey: string;
     enabled: boolean;
+    reference_url: string;
   };
   groq: {
     apiKey: string;
     enabled: boolean;
+    reference_url: string;
   };
 }
 
@@ -28,14 +31,17 @@ const AssetAnalysisLayout = () => {
     openai: {
       apiKey: "",
       enabled: false,
+      reference_url: "https://platform.openai.com/api-keys"
     },
     gemini: {
       apiKey: "",
-      enabled: false
+      enabled: false,
+      reference_url: "https://ai.google.dev/gemini-api/docs/api-key" 
     },
     groq: {
       apiKey: "",
       enabled: true,
+      reference_url: "https://console.groq.com/docs/models"
     },
   });
 

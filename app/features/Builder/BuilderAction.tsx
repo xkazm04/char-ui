@@ -1,24 +1,24 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAssetStore } from '@/app/store/assetStore';
-import { RefreshCcw } from 'lucide-react';
+import { EraserIcon } from 'lucide-react';
 import BuilderAssetGroup from './BuilderAssetGroup';
 import BuilderGenSketch from './BuilderGenSketch';
 import { useNavStore } from '@/app/store/navStore';
 
 const BuilderAction = () => {
-  const { 
-    Body, 
-    Equipment, 
-    Clothing, 
+  const {
+    Body,
+    Equipment,
+    Clothing,
     Background,
-    removeAsset, 
+    removeAsset,
     clearAssets,
     clearAllAssets,
-    isGenerating, 
+    isGenerating,
     setIsGenerating
   } = useAssetStore();
-  
+
   // Use the categories from store
   const categories = useMemo(() => [
     { type: 'Body', title: 'Body', assets: Body, defaultOpen: true },
@@ -49,15 +49,10 @@ const BuilderAction = () => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-lg font-semibold text-sky-200">Selected Assets</h2>
-          {hasAnyAssets && (
-            <p className="text-xs text-gray-300">
-              {totalAssetCount} {totalAssetCount === 1 ? 'item' : 'items'} selected
-            </p>
-          )}
         </div>
         <div className={`flex space-x-2 transition-all duration-300 
           ${assetNavExpanded && 'lg:pr-40 3xl:pr-10'}`}>
-          <BuilderGenSketch 
+          <BuilderGenSketch
             isGenerating={isGenerating}
             setIsGenerating={setIsGenerating}
             hasAnyAssets={hasAnyAssets}
@@ -65,16 +60,19 @@ const BuilderAction = () => {
           {hasAnyAssets && (
             <motion.button
               whileTap={{ scale: 0.97 }}
+              title='Clear all'
               disabled={isGenerating}
               onClick={handleClearAll}
-              className={`px-3 py-2 rounded-md ${
-                !isGenerating
+              className={`px-3 py-2 rounded-md relative cursor-pointer transition-colors duration-200 hover:text-red-100
+                ${!isGenerating
                   ? 'bg-gray-900/20 hover:bg-gray-900/40 text-gray-400 border border-sky-900/50'
                   : 'bg-gray-700/20 text-gray-500 cursor-not-allowed border border-gray-700/50'
-              }`}
+                }`}
               aria-label="Clear all selected assets"
             >
-              <RefreshCcw className="h-4 w-4" />
+              <div className='absolute top-1 right-1 text-xs'> {totalAssetCount}</div>
+              <EraserIcon className="h-4 w-4" />
+
             </motion.button>
           )}
         </div>
@@ -94,21 +92,6 @@ const BuilderAction = () => {
           />
         ))}
       </div>
-      
-      {!hasAnyAssets && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mt-4 p-3 bg-sky-950/30 border border-sky-900/20 rounded-lg text-center"
-        >
-          <p className="text-sm text-sky-200/70">
-            Select assets from the categories to create your character
-          </p>
-          <p className="text-xs text-sky-300/50 mt-1">
-            Each asset will appear in its respective category
-          </p>
-        </motion.div>
-      )}
     </motion.div>
   );
 }

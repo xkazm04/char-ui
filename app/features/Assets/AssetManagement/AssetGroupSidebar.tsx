@@ -1,9 +1,9 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, ChevronRight } from "lucide-react";
-import { AssetGroup } from "@/app/functions/assetFns";
 import { useAssetStore } from "@/app/store/assetStore";
 import AssetGroupItem from "./AssetGroupItem";
 import { useState, useCallback } from "react";
+import { AssetGroup } from "@/app/types/asset";
 
 type Props = {
   assetGroups: AssetGroup[];

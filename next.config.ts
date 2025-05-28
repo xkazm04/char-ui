@@ -6,7 +6,8 @@ const nextConfig: NextConfig = {
       "cdn.leonardo.ai",
       "images.unsplash.com",
       "utfs.io",
-      "localhost"
+      "localhost",
+      "https://pikselplay.netlify.app",
     ],
   },
 };

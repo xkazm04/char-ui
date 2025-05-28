@@ -13,6 +13,8 @@ export interface Character {
   default_style: string;
   image_url: string;
   gif_url: string;
+  avatar_gif?: string;
+  avatar_url?: string;
   element?: number; 
 }
 

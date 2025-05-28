@@ -1,23 +1,7 @@
-import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { AssetType, PaginatedAssetType } from '../types/asset';
+import { useQuery, useInfiniteQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { AssetGroup, AssetType, PaginatedAssetType } from '../types/asset';
 import { useCallback } from 'react';
 
-export interface AssetGroup {
-  id: string;
-  name: string;
-  assets: AssetType[];
-  subcategories?: Record<string, AssetType[]>;
-}
-
-export interface AssetBatchResponse {
-  assets: AssetType[];
-  batch_id: string;
-  total_assets: number;
-  total_pages: number;
-  current_page: number;
-  page_size: number;
-  cache_key: string;
-}
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -225,6 +209,59 @@ export const useFetchAssetById = (assetId: string, enabled = true) => {
   });
 };
 
+// Add mutation hook for updating assets
+export const useUpdateAsset = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Record<string, any> }) => {
+      const response = await fetch(`${API_BASE_URL}/assets/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({
+          detail: `HTTP error! Status: ${response.status}`
+        }));
+        throw new Error(errorData.detail || `Update failed: ${response.status}`);
+      }
+
+      return response.json();
+    },
+    onSuccess: (updatedAsset, { id }) => {
+      // Update the asset in all relevant caches
+      queryClient.setQueryData(['asset', id], updatedAsset);
+      
+      // Update asset in infinite query cache
+      queryClient.setQueryData(['allAssets'], (oldData: any) => {
+        if (!oldData) return oldData;
+        
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page: any) => ({
+            ...page,
+            assets: page.assets.map((asset: AssetType) => 
+              asset._id === id ? { ...asset, ...updatedAsset } : asset
+            )
+          }))
+        };
+      });
+
+      // Also update any type-filtered queries
+      queryClient.invalidateQueries({
+        queryKey: ['allAssets'],
+        refetchType: 'none', // Don't refetch, just update cache
+      });
+    },
+    onError: (error) => {
+      console.error('Asset update failed:', error);
+    }
+  });
+};
 
 export const handleDelete = async (asset: AssetType, onSuccess: () => void) => {
     try {
@@ -237,27 +274,10 @@ export const handleDelete = async (asset: AssetType, onSuccess: () => void) => {
           onSuccess();
         }
       } else {
+        console.error('Delete failed');
       }
     } catch (error) {
       console.error('Error deleting asset:', error);
     }
 };
 
-export const handleSave = async (genValue: string, assetId: string) => {
-  console.log(`Saving gen value: "${genValue}"`);
-  try {
-    const updateResponse = await fetch(`${API_BASE_URL}/assets/${assetId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ gen: genValue }),
-    });
-    if (updateResponse.ok) {
-      console.log('Gen value saved successfully');
-    } else {
-      alert('Failed to save Gen value.');
-    }
-  } catch (error) {
-    console.error('Error saving Gen value:', error);
-    alert('Error saving Gen value.');
-  }
-};

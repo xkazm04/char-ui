@@ -39,7 +39,7 @@ const LanFooter = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center">
                     <div className="mb-6 md:mb-0">
                         <div className="flex items-center text-lg font-bold text-white">
-                            Pixel <GlowingText>Play</GlowingText>
+                            Piksel <GlowingText>Play</GlowingText>
                         </div>
                     </div>
 

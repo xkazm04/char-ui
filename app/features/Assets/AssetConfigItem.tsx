@@ -3,17 +3,19 @@ import { Label } from "@/app/components/ui/label";
 import { Switch } from "@/app/components/ui/switch";
 import { Input } from "@/app/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
-import { Save, X, Eye, EyeOff } from "lucide-react";
+import { Save, X, Eye, EyeOff, ExternalLinkIcon } from "lucide-react";
 import { AssetTabConfig } from "./AssetAnalysisLayout";
 
 const ModelSwitch = memo(({
     model,
     isEnabled,
-    onToggle
+    onToggle,
+    referenceUrl
 }: {
     model: string;
     isEnabled: boolean;
     onToggle: () => void
+    referenceUrl?: string;
 }) => (
     <div className="flex items-center gap-2">
         <Switch
@@ -28,6 +30,14 @@ const ModelSwitch = memo(({
         >
             {model.charAt(0).toUpperCase() + model.slice(1)}
         </Label>
+        {isEnabled && <span>
+            <a href={`${referenceUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`text-sky-100/50 hover:text-sky-100/90 transition-colors duration-200`}>
+                <ExternalLinkIcon size={14} />
+            </a>
+        </span>}
     </div>
 ));
 
@@ -75,18 +85,19 @@ const AssetConfigItem = ({ model, config, onUpdateConfig, tooltip }: ConfigItemP
 
     return (
         <div className="flex flex-col gap-2">
-            <div 
+            <div
                 className="flex items-center justify-between"
                 title={tooltip}
-                >
+            >
                 <ModelSwitch
                     model={model}
                     isEnabled={isEnabled}
                     onToggle={handleToggleModel}
+                    referenceUrl={config[model].reference_url}
                 />
             </div>
 
-           {model !== 'groq' &&  <AnimatePresence mode="wait">
+            {model !== 'groq' && <AnimatePresence mode="wait">
                 {isEnabled && (
                     <motion.div
                         key={`${model}-input`}
@@ -148,6 +159,9 @@ const AssetConfigItem = ({ model, config, onUpdateConfig, tooltip }: ConfigItemP
                                 </AnimatePresence>
                             </div>
                         </div>
+                        <p className="text-xs text-red-400/80 mt-2">
+                            Warning: Delete your API key after the test
+                        </p>
                     </motion.div>
                 )}
             </AnimatePresence>}

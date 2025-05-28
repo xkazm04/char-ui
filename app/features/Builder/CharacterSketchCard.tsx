@@ -1,6 +1,6 @@
 import { useState, memo, useCallback, useRef, useMemo } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
-import CharacterSketchCardToolbar from '../../components/ui/Cards/CharSketchCard/CharacterSketchCardToolbar';
+import CharacterSketchCardToolbar from './CharacterSketchCardToolbar';
 import { GenType, UsedAssets } from '@/app/types/gen';
 import CharacterSketchCardContent from '../../components/ui/Cards/CharSketchCard/CharacterSketchCardContent';
 import CharacterImageModal from './CharacterImageModal';
@@ -192,6 +192,7 @@ function CharacterSketchCard({
             setModelUrl={() => {}}
             setIs3DMode={setIs3DMode}
             gen={gen}
+            viewMode={viewMode}
             isSelected={isSelected}
             onSelect={onSelect}
           />

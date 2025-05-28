@@ -28,7 +28,7 @@ const AppShell = () => {
                 onClick={() => setTab('landing')}
                 className="absolute items-center z-[30] text-lg font-bold text-white top-2 left-4 cursor-pointer hidden md:flex"
             >
-                Pixel <GlowingText>Play</GlowingText>
+                Piksel <GlowingText>Play</GlowingText>
             </div>
             {tab !== 'landing' && <Navbar tab={tab} setTab={setTab} />}
             {tab === 'assets' && <AssetAnalysisLayout />}
