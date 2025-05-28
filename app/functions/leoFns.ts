@@ -172,7 +172,7 @@ export const handleCharacterSketch = async ({
             const requestBody = {
                 gen: prompt,
                 element: element || 67297,
-                weight: weight || 0.9,
+                weight: weight || 1,
                 preset: preset || "",
                 generation_id: generationId,
                 character_id: character_id || null,

@@ -59,7 +59,7 @@ const BuilderGenSketch = ({isGenerating, setIsGenerating, hasAnyAssets}: Props) 
             element: currentCharacter?.element, 
             character_id: currentCharacter?.id,
             used_assets: selectedAssets,
-            weight: preset ? 0.5 : 0.9,
+            weight: preset ? 0.5 : 1,
             preset: preset,
             generationId,
             setGenerationId,

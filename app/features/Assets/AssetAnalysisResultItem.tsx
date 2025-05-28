@@ -15,13 +15,12 @@ import AnalysisCard from "@/app/components/ui/Cards/AnalysisCard/AnalysisCard";
 type Props = {
     asset: AssetType;
     idx: number;
-    setOpenaiList: (list: AssetType[] | ((prev: AssetType[]) => AssetType[])) => void;
     setGeminiList: (list: AssetType[] | ((prev: AssetType[]) => AssetType[])) => void;
     setGroqList: (list: AssetType[] | ((prev: AssetType[]) => AssetType[])) => void;
     tab: string;
 }
 
-const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, setGroqList, tab }: Props) => {
+const AssetAnalysisResultItem = ({ asset, idx, setGeminiList, setGroqList, tab }: Props) => {
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [saveError, setSaveError] = useState(false);
@@ -39,14 +38,12 @@ const AssetAnalysisResultItem = ({ asset, idx, setOpenaiList, setGeminiList, set
     const [prompt, setPrompt] = useState<string>(asset.gen || "");
 
     const handleRemove = useCallback((idx: number) => {
-        if (tab === "openai") {
-            setOpenaiList((prev) => prev.filter((_, i) => i !== idx));
-        } else if (tab === "gemini") {
+        if (tab === "gemini") {
             setGeminiList((prev) => prev.filter((_, i) => i !== idx));
         } else if (tab === "groq") {
             setGroqList((prev) => prev.filter((_, i) => i !== idx));
         }
-    }, [tab, setOpenaiList, setGeminiList, setGroqList]);
+    }, [tab, setGeminiList, setGroqList]);
 
     const handleRetryGeneration = useCallback(async () => {
         setGeneratedImage(null);

@@ -21,7 +21,7 @@ const queryClient = new QueryClient({
 });
 
 const AppShell = () => {
-    const [tab, setTab] = useState<NavTabTypes>('assets');
+    const [tab, setTab] = useState<NavTabTypes>('landing');
     return <div className="flex flex-col min-h-full w-full flex-wrap">
         <QueryClientProvider client={queryClient}>
             <div

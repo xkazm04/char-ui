@@ -8,11 +8,11 @@ import AssetAnalysisUploadConfig from './AssetAnalysisUploadConfig';
 import { AssetTabConfig } from './AssetAnalysisLayout';
 import { serverUrl } from '@/app/constants/urls';
 import { AssetType } from '@/app/types/asset';
+import AssetAnalysisExamples from './AssetAnalysisExamples';
 
 type Props = {
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-  setOpenaiAssets: (assets: AssetType[]) => void;
   setGeminiAssets: (assets: AssetType[]) => void;
   setGroqAssets: (assets: AssetType[]) => void; 
   config: AssetTabConfig;
@@ -22,7 +22,6 @@ type Props = {
 const AssetAnalysisUpload = ({
   isLoading,
   setIsLoading,
-  setOpenaiAssets,
   setGeminiAssets,
   setGroqAssets, 
   config,
@@ -39,7 +38,7 @@ const AssetAnalysisUpload = ({
     setError(null);
 
     try {
-      const anyModelEnabled = config.openai.enabled || config.gemini.enabled || config.groq.enabled;
+      const anyModelEnabled =  config.gemini.enabled || config.groq.enabled;
       
       if (!anyModelEnabled) {
         throw new Error("Please enable at least one model in the configuration");
@@ -48,21 +47,15 @@ const AssetAnalysisUpload = ({
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('config', JSON.stringify({
-        openai: { 
-          enabled: config.openai.enabled,
-          apiKey: config.openai.apiKey
-        },
         gemini: { 
           enabled: config.gemini.enabled,
-          apiKey: config.gemini.apiKey 
         },
         groq: { 
           enabled: config.groq.enabled,
-          apiKey: config.groq.apiKey 
         }
       }));
 
-      const res = await fetch(`${serverUrl}/analyze`, {
+      const res = await fetch(`${serverUrl}/analyze/`, {
         method: 'POST',
         body: formData,
       });
@@ -74,15 +67,12 @@ const AssetAnalysisUpload = ({
 
       const data = await res.json();
       
-      const openaiArr = config.openai.enabled && Array.isArray(data.openai) ? data.openai : [];
       const geminiArr = config.gemini.enabled && Array.isArray(data.gemini) ? data.gemini : [];
       const groqArr = config.groq.enabled && Array.isArray(data.groq) ? data.groq : [];
 
-      setOpenaiAssets(openaiArr);
       setGeminiAssets(geminiArr);
       setGroqAssets(groqArr);
     } catch (error) {
-      setOpenaiAssets([]);
       setGeminiAssets([]);
       setGroqAssets([]);
       
@@ -106,7 +96,6 @@ const AssetAnalysisUpload = ({
         <AssetAnalysisUploadImage 
           selectedFile={selectedFile}
           setSelectedFile={setSelectedFile}
-          setOpenaiAssets={setOpenaiAssets}
           setGeminiAssets={setGeminiAssets}
           setGroqAssets={setGroqAssets}
         />
@@ -148,7 +137,7 @@ const AssetAnalysisUpload = ({
           )}
         </motion.button>
       </motion.div>
-      {/* <AssetAnalysisExamples setSelectedFile={setSelectedFile} /> */}
+      <AssetAnalysisExamples setSelectedFile={setSelectedFile} /> 
       <AssetAnalysisUploadConfig config={config} setConfig={setConfig} />
     </div>
   );

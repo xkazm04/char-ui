@@ -5,8 +5,7 @@ export const fadeEffect = {
 };
 
 export const indicatorVariants = {
-  openai: { x: "100%", transition: { type: "spring", stiffness: 300, damping: 30 } },
   groq: { x: 0, transition: { type: "spring", stiffness: 300, damping: 30 } },
-  gemini: { x: "200%", transition: { type: "spring", stiffness: 300, damping: 30 } },
+  gemini: { x: "100%", transition: { type: "spring", stiffness: 300, damping: 30 } },
 };
 

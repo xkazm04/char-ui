@@ -2,14 +2,7 @@ import { useState } from "react";
 import AssetAnalysisResult from "./AssetAnalysisResult";
 import AssetAnalysisUpload from "./AssetAnalysisUpload";
 import { AssetType } from "@/app/types/asset";
-
-
 export interface AssetTabConfig {
-  openai: {
-    apiKey: string;
-    enabled: boolean;
-    reference_url: string;
-  };
   gemini: {
     apiKey: string;
     enabled: boolean;
@@ -24,15 +17,9 @@ export interface AssetTabConfig {
 
 const AssetAnalysisLayout = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [openaiAssets, setOpenaiAssets] = useState<AssetType[]>([]);
   const [geminiAssets, setGeminiAssets] = useState<AssetType[]>([]);
   const [groqAssets, setGroqAssets] = useState<AssetType[]>([]);
   const [config, setConfig] = useState({
-    openai: {
-      apiKey: "",
-      enabled: false,
-      reference_url: "https://platform.openai.com/api-keys"
-    },
     gemini: {
       apiKey: "",
       enabled: false,
@@ -50,14 +37,12 @@ const AssetAnalysisLayout = () => {
       <AssetAnalysisUpload
         isLoading={isLoading}
         setIsLoading={setIsLoading}
-        setOpenaiAssets={setOpenaiAssets}
         setGroqAssets={setGroqAssets}
         setGeminiAssets={setGeminiAssets}
         config={config}
         setConfig={setConfig}
       />
       <AssetAnalysisResult
-        openaiAssets={openaiAssets}
         groqAssets={groqAssets}
         geminiAssets={geminiAssets}
         isLoading={isLoading}

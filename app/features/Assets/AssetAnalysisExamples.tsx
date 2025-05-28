@@ -2,12 +2,12 @@ import Image from "next/image"
 
 const exampleImages = [
     {
-        path: "/examples/scorpion.webp",
-        name: "scorpion.webp"
+        path: "/examples/weapon_pack.jpg",
+        name: "weapon_pack.jpg"
     },
     {
-        path: "/examples/master_chief.webp",
-        name: "master_chief.webp"
+        path: "/examples/neo.jpg",
+        name: "neo.jpg"
     },
     {
         path: "/examples/superman.jpg",

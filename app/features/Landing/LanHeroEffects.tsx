@@ -1,11 +1,29 @@
 import { m } from "framer-motion";
 import { useScroll, useTransform, useSpring } from "framer-motion";
+import { useMemo, useEffect, useState } from "react";
 
 const LanHeroEffects = () => {
     const { scrollY } = useScroll();
     const y1 = useSpring(useTransform(scrollY, [0, 1000], [0, -200]), { stiffness: 100, damping: 30 });
     const y2 = useSpring(useTransform(scrollY, [0, 1000], [0, -100]), { stiffness: 100, damping: 30 });
     const opacity = useSpring(useTransform(scrollY, [0, 500], [1, 0]), { stiffness: 100, damping: 30 });
+    
+    // Generate stable positions for code matrix elements
+    const matrixElements = useMemo(() => {
+        return Array.from({ length: 50 }, (_, i) => ({
+            id: i,
+            left: `${(i * 37 + 23) % 100}%`, // Pseudo-random but deterministic
+            top: `${(i * 47 + 17) % 100}%`,
+            text: i % 2 === 0 ? '01' : 'AI',
+            delay: (i * 0.1) % 2
+        }));
+    }, []);
+
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
     
     return (
         <m.div 
@@ -14,25 +32,25 @@ const LanHeroEffects = () => {
         >
             {/* Code Matrix Background - Increased opacity */}
             <div className="absolute inset-0 opacity-20">
-                {Array.from({ length: 50 }).map((_, i) => (
+                {matrixElements.map((element) => (
                     <m.div
-                        key={i}
+                        key={element.id}
                         className="absolute text-sky-400 font-mono text-xs select-none pointer-events-none"
                         style={{
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
+                            left: element.left,
+                            top: element.top,
                         }}
                         animate={{
                             y: [0, -20, 0],
                             opacity: [0, 1, 0]
                         }}
                         transition={{
-                            duration: 3 + Math.random() * 2,
+                            duration: 3 + (element.id % 3),
                             repeat: Infinity,
-                            delay: Math.random() * 2
+                            delay: element.delay
                         }}
                     >
-                        {Math.random() > 0.5 ? '01' : 'AI'}
+                        {element.text}
                     </m.div>
                 ))}
             </div>

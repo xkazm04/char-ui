@@ -10,7 +10,6 @@ import tasklist from '../../components/anim/lottie/tasklist.json'
 import { AssetType } from "@/app/types/asset";
 
 type Props = {
-  openaiAssets: AssetType[];
   geminiAssets: AssetType[];
   groqAssets: AssetType[];
   isLoading: boolean;
@@ -18,20 +17,14 @@ type Props = {
 };
 
 const AssetAnalysisResult = ({
-  openaiAssets,
   geminiAssets,
   groqAssets,
   isLoading,
   config,
 }: Props) => {
   const [tab, setTab] = useState<string>("groq");
-  const [openaiList, setOpenaiList] = useState(openaiAssets);
   const [geminiList, setGeminiList] = useState(geminiAssets);
   const [groqList, setGroqList] = useState(groqAssets);
-
-  useEffect(() => {
-    setOpenaiList(openaiAssets);
-  }, [openaiAssets]);
 
   useEffect(() => {
     setGeminiList(geminiAssets);
@@ -60,7 +53,6 @@ const AssetAnalysisResult = ({
               key={`${tab}-${asset.name}-${idx}`}
               asset={asset}
               idx={idx}
-              setOpenaiList={setOpenaiList}
               setGroqList={setGroqList}
               setGeminiList={setGeminiList}
               tab={tab}
@@ -73,7 +65,6 @@ const AssetAnalysisResult = ({
 
   const tabConfig = [
     { name: "Groq", value: "groq", enabled: config.groq.enabled },
-    { name: "OpenAI", value: "openai", enabled: config.openai.enabled },
     { name: "Gemini", value: "gemini", enabled: config.gemini.enabled },
   ];
 
@@ -81,7 +72,7 @@ const AssetAnalysisResult = ({
     <>
        <div className="w-full flex-row justify-center px-[5%]">
         {isLoading ? (
-          <div className="rounded-lg p-6 flex flex-col items-center justify-center min-h-[300px] max-w-[400px]">
+          <div className="rounded-lg p-6 flex flex-col items-center justify-center min-h-[200px] max-w-[400px]">
             <Loader2 className="h-12 w-12 text-sky-500 animate-spin mb-4" />
             <h3 className="text-lg font-medium text-white">Asset extraction pending</h3>
             <div className="h-60 w-60"> <Lottie animationData={tasklist} loop={true} /></div>
@@ -106,9 +97,9 @@ const AssetAnalysisResult = ({
                 ))}
               </div>
 
-              <div className={`absolute bottom-0 w-[300px] left-0 right-0 h-[2px] bg-gray-700 rounded-full`}>
+              <div className={`absolute bottom-0 w-[200px] left-0 right-0 h-[2px] bg-gray-700 rounded-full`}>
                 <motion.div
-                  className={`w-1/3 h-full bg-sky-500 rounded-full`}
+                  className={`w-1/2 h-full bg-sky-500 rounded-full`}
                   variants={indicatorVariants}
                   animate={tab}
                   initial={false}
@@ -118,7 +109,6 @@ const AssetAnalysisResult = ({
 
             <AnimatePresence mode="wait" initial={false}>
               {tab === "groq" && renderAssetList(groqList)}
-              {tab === "openai" && renderAssetList(openaiList)}
               {tab === "gemini" && renderAssetList(geminiList)}
             </AnimatePresence>
           </>

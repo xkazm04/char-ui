@@ -53,7 +53,7 @@ const AssetAnalysisSave = ({
 
         try {
             // Use hybrid validation with Atlas Vector Search
-            const validateResponse = await fetch(`${serverUrl}/assets/validate?use_atlas_search=true`, {
+            const validateResponse = await fetch(`${serverUrl}/asset-search/validate?use_atlas_search=false`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

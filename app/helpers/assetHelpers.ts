@@ -37,7 +37,7 @@ export const assetColor = (type: string) => {
 }
 
 export const getSimilarityColor = (similarity: number) => {
-  if (similarity >= 90) return "text-red-400 bg-red-500/10 border-red-500/20";
+  if (similarity >= 90) return "text-gray-200 bg-red-500/40 border-red-500/20";
   if (similarity >= 75) return "text-orange-400 bg-orange-500/10 border-orange-500/20";
   if (similarity >= 60) return "text-yellow-400 bg-yellow-500/10 border-yellow-500/20";
   return "text-green-400 bg-green-500/10 border-green-500/20";

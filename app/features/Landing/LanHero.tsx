@@ -6,7 +6,7 @@ import { Divider } from "@/app/components/ui/diviiders";
 import LanHeroTech from "./LanHeroTech";
 import LanHeroCta from "./LanHeroCta";
 import LanHeroEffects from "./LanHeroEffects";
-import { MorphingText } from "@/components/magicui/morphing-text";
+import { MorphingText } from "@/app/components/magicui/morphing-text";
 
 type Props = {
     setTab: (tab: NavTabTypes) => void;

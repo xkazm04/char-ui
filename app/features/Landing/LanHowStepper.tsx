@@ -25,9 +25,7 @@ const LanHowStepper = ({activeStep, handleStepChange}: Props) => {
                         <span
                             className={cn(
                                 "flex items-center justify-center h-8 w-8 rounded-full mb-2 transition-colors",
-                                activeStep === idx
-                                    ? "bg-sky-600 text-white"
-                                    : "bg-slate-800 text-gray-400 group-hover:bg-slate-700"
+                                activeStep === idx ? "text-sky-400" : "text-gray-400"
                             )}
                         >
                             {item.icon}

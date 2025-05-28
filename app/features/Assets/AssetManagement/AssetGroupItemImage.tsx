@@ -55,7 +55,7 @@ const AssetGroupItemImage = ({ assetId, asset }: Props) => {
                         <Image
                             src={imageSource}
                             alt={asset.name}
-                            className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+                            className="object-cover group-hover:brightness-150 duration-300"
                             fill
                             loading={"lazy"}
                             onLoad={() => setIsLoading(false)}

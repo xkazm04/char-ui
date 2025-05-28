@@ -11,17 +11,14 @@ const dropzoneVariants = {
   exit: { opacity: 0, transition: { duration: 0.3, ease: "easeIn" } },
 };
 
-
-
 type Props = {
     selectedFile: File | null;
     setSelectedFile: (file: File | null) => void;
-    setOpenaiAssets: (assets: AssetType[]) => void;
     setGeminiAssets: (assets: AssetType[]) => void;
     setGroqAssets: (assets: AssetType[]) => void; 
 }
 
-const AssetAnalysisUploadImage = ({selectedFile, setSelectedFile, setOpenaiAssets, setGroqAssets, setGeminiAssets}: Props) => {
+const AssetAnalysisUploadImage = ({selectedFile, setSelectedFile, setGroqAssets, setGeminiAssets}: Props) => {
     const [isDragActive, setIsDragActive] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -47,7 +44,6 @@ const AssetAnalysisUploadImage = ({selectedFile, setSelectedFile, setOpenaiAsset
         try {
             const processedFile = await compressImage(file, setIsCompressing, setCompressionInfo);
             setSelectedFile(processedFile);
-            setOpenaiAssets([]);
             setGeminiAssets([]);
             setGroqAssets([]);
             console.log('Compression: ' + compressionInfo)
@@ -93,7 +89,6 @@ const AssetAnalysisUploadImage = ({selectedFile, setSelectedFile, setOpenaiAsset
             fileInputRef.current.value = '';
         }
         setGroqAssets([]);
-        setOpenaiAssets([]);
         setGeminiAssets([]);
     };
     
