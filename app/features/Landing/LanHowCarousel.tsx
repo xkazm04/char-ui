@@ -68,6 +68,7 @@ const LanHowCarousel = ({ activeStep, direction, autoplay, onNext, onPrev }: Lan
                                         className="object-cover transition-all duration-1000 ease-out hover:scale-105"
                                         style={{ objectPosition: "center" }}
                                         priority={activeStep === 0}
+                                        unoptimized
                                     />
                                     
                                     {/* Enhanced Gradient Overlay */}
