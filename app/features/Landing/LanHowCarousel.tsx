@@ -1,6 +1,5 @@
 import { useReducedMotion, m, AnimatePresence } from "framer-motion";
 import { LucideChevronLeft, LucideChevronRight } from "lucide-react";
-import Image from "next/image";
 import { WORKFLOW_STEPS } from "@/app/data/landing";
 
 interface LanHowCarouselProps {
@@ -61,14 +60,13 @@ const LanHowCarousel = ({ activeStep, direction, autoplay, onNext, onPrev }: Lan
                             {/* Enhanced Image Section */}
                             <div className="lg:w-3/5 relative min-w-[1000px]">
                                 <div className="aspect-[16/10] lg:aspect-auto lg:h-[600px] relative overflow-hidden">
-                                    <Image
+                                    {/* Replace next/image with HTML img tag */}
+                                    <img
                                         src={WORKFLOW_STEPS[activeStep].image || "/landing/superman_flying.png"}
                                         alt={WORKFLOW_STEPS[activeStep].title}
-                                        fill
-                                        className="object-cover transition-all duration-1000 ease-out hover:scale-105"
+                                        className="absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-out hover:scale-105"
                                         style={{ objectPosition: "center" }}
-                                        priority={activeStep === 0}
-                                        unoptimized
+                                        loading={activeStep === 0 ? "eager" : "lazy"}
                                     />
                                     
                                     {/* Enhanced Gradient Overlay */}
@@ -86,7 +84,7 @@ const LanHowCarousel = ({ activeStep, direction, autoplay, onNext, onPrev }: Lan
                                                     duration: WORKFLOW_STEPS[activeStep].timeout / 1000, 
                                                     ease: "linear" 
                                                 }}
-                                                key={activeStep}
+                                                key={activeStep} 
                                             />
                                         </div>
                                     )}
