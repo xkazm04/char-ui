@@ -2,7 +2,7 @@ import { useNavStore } from '@/app/store/navStore';
 import { NavTabTypes } from '@/app/types/nav';
 import { motion } from 'framer-motion';
 import { PackageIcon, PersonStandingIcon, TestTube } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useCallback, memo } from 'react';
 
 type Props = {
   tab: NavTabTypes;
@@ -33,10 +33,10 @@ const Navbar = ({ tab, setTab }: Props) => {
   const NavOptions = [
     { value: 'assets', icon: <PackageIcon className="w-4 h-4" />, label: 'Asset Extractor' },
     { value: 'builder', icon: <PersonStandingIcon className="w-4 h-4" />, label: 'Character Builder' },
-    { value: 'cooks', icon: <TestTube className="w-4 h-4" />, label: 'Cooks' },
+ //   { value: 'cooks', icon: <TestTube className="w-4 h-4" />, label: 'Cooks' },
   ];
 
-  const NavButton = ({ label, value, icon }: NavButtonProps) => {
+  const NavButton = useCallback(({ label, value, icon }: NavButtonProps) => {
     const active = value === tab;
     return (
       <button
@@ -58,11 +58,12 @@ const Navbar = ({ tab, setTab }: Props) => {
             layoutId="activeNavIndicator"
             className="absolute bottom-0 left-0 right-0 w-0.5 h-full bg-sky-500 rounded-full"
             transition={{ type: 'spring', duration: 0.5 }}
+            initial={false} // Prevent initial animation
           />
         )}
       </button>
     );
-  }
+  }, [tab, setTab]);
 
   return (
     <header className="bg-gray-900 border-b border-gray-800 px-4 py-3 w-[80%]">
@@ -100,4 +101,4 @@ const Navbar = ({ tab, setTab }: Props) => {
 }
 
 
-export default Navbar;
+export default memo(Navbar);

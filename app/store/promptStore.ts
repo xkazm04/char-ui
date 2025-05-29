@@ -9,5 +9,5 @@ interface PromptState {
 export const usePromptStore = create<PromptState>((set) => ({
     stylePrompt: '',
     setStylePrompt: (prompt) => set({ stylePrompt: prompt }),
-    promptLimit: 1500, 
+    promptLimit: 560, 
 }))

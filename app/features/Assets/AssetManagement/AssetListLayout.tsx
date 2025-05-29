@@ -163,11 +163,6 @@ const AssetListLayout = () => {
                     AI Search
                   </span>
                 )}
-                <div className="text-sm text-gray-400 flex flex-row gap-1">
-                   {hasNextPage && <div className='h-2 w-2 rounded-2xl bg-emerald-400 animate-pulse'/>}
-                  {totalDisplayedAssets} asset{totalDisplayedAssets !== 1 ? 's' : ''} 
-                  {searchMode === 'semantic' ? ' found' : ' loaded'}
-                </div>
               </div>
             </div>
 

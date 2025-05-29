@@ -1,8 +1,9 @@
-import { LucideCode, Gamepad2, LucideShoppingBasket, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import UcCard from "./UcCard";
 import { m, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 import GlowingText from "@/app/components/landing/GlowingText";
+import { useCases } from "@/app/constants/landing";
 
 const LanUseCases = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -16,35 +17,6 @@ const LanUseCases = () => {
         return () => clearTimeout(timer);
     }, []);
 
-    const useCases = [
-        {
-            icon: <Gamepad2 size={28} />,
-            title: "Game Asset Generation",
-            desc: "Auto-extract gear, weapons, armor from any image with AI precision.",
-            features: ["Real-time processing", "Multiple formats", "Game engine ready"],
-            color: "from-emerald-600/5 to-green-600/5",
-            borderColor: "border-emerald-500/30",
-            glowColor: "shadow-emerald-500/20"
-        },
-        {
-            icon: <LucideShoppingBasket size={28} />,
-            title: "E-commerce Stylist",
-            desc: "Apply stylization from one image to assets and characters instantly.",
-            features: ["Style transfer", "Virtual try-on", "Batch processing"],
-            color: "from-blue-600/5 to-cyan-600/5",
-            borderColor: "border-blue-500/30",
-            glowColor: "shadow-blue-500/20"
-        },
-        {
-            icon: <LucideCode size={28} />,
-            title: "Security Intelligence",
-            desc: "Identify and track people of interest based on distinct clothing patterns.",
-            features: ["Pattern recognition", "Real-time alerts", "Privacy focused"],
-            color: "from-purple-600/20 to-pink-600/5",
-            borderColor: "border-purple-500/30",
-            glowColor: "shadow-purple-500/20"
-        }
-    ];
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -109,7 +81,7 @@ const LanUseCases = () => {
                         variants={itemVariants}
                         className="text-gray-300 max-w-3xl mx-auto text-lg lg:text-xl leading-relaxed"
                     >
-                        Discover how our technology transforms industries through intelligent image analysis and asset generation
+                        Possible usabilities of Piksel Play in the gaming and storytelling industries, showcasing how it can revolutionize asset generation and analysis.
                     </m.p>
                 </m.div>
 

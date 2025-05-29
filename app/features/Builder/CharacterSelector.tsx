@@ -19,7 +19,7 @@ const CharacterSelector = () => {
         if (!shouldShowAvatarVariant(char.name)) {
             return char.image_url;
         }
-        return hoveredCharacter === char.id ? char.avatar_gif : char.avatar_url;
+        return hoveredCharacter === char.id ? (char.avatar_gif || char.image_url) : (char.avatar_url || char.image_url);
     };
 
     return <motion.div

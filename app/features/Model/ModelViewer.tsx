@@ -46,8 +46,6 @@ const Loader = () => {
               <span className="text-xs font-bold text-sky-400">{Math.round(progress)}%</span>
             </div>
           </div>
-          <p className="text-sm text-gray-300 font-medium mb-1">Loading 3D Model</p>
-          <p className="text-xs text-gray-400">This may take a moment...</p>
           
           {/* Loading stages */}
           <div className="mt-3 text-xs text-gray-500">

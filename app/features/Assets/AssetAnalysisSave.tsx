@@ -53,7 +53,7 @@ const AssetAnalysisSave = ({
 
         try {
             // Use hybrid validation with Atlas Vector Search
-            const validateResponse = await fetch(`${serverUrl}/asset-search/validate?use_atlas_search=false`, {
+            const validateResponse = await fetch(`${serverUrl}/asset-search/validate?use_atlas_search=true`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -98,6 +98,7 @@ const AssetAnalysisSave = ({
                     setIsSaving(false);
                 },
                 setIsGenerating: setIsSaving,
+                //@ts-expect-error Ignore
                 setGeneratedImage: setGeneratedImage,
                 asset: assetToSave, 
                 setSavedAssetId: () => {} 

@@ -230,6 +230,7 @@ const AssetAnalysisResultItem = ({ asset, idx, setGeminiList, setGroqList, tab }
                 setIsSaving={setIsSaving}
                 setSaveError={setSaveError}
                 setShowSuccess={customSetShowSuccess}
+                //@ts-expect-error Ignore
                 handleAssetGeneration={handleRetryGeneration}
                 asset={asset}
                 descriptionVector={descriptionVector}

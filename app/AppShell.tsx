@@ -7,7 +7,6 @@ import CharBuilderLayout from "./features/Builder/CharBuilderLayout";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import LandingLayout from "./features/Landing/LandingLayout";
 import GlowingText from "./components/landing/GlowingText";
-import CooksLayout from "./features/Cooks/CooksLayout";
 import AssetListLayout from "./features/Assets/AssetManagement/AssetListLayout";
 
 const queryClient = new QueryClient({
@@ -35,7 +34,7 @@ const AppShell = () => {
             {tab !== 'landing' && <AssetListLayout />}
             {tab === 'builder' && <CharBuilderLayout />}
             {tab === 'landing' && <LandingLayout setTab={setTab} />}
-            {tab === 'cooks' && <CooksLayout />}
+            {/* {tab === 'cooks' && <CooksLayout />} --- Descoped from MVP */}
         </QueryClientProvider>
     </div>
 }

@@ -263,21 +263,79 @@ export const useUpdateAsset = () => {
   });
 };
 
-export const handleDelete = async (asset: AssetType, onSuccess: () => void) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/assets/${asset._id}`, {
+export const useDeleteAsset = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (assetId: string) => {
+      const response = await fetch(`${API_BASE_URL}/assets/${assetId}`, {
         method: 'DELETE',
       });
 
-      if (response.ok) {
-        if (typeof onSuccess === 'function') {
-          onSuccess();
-        }
-      } else {
-        console.error('Delete failed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({
+          detail: `HTTP error! Status: ${response.status}`
+        }));
+        throw new Error(errorData.detail || `Delete failed: ${response.status}`);
       }
-    } catch (error) {
-      console.error('Error deleting asset:', error);
+
+      return assetId;
+    },
+    onSuccess: (deletedAssetId) => {
+      // Remove asset from single asset cache
+      queryClient.removeQueries({
+        queryKey: ['asset', deletedAssetId]
+      });
+
+      // Update all asset lists by removing the deleted asset
+      queryClient.setQueriesData(
+        { queryKey: ['allAssets'] },
+        (oldData: any) => {
+          if (!oldData?.pages) return oldData;
+
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page: any) => ({
+              ...page,
+              assets: page.assets.filter((asset: AssetType) => asset._id !== deletedAssetId),
+              total_assets: Math.max(0, (page.total_assets || 0) - 1)
+            }))
+          };
+        }
+      );
+
+      // Invalidate and refetch to ensure consistency
+      queryClient.invalidateQueries({
+        queryKey: ['allAssets'],
+        refetchType: 'active'
+      });
+
+      console.log(`Asset ${deletedAssetId} deleted and cache updated`);
+    },
+    onError: (error) => {
+      console.error('Asset deletion failed:', error);
     }
+  });
+};
+
+// Keep the legacy function for backward compatibility but mark as deprecated
+export const handleDelete = async (asset: AssetType, onSuccess: () => void) => {
+  console.warn('handleDelete is deprecated. Use useDeleteAsset hook instead.');
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/assets/${asset._id}`, {
+      method: 'DELETE',
+    });
+
+    if (response.ok) {
+      if (typeof onSuccess === 'function') {
+        onSuccess();
+      }
+    } else {
+      console.error('Delete failed');
+    }
+  } catch (error) {
+    console.error('Error deleting asset:', error);
+  }
 };
 

@@ -1,18 +1,5 @@
 export const characters = [
-    {
-        id: "682cfdfaebbb3e6ada96d358",
-        name: "Jinx",
-        description: `Tattoos on arms and torso — chaotic and rebellious vibe.`,
-        default_clothing: "Wearing a black shirt with a gold X emblem.",
-        default_facial: "Blue-haired person with long braids, intense violet eyes",
-        default_style: "",
-        avatar_url: '/characters/jinx.png',
-        avatar_gif: '/characters/jinx.gif',
-        image_url: "https://cdn.leonardo.ai/users/65d71243-f7c2-4204-a1b3-433aaf62da5b/generations/8e6f6b74-4e98-4162-8b6a-6a0eaea1e0ee/variations/Default_Silhouette_of_a_young_lightskinned_woman_with_blue_hai_0_8e6f6b74-4e98-4162-8b6a-6a0eaea1e0ee_0.png",
-        gif_url: '/gifs/jinx_shot.gif',
-        element: 67297
-    },
-        {
+            {
         id: "682cfdfaebbb3e6ada96d340",
         name: "Joe",
         description: "",
@@ -24,6 +11,19 @@ export const characters = [
         image_url: "https://cdn.leonardo.ai/users/65d71243-f7c2-4204-a1b3-433aaf62da5b/generations/08ea2ef9-26c2-4a51-8d3d-54e717807e01/variations/Default_A_young_adult_Asian_man_standing_against_a_black_backg_2_08ea2ef9-26c2-4a51-8d3d-54e717807e01_0.png",
         gif_url: "/gifs/joe.gif",
         element: 74998
+    },
+    {
+        id: "682cfdfaebbb3e6ada96d358",
+        name: "Jinx (unstable)",
+        description: `Tattoos on arms and torso — chaotic and rebellious vibe.`,
+        default_clothing: "Wearing a black shirt with a gold X emblem.",
+        default_facial: "Blue-haired person with long braids, intense violet eyes",
+        default_style: "",
+        avatar_url: '/characters/jinx.png',
+        avatar_gif: '/characters/jinx.gif',
+        image_url: "https://cdn.leonardo.ai/users/65d71243-f7c2-4204-a1b3-433aaf62da5b/generations/8e6f6b74-4e98-4162-8b6a-6a0eaea1e0ee/variations/Default_Silhouette_of_a_young_lightskinned_woman_with_blue_hai_0_8e6f6b74-4e98-4162-8b6a-6a0eaea1e0ee_0.png",
+        gif_url: '/gifs/jinx_shot.gif',
+        element: 67297
     },
     {
         id: "682cfdfaebbb3e6ada96d357",
@@ -44,7 +44,7 @@ export const characters = [
         default_facial: "",
         name: "Aimy",
         image_url: "https://cdn.leonardo.ai/users/65d71243-f7c2-4204-a1b3-433aaf62da5b/generations/fbd3ee28-c2b2-4d49-ade2-cca689efeec3/variations/Default_A_blueskinned_female_with_glowing_eyes_standing_agains_2_fbd3ee28-c2b2-4d49-ade2-cca689efeec3_0.png",
-        gif_url: "",
+        gif_url: "/gifs/aimy.gif",
         element: 74990,
     },
     {

@@ -1,4 +1,4 @@
-# PixelPlay
+# PikselPlay
 <div align="center">
   <h3>AI-Powered Asset Management Application for Image Art & 3D Assets</h3>
 </div>

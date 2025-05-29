@@ -1,7 +1,7 @@
 import { FileText, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AssetType } from "@/app/types/asset";
-import { handleDelete, useAllAssets, useUpdateAsset } from "@/app/functions/assetFns";
+import { useDeleteAsset, useUpdateAsset } from "@/app/functions/assetFns";
 import { useState, useEffect, useRef } from "react";
 import AssetModalFooter from "@/app/components/ui/modal/AssetModal/AssetModalFooter";
 import AssetModalContent from "@/app/components/ui/modal/AssetModal/AssetModalContent";
@@ -15,7 +15,7 @@ type Props = {
 }
 
 const AssetItemModal = ({ asset, setShowModal, onOptimisticDelete }: Props) => {
-    const { refetch } = useAllAssets();
+    const deleteAssetMutation = useDeleteAsset();
     const updateAssetMutation = useUpdateAsset();
     const [genValue, setGenValue] = useState(asset.gen || "");
     const [isDeleting, setIsDeleting] = useState(false);
@@ -75,19 +75,18 @@ const AssetItemModal = ({ asset, setShowModal, onOptimisticDelete }: Props) => {
     }, [genValue, asset._id, updateAssetMutation]);
 
     const handleDeleteClick = async () => {
-        setIsDeleting(true);
-
-        setTimeout(() => {
-            setShowModal(false);
-            onOptimisticDelete?.(asset._id);
-        }, 2000);
-
         try {
-            await handleDelete(asset, () => {
-                refetch();
-            });
+            setIsDeleting(true);
+            
+            setTimeout(() => {
+                setShowModal(false);
+                onOptimisticDelete?.(asset._id);
+            }, 500); 
+
+            await deleteAssetMutation.mutateAsync(asset._id);
+            
         } catch (error) {
-            console.error('Error deleting:', error);
+            console.error('Error deleting asset:', error);
             setIsDeleting(false);
         }
     };
@@ -140,6 +139,7 @@ const AssetItemModal = ({ asset, setShowModal, onOptimisticDelete }: Props) => {
                         <button
                             onClick={() => setShowModal(false)}
                             className="p-2 hover:bg-gray-800/50 rounded-lg transition-colors text-gray-400 hover:text-white"
+                            disabled={isDeleting || deleteAssetMutation.isPending}
                         >
                             <X className="h-5 w-5" />
                         </button>
@@ -158,7 +158,7 @@ const AssetItemModal = ({ asset, setShowModal, onOptimisticDelete }: Props) => {
 
                     {/* Footer */}
                     <AssetModalFooter
-                        isDeleting={isDeleting}
+                        isDeleting={isDeleting || deleteAssetMutation.isPending}
                         setShowModal={setShowModal}
                         handleDeleteClick={handleDeleteClick}
                     />
