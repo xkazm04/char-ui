@@ -17,8 +17,6 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy configuration files first for better caching
 COPY tsconfig.json ./
 COPY next.config.ts ./
-COPY tailwind.config.ts ./
-COPY postcss.config.js ./
 
 # Copy all source code
 COPY . .
