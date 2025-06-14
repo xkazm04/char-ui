@@ -5,6 +5,7 @@ import LanFooter from "./LanFooter";
 import LanHowWorks from "./LanHowWorks";
 import LanUseCases from "./LanUseCases";
 import { NavTabTypes } from "@/app/types/nav";
+import FactCheckGesture from "./Fc";
 
 
 type Props = {
@@ -54,7 +55,7 @@ const LandingLayout = ({setTab}: Props) => {
                         </div>
                     </div>
                 </section>
-
+                            <FactCheckGesture />
                 {/* Main Content with Enhanced Spacing */}
                 <main id="main-content" className="relative z-10">
                     <LanHowWorks />
