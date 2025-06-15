@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     const client = await clientPromise;
     const db = client.db(DB_NAME);
-    const collection = db.collection('generation');
+    const collection = db.collection('generations');
 
     let filterQuery: any = {};
 

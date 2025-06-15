@@ -83,20 +83,50 @@ const fetchCharGenerations = async ({
   return data;
 };
 
+// app/functions/genFns.ts
+// Update the deleteGeneration function to be more explicit
+
 const deleteGeneration = async (generationId: string): Promise<void> => {
   const isUsingNextAPI = API_BASE_URL.startsWith('/api');
-  const endpoint = isUsingNextAPI ? `/generation/${generationId}` : `/gen/${generationId}`;
+  
+  let fullUrl: string;
+  
+  if (isUsingNextAPI) {
+    // Next.js API route: /api/generation/[id]
+    fullUrl = `/api/generation/${generationId}`;
+  } else {
+    // FastAPI route: /gen/[id]
+    fullUrl = `${API_BASE_URL}/gen/${generationId}`;
+  }
+  
+  console.log(`🗑️ Deleting generation: ${fullUrl}`);
+  console.log(`📍 Using ${isUsingNextAPI ? 'Next.js API' : 'FastAPI'} for deletion`);
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(fullUrl, {
     method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
   });
 
+  console.log(`🗑️ Delete response status: ${response.status}`);
+
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({
-      detail: `HTTP error! Status: ${response.status}`
-    }));
-    throw new Error(errorData.detail || errorData.error || `Failed to delete generation`);
+    let errorMessage = `HTTP error! Status: ${response.status}`;
+    
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.detail || errorData.error || errorMessage;
+    } catch (parseError) {
+      // If we can't parse the error response, use the status
+      console.warn('Could not parse error response:', parseError);
+    }
+    
+    console.error(`❌ Delete failed:`, errorMessage);
+    throw new Error(errorMessage);
   }
+  
+  console.log(`✅ Generation ${generationId} deleted successfully`);
 };
 
 // ✅ Updated hooks with consistent environment detection
@@ -146,13 +176,21 @@ export const useGenerations = (
 // Rest of your hooks remain the same...
 export const useDeleteGeneration = () => {
   const queryClient = useQueryClient();
+  const isUsingNextAPI = API_BASE_URL.startsWith('/api');
 
   return useMutation({
     mutationFn: deleteGeneration,
+    // Optimistic update for immediate UI feedback
     onMutate: async (generationId) => {
+      console.log(`🔄 Starting optimistic delete for generation: ${generationId}`);
+      
+      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['generations'] });
+
+      // Snapshot previous value
       const previousGenerations = queryClient.getQueriesData({ queryKey: ['generations'] });
 
+      // Optimistically update all generation queries
       queryClient.setQueriesData(
         { queryKey: ['generations'] },
         (oldData: any) => {
@@ -163,6 +201,7 @@ export const useDeleteGeneration = () => {
         }
       );
 
+      // Update infinite queries
       queryClient.setQueriesData(
         { queryKey: ['generations', 'infinite'] },
         (oldData: any) => {
@@ -176,23 +215,45 @@ export const useDeleteGeneration = () => {
         }
       );
 
+      // Also remove from single generation queries
+      queryClient.removeQueries({
+        queryKey: ['generation', generationId]
+      });
+
       return { previousGenerations };
     },
     onError: (error, generationId, context) => {
+      console.error(`❌ Delete failed for generation ${generationId}:`, error);
+      
+      // Revert optimistic update on error
       if (context?.previousGenerations) {
         context.previousGenerations.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
         });
       }
-      console.error('Error deleting generation:', error);
+      
+      // Show error to user (you can customize this)
+      console.error('Failed to delete generation:', error.message);
     },
     onSuccess: (_, generationId) => {
+      console.log(`✅ Generation ${generationId} deleted successfully`);
+      
+      // Invalidate related queries to ensure consistency
       queryClient.invalidateQueries({
         queryKey: ['generations'],
-        refetchType: 'none' 
+        refetchType: 'none' // Don't refetch immediately since we updated optimistically
       });
-      console.log(`Generation ${generationId} deleted successfully`);
+
+      // Also invalidate character-specific queries if needed
+      queryClient.invalidateQueries({
+        queryKey: ['characters'], // If you have character queries that might be affected
+        refetchType: 'none'
+      });
     },
+    onSettled: () => {
+      // This runs whether the mutation succeeds or fails
+      console.log(`🏁 Delete operation completed`);
+    }
   });
 };
 
