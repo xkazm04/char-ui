@@ -1,21 +1,33 @@
+// app/api/assets/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import clientPromise from '@/app/lib/mongodb';
-import { AssetBatchResponse } from '@/app/types/asset';
+import { getDatabase } from '@/app/lib/mongodb';
 
-const DB_NAME = process.env.DB_NAME || 'char';
+// Define the response type locally if import fails
+interface AssetBatchResponse {
+  assets: any[];
+  batch_id: string;
+  total_assets: number;
+  total_pages: number;
+  current_page: number;
+  page_size: number;
+  cache_key: string;
+}
 
+// app/api/assets/route.ts
 export async function GET(request: NextRequest) {
+  console.log('🔍 Assets API route called');
+  
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
     const page = parseInt(searchParams.get('page') || '1');
     const pageSize = Math.min(parseInt(searchParams.get('page_size') || '30'), 100);
-    const imageQuality = parseInt(searchParams.get('image_quality') || '25');
-    const maxImageWidth = searchParams.get('max_image_width') ? 
-      parseInt(searchParams.get('max_image_width')!) : null;
+    
+    console.log(`📊 Query params - type: ${type}, page: ${page}, pageSize: ${pageSize}`);
 
-    const client = await clientPromise;
-    const db = client.db(DB_NAME);
+    const db = await getDatabase();
+    console.log('✅ Database connected successfully');
+    
     const collection = db.collection('assets');
 
     const query: any = {};
@@ -25,74 +37,57 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * pageSize;
 
-    // Use aggregation pipeline for better performance
-    const pipeline = [
-      { $match: query },
-      {
-        $facet: {
-          data: [
-            { $skip: skip },
-            { $limit: pageSize },
-            {
-              $project: {
-                _id: 1,
-                name: 1,
-                type: 1,
-                subcategory: 1,
-                gen: 1,
-                description: 1,
-                image_url: 1,
-                image_data: 1,
-                contentType: 1,
-                created_at: 1,
-                updated_at: 1
-              }
-            }
-          ],
-          count: [
-            { $count: "total" }
-          ]
-        }
-      }
-    ];
+    console.log('🔍 MongoDB query:', JSON.stringify(query));
 
-    const [result] = await collection.aggregate(pipeline).toArray();
-    
-    const assets = result.data || [];
-    const totalAssets = result.count[0]?.total || 0;
+    const totalAssets = await collection.countDocuments(query);
+    console.log(`📊 Total assets found: ${totalAssets}`);
+
+    if (totalAssets === 0) {
+      console.log('⚠️ No assets found in collection');
+      return NextResponse.json({
+        assets: [],
+        batch_id: `batch_${page}_${Date.now()}`,
+        total_assets: 0,
+        total_pages: 0,
+        current_page: page,
+        page_size: pageSize,
+        cache_key: `${type || 'all'}_${page}_${pageSize}`
+      });
+    }
+
+    // ✅ Use ONLY inclusion projection (remove exclusions)
+    const assets = await collection
+      .find(query, {
+        projection: {
+          _id: 1,
+          name: 1,
+          type: 1,
+          subcategory: 1,
+          gen: 1,
+          description: 1,
+          image_url: 1,
+          contentType: 1,
+          created_at: 1,
+          updated_at: 1,
+          metadata: 1
+          // ❌ Don't include exclusions here
+          // image_data: 0,
+          // description_vector: 0,
+          // image_embedding: 0
+        }
+      })
+      .skip(skip)
+      .limit(pageSize)
+      .toArray();
+
+    console.log(`✅ Found ${assets.length} assets for current page`);
+
     const totalPages = Math.ceil(totalAssets / pageSize);
 
-    // Process images efficiently - simplified to avoid Sharp dependency issues
-    const processedAssets = assets.map((asset: any) => {
-      try {
-        const processedAsset = { ...asset };
-        
-        // Handle image data - convert Buffer to base64 without Sharp processing
-        if (asset.image_data) {
-          // Check if it's a Buffer or already base64
-          if (Buffer.isBuffer(asset.image_data)) {
-            processedAsset.image_data_base64 = asset.image_data.toString('base64');
-            processedAsset.image_content_type = asset.contentType || 'image/png';
-          } else if (typeof asset.image_data === 'string') {
-            // Already base64 or string
-            processedAsset.image_data_base64 = asset.image_data;
-            processedAsset.image_content_type = asset.contentType || 'image/png';
-          }
-        }
-        
-        // Remove unnecessary fields
-        delete processedAsset.image_data;
-        delete processedAsset.description_vector;
-        delete processedAsset.image_embedding;
-        
-        return processedAsset;
-      } catch (error) {
-        console.error(`Error processing asset ${asset._id}:`, error);
-        // Return asset without image processing rather than null
-        const { image_data, description_vector, image_embedding, ...cleanAsset } = asset;
-        return cleanAsset;
-      }
-    });
+    const processedAssets = assets.map((asset: any) => ({
+      ...asset,
+      _id: asset._id.toString(),
+    }));
 
     const response: AssetBatchResponse = {
       assets: processedAssets,
@@ -104,12 +99,26 @@ export async function GET(request: NextRequest) {
       cache_key: `${type || 'all'}_${page}_${pageSize}`
     };
 
+    console.log(`📦 Returning response with ${response.assets.length} assets`);
     return NextResponse.json(response);
 
   } catch (error) {
-    console.error('Error fetching assets:', error);
+    console.error('💥 Error in assets route:', error);
+    
+    const errorDetails = {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    };
+    
+    console.error('📋 Error details:', errorDetails);
+    
     return NextResponse.json(
-      { error: 'Failed to fetch assets', details: error instanceof Error ? error.message : 'Unknown error' },
+      { 
+        error: 'Failed to fetch assets', 
+        details: errorDetails.message,
+        timestamp: errorDetails.timestamp
+      },
       { status: 500 }
     );
   }

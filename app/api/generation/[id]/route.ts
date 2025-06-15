@@ -100,7 +100,7 @@ export async function DELETE(
     if (generation.leo_id) {
       try {
         // Call your backend API for Leonardo cleanup
-        const backendUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:8000';
+        const backendUrl = process.env.NEXT_PUBLIC_SERVER_URL;
         await fetch(`${backendUrl}/internal/cleanup-leonardo/${generation.leo_id}`, {
           method: 'DELETE',
         }).catch(error => {

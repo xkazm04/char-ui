@@ -3,7 +3,7 @@ import { AssetGroup, AssetType, PaginatedAssetType } from '../types/asset';
 import { useCallback } from 'react';
 
 const getApiBaseUrl = () => {
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NEXT_PUBLIC_APP_ENV === 'production') {
     return '/api';
   }
   return process.env.NEXT_PUBLIC_SERVER_URL;
@@ -35,7 +35,7 @@ const fetchAssetsPage = async ({
     params.append('type', type);
   }
 
-  const endpoint = process.env.NODE_ENV === 'production' 
+  const endpoint = process.env.NEXT_PUBLIC_APP_ENV === 'production' 
     ? '/assets' 
     : '/assets/batched';
 
@@ -68,11 +68,11 @@ const fetchAssetsPage = async ({
 
 export const useAllAssets = (type: string | null = null, enabled = true) => {
   return useInfiniteQuery<PaginatedAssetType, Error>({
-    queryKey: ['allAssets', type, process.env.NODE_ENV],
+    queryKey: ['allAssets', type, process.env.NEXT_PUBLIC_APP_ENV],
     queryFn: ({ pageParam }) => fetchAssetsPage({
       pageParam: pageParam as number,
       type,
-      pageSize: process.env.NODE_ENV === 'production' ? 50 : 30, // Larger batches in production
+      pageSize: process.env.NEXT_PUBLIC_APP_ENV === 'production' ? 50 : 30, // Larger batches in production
       useBatching: true
     }),
     initialPageParam: 1,
@@ -83,7 +83,7 @@ export const useAllAssets = (type: string | null = null, enabled = true) => {
       return undefined;
     },
     enabled,
-    staleTime: process.env.NODE_ENV === 'production' ? 5 * 60 * 1000 : 30 * 60 * 1000, // Shorter cache in prod
+    staleTime: process.env.NEXT_PUBLIC_APP_ENV === 'production' ? 5 * 60 * 1000 : 30 * 60 * 1000, // Shorter cache in prod
     gcTime: 60 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
@@ -348,4 +348,4 @@ export const handleDelete = async (asset: AssetType, onSuccess: () => void) => {
 };
 
 // Export environment detection utility
-export const isUsingDirectMongo = () => process.env.NODE_ENV === 'production';
+export const isUsingDirectMongo = () => process.env.NEXT_PUBLIC_APP_ENV === 'production';
