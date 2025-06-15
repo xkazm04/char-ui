@@ -3,7 +3,7 @@ import { AssetGroup, AssetType, PaginatedAssetType } from '../types/asset';
 import { useCallback } from 'react';
 
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
 interface FetchAssetsParams {
   pageParam?: number;

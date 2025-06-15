@@ -2,7 +2,7 @@ import { AssetSearchQuery, AssetType, AssetSearchResult, AssetGroup } from '../t
 import { useCallback, useState } from 'react';
 
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 
 const semanticSearchAssets = async (searchQuery: AssetSearchQuery): Promise<AssetSearchResult[]> => {
   const params = new URLSearchParams();
