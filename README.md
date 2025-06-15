@@ -3,7 +3,7 @@
   <h3>AI-Powered Asset Management Application for Image Art & 3D Assets</h3>
 </div>
 
-[Demo](https://pikselplay.netlify.app)
+[Demo](https://char-ui.vercel.app/)
 ---
 
 ## ✨ Key Features
@@ -141,6 +141,8 @@ npm install
 npm run dev
 ```
 
+- Deployed on Vercel
+
 ### Backend Setup
 
 ```bash
@@ -149,6 +151,8 @@ cd char-service
 pip install -r requirements.txt 
 uvicorn main:app --reload
 ```
+
+- Deployed on Google Cloud
 
 ### Database Setup
 

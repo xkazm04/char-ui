@@ -2,8 +2,14 @@ import { useQuery, useInfiniteQuery, useQueryClient, useMutation } from '@tansta
 import { AssetGroup, AssetType, PaginatedAssetType } from '../types/asset';
 import { useCallback } from 'react';
 
+const getApiBaseUrl = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return '/api';
+  }
+  return process.env.NEXT_PUBLIC_SERVER_URL;
+};
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 interface FetchAssetsParams {
   pageParam?: number;
@@ -12,47 +18,49 @@ interface FetchAssetsParams {
   useBatching?: boolean;
 }
 
-// Enhanced fetch function with batching support
+// Enhanced fetch function with environment-aware routing
 const fetchAssetsPage = async ({
   pageParam = 1,
   type = null,
-  pageSize = 50, // Increased default for batching
+  pageSize = 30,
   useBatching = true,
 }: FetchAssetsParams): Promise<PaginatedAssetType> => {
   const params = new URLSearchParams();
   params.append('page', pageParam.toString());
   params.append('page_size', pageSize.toString());
-  params.append('image_quality', '25'); // Optimized quality
-  params.append('max_image_width', '400'); // Reasonable size for UI
+  params.append('image_quality', '25');
+  params.append('max_image_width', '400');
 
   if (type) {
     params.append('type', type);
   }
 
-  const endpoint = useBatching ? '/assets/batched' : '/assets/';
+  const endpoint = process.env.NODE_ENV === 'production' 
+    ? '/assets' 
+    : '/assets/batched';
+
   const response = await fetch(`${API_BASE_URL}${endpoint}?${params.toString()}`);
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({
       detail: `HTTP error! Status: ${response.status}`
     }));
-    throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
+    throw new Error(errorData.detail || errorData.error || `HTTP error! Status: ${response.status}`);
   }
 
   const data = await response.json();
 
-  // Normalize response format for consistency
-  if (data.batch_id) {
-    // Batched response
+  // Normalize response format
+  if (data.batch_id || data.assets) {
     return {
       assets: data.assets,
       total_assets: data.total_assets,
       total_pages: data.total_pages,
       current_page: data.current_page,
       page_size: data.page_size,
-      batch_id: data.batch_id,
-      cache_key: data.cache_key
-    } as PaginatedAssetType & { batch_id: string; cache_key: string };
+      ...(data.batch_id && { batch_id: data.batch_id }),
+      ...(data.cache_key && { cache_key: data.cache_key })
+    } as PaginatedAssetType & { batch_id?: string; cache_key?: string };
   }
 
   return data;
@@ -60,11 +68,11 @@ const fetchAssetsPage = async ({
 
 export const useAllAssets = (type: string | null = null, enabled = true) => {
   return useInfiniteQuery<PaginatedAssetType, Error>({
-    queryKey: ['allAssets', type],
+    queryKey: ['allAssets', type, process.env.NODE_ENV],
     queryFn: ({ pageParam }) => fetchAssetsPage({
       pageParam: pageParam as number,
       type,
-      pageSize: 30,
+      pageSize: process.env.NODE_ENV === 'production' ? 50 : 30, // Larger batches in production
       useBatching: true
     }),
     initialPageParam: 1,
@@ -75,8 +83,8 @@ export const useAllAssets = (type: string | null = null, enabled = true) => {
       return undefined;
     },
     enabled,
-    staleTime: 30 * 60 * 1000, // 30 minutes
-    gcTime: 60 * 60 * 1000, // 1 hour (renamed from cacheTime)
+    staleTime: process.env.NODE_ENV === 'production' ? 5 * 60 * 1000 : 30 * 60 * 1000, // Shorter cache in prod
+    gcTime: 60 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });
@@ -276,7 +284,7 @@ export const useDeleteAsset = () => {
         const errorData = await response.json().catch(() => ({
           detail: `HTTP error! Status: ${response.status}`
         }));
-        throw new Error(errorData.detail || `Delete failed: ${response.status}`);
+        throw new Error(errorData.detail || errorData.error || `Delete failed: ${response.status}`);
       }
 
       return assetId;
@@ -339,3 +347,5 @@ export const handleDelete = async (asset: AssetType, onSuccess: () => void) => {
   }
 };
 
+// Export environment detection utility
+export const isUsingDirectMongo = () => process.env.NODE_ENV === 'production';
