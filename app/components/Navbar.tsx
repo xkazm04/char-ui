@@ -1,7 +1,7 @@
 import { useNavStore } from '@/app/store/navStore';
 import { NavTabTypes } from '@/app/types/nav';
 import { motion } from 'framer-motion';
-import { PackageIcon, PersonStandingIcon, TestTube } from 'lucide-react';
+import { PackageIcon, PersonStandingIcon } from 'lucide-react';
 import { useEffect, useCallback, memo } from 'react';
 
 type Props = {

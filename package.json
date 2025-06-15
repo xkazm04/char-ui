@@ -33,13 +33,14 @@
     "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.3.0",
     "three": "^0.176.0",
-    "zustand": "^5.0.4"
+    "zustand": "^5.0.4",
+    "@tailwindcss/postcss": "^4.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
     "@types/lodash": "^4.17.17",
     "@types/node": "^20",
+    "postcss": "^8.4.38",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-syntax-highlighter": "^15.5.13",
